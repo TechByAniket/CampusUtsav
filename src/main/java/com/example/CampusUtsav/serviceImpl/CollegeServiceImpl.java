@@ -45,10 +45,10 @@ public class CollegeServiceImpl implements CollegeService {
         String shortName = name.replaceAll("[^A-Za-z]", "")      // remove non-letters
                 .toUpperCase()
                 .replaceAll("\\s+", "")            // remove spaces
-                .substring(0, Math.min(4, name.length())); // first 4 letters
+                .substring(0, Math.min(6, name.length())); // first 4 letters
         String cityPart = city.replaceAll("[^A-Za-z]", "")
-                .toUpperCase()
-                .substring(0, Math.min(3, city.length()));
+                .toUpperCase();
+//                .substring(0, Math.min(3, city.length()));
         String districtPart = district.replaceAll("[^A-Za-z]", "")
                 .toUpperCase()
                 .substring(0, Math.min(3, district.length()));
