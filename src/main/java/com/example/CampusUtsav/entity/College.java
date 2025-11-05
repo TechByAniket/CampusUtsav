@@ -6,7 +6,10 @@ import jakarta.validation.constraints.*;
 import lombok.*;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @Entity
 @Data
@@ -87,6 +90,18 @@ public class College {
     @OneToMany(mappedBy = "college", cascade = CascadeType.ALL)
     @JsonManagedReference
     private List<Club> clubs;
+
+    @ManyToMany
+    @JoinTable(
+            name = "college_branches",
+            joinColumns = @JoinColumn(name = "college_id"),
+            inverseJoinColumns = @JoinColumn(name = "branch_id")
+    )
+    @JsonManagedReference
+    private List<Branch> branches = new ArrayList<>();
+
+    @ElementCollection
+    private Set<String> officialDomains = new HashSet<>(); // for storing official email domains of the college.(for student verification purpose)
 
     @PrePersist // Triggered automatically before a new entity is saved
     public void onCreate() {

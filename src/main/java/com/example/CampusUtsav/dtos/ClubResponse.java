@@ -39,5 +39,5 @@ public class ClubResponse {
 //    private String verificationCode;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
-    private College college;
+    private CollegeSummaryResponse college;
 }

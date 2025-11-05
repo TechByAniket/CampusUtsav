@@ -1,13 +1,16 @@
 package com.example.CampusUtsav.dtos;
 
-import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Pattern;
-import jakarta.validation.constraints.Size;
+import com.example.CampusUtsav.entity.Branch;
+import jakarta.persistence.ElementCollection;
+import jakarta.validation.constraints.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hibernate.validator.constraints.URL;
+
+import java.util.List;
+import java.util.Set;
 
 @Data
 @AllArgsConstructor
@@ -53,6 +56,17 @@ public class CollegeRegistrationRequest {
     @NotBlank(message = "Password is required")
     private String password; // plaintext for registration
 
+    @URL(message = "Invalid URL format")
     private String logoUrl;
 
+    @ElementCollection
+    @NotEmpty(message = "At least one official domain is required")
+    private Set< @Pattern(
+            regexp = "^[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$",
+            message = "Invalid domain format"
+    ) String> officialDomains;
+
+    @ElementCollection
+    @NotEmpty(message = "At least one branch is required")
+    private List<String> branches;
 }

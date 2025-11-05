@@ -3,6 +3,7 @@ package com.example.CampusUtsav.mapper;
 
 import com.example.CampusUtsav.dtos.ClubRegistrationRequest;
 import com.example.CampusUtsav.dtos.ClubResponse;
+import com.example.CampusUtsav.dtos.CollegeSummaryResponse;
 import com.example.CampusUtsav.entity.Club;
 import org.springframework.stereotype.Component;
 
@@ -30,7 +31,14 @@ public class ClubMapper {
     public ClubResponse convertToClubResponse(Club newClub){
         return ClubResponse.builder()
                 .id(newClub.getId())
-                .college(newClub.getCollege())
+                .college(CollegeSummaryResponse.builder()
+                        .id(newClub.getCollege().getId())
+                        .name(newClub.getCollege().getName())
+                        .shortForm(newClub.getCollege().getShortForm())
+                        .city(newClub.getCollege().getCity())
+                        .district(newClub.getCollege().getDistrict())
+                        .state(newClub.getCollege().getState())
+                        .build())
                 .description(newClub.getDescription())
                 .username(newClub.getUsername())
                 .shortForm(newClub.getShortForm().toUpperCase())
