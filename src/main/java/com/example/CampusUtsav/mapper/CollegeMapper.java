@@ -4,12 +4,15 @@ package com.example.CampusUtsav.mapper;
 import com.example.CampusUtsav.dtos.CollegeRegistrationRequest;
 import com.example.CampusUtsav.dtos.CollegeResponse;
 import com.example.CampusUtsav.entity.College;
+import org.springframework.stereotype.Component;
 
+@Component
 public class CollegeMapper {
     public College convertToCollegeEntity(CollegeRegistrationRequest req){
         String normalized = req.getName().trim().toLowerCase().replaceAll("\\s+", "");
         return College.builder()
                 .name(req.getName())
+                .shortForm(req.getShortForm().toUpperCase())
                 .normalizedName(normalized)
                 .adminName(req.getAdminName())
                 .address(req.getAddress())
@@ -29,6 +32,8 @@ public class CollegeMapper {
         return CollegeResponse.builder()
                 .id(college.getId())
                 .name(college.getName())
+                .username(college.getUsername())
+                .shortForm(college.getShortForm())
                 .normalizedName(college.getNormalizedName())
                 .affiliation(college.getAffiliation())
                 .adminName(college.getAdminName())

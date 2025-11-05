@@ -1,10 +1,12 @@
 package com.example.CampusUtsav.entity;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
 import lombok.*;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Entity
 @Data
@@ -16,10 +18,22 @@ import java.time.LocalDateTime;
 public class College {
 
     @Id
-    private String id;  // e.g., "3291-VJTI-MUMBAI"
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "college_sequence")
+    @SequenceGenerator(
+            name = "college_sequence",
+            sequenceName = "college_sequence",
+            initialValue = 1001,
+            allocationSize = 1
+    )
+    private Integer id;
+
+    private String username;
 
     @NotBlank(message = "College name is required")
     private String name;
+
+    @NotBlank(message = "College name short form is required")
+    private String shortForm;
 
     @Column(unique = true)
     private String normalizedName;
@@ -69,6 +83,10 @@ public class College {
     private LocalDateTime updatedAt;
     private String verificationCode; // For OTP or email link validation
     private String logoUrl;
+
+    @OneToMany(mappedBy = "college", cascade = CascadeType.ALL)
+    @JsonManagedReference
+    private List<Club> clubs;
 
     @PrePersist // Triggered automatically before a new entity is saved
     public void onCreate() {

@@ -13,11 +13,11 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
+@AllArgsConstructor
 @RequestMapping("/api/college")
 public class CollegeController {
 
-    @Autowired
-    private CollegeService collegeService;
+    private final CollegeService collegeService;
 
     @PostMapping("/register")
     public ResponseEntity<CollegeResponse> registerCollege(@RequestBody CollegeRegistrationRequest req) {

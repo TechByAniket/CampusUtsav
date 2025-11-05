@@ -18,6 +18,9 @@ public class CollegeRegistrationRequest {
     @NotBlank(message = "College name is required")
     private String name;
 
+    @NotBlank(message = "College name short form is required")
+    private String shortForm;
+
     @NotBlank(message = "College admin name is required")
     private String adminName;
 
