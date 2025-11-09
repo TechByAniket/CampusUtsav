@@ -28,6 +28,8 @@ public class EventResponse {
         private LocalDate date;
         private LocalTime startTime;
         private LocalTime endTime;
+        private boolean teamEvent;
+        private int teamSize;
         private int maxParticipants;
         private List<String> attachments;
         private List<String> tags;

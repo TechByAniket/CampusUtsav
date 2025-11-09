@@ -49,6 +49,10 @@ public class EventRequest {
     @NotNull(message = "End time is required")
     private LocalTime endTime;
 
+    private boolean teamEvent;
+
+    private int teamSize;
+
 //    @Min(value = 1, message = "Max participants must be at least 1")
     private int maxParticipants;
 

@@ -18,7 +18,7 @@ public class EventController {
 
     private final EventService eventService;
 
-    @GetMapping("/new-event")
+    @PostMapping("/new-event")
     public ResponseEntity<EventResponse> createEvent(@Valid @RequestBody EventRequest request){
         EventResponse response = eventService.createEvent(request);
 
