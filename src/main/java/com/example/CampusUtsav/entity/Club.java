@@ -1,6 +1,7 @@
 package com.example.CampusUtsav.entity;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
@@ -12,6 +13,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Entity
 @Data
@@ -90,6 +92,10 @@ public class Club {
     @JoinColumn(name = "college_id", nullable = false)
     @JsonBackReference
     private College college;
+
+    @OneToMany(mappedBy = "club", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonManagedReference
+    private List<Event> events;
 
     @PrePersist
     public void onCreate() {

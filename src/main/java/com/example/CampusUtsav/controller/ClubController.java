@@ -9,6 +9,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @AllArgsConstructor
 @RequestMapping("/api")
@@ -22,4 +24,12 @@ public class ClubController {
         ClubResponse response = clubService.registerClub(request, collegeId);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
+
+    @GetMapping("/college/{collegeId}/clubs")
+    public ResponseEntity<List<ClubResponse>> getAllClubsByCollege(@PathVariable int collegeId){
+        List<ClubResponse> response = clubService.getAllClubsByCollege(collegeId);
+        return ResponseEntity.status(HttpStatus.OK).body(response);
+    }
+
+
 }
