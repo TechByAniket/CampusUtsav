@@ -6,6 +6,7 @@ import com.example.CampusUtsav.entity.Student;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Optional;
 
 @Repository
@@ -14,4 +15,8 @@ public interface EventRegistrationRepository extends JpaRepository<EventRegistra
 
 //    EventRegistration findByInviteCode(String inviteCode);
     Optional<EventRegistration> findByInviteCode(String inviteCode);
+
+    List<EventRegistration> findAllByEvent_Id(Integer eventId);
+
+    boolean existsByEvent_IdAndStudent_Id(Integer eventId, Integer studentId);
 }

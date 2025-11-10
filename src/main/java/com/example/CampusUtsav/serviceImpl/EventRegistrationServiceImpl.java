@@ -2,16 +2,10 @@ package com.example.CampusUtsav.serviceImpl;
 
 import com.example.CampusUtsav.dtos.EventRegistrationRequest;
 import com.example.CampusUtsav.dtos.EventRegistrationResponse;
-import com.example.CampusUtsav.entity.Event;
-import com.example.CampusUtsav.entity.EventMemberRegistration;
-import com.example.CampusUtsav.entity.EventRegistration;
-import com.example.CampusUtsav.entity.Student;
+import com.example.CampusUtsav.entity.*;
 import com.example.CampusUtsav.mapper.EventMemberRegistrationMapper;
 import com.example.CampusUtsav.mapper.EventRegistrationMapper;
-import com.example.CampusUtsav.repository.EventMemberRegistrationRepository;
-import com.example.CampusUtsav.repository.EventRegistrationRepository;
-import com.example.CampusUtsav.repository.EventRepository;
-import com.example.CampusUtsav.repository.StudentRepository;
+import com.example.CampusUtsav.repository.*;
 import com.example.CampusUtsav.service.EventRegistrationService;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
@@ -22,7 +16,9 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 @AllArgsConstructor
@@ -34,7 +30,7 @@ public class EventRegistrationServiceImpl implements EventRegistrationService {
     private final EventRegistrationMapper eventRegistrationMapper;
     private final EventMemberRegistrationRepository eventMemberRegistrationRepository;
     private final EventMemberRegistrationMapper eventMemberRegistrationMapper;
-
+    private final CollegeRepository collegeRepository;
 
 
     @Override
@@ -47,9 +43,21 @@ public class EventRegistrationServiceImpl implements EventRegistrationService {
                 .orElseThrow(()-> new EntityNotFoundException("Student Not Found!"));
 
         // check: if student already registered for this event
-        boolean isAlreadyRegistered = eventRegistrationRepository.existsByEventAndStudent(linkedEvent, registeredStudent);
-        if(isAlreadyRegistered){
-            throw new BadRequestException("You have already registered for the same event");
+//        boolean isAlreadyRegistered = eventRegistrationRepository.existsByEventAndStudent(linkedEvent, registeredStudent);
+
+
+//        if(isAlreadyRegistered){
+//            throw new BadRequestException("You have already registered for the same event");
+//        }
+
+        // 1. check: student already has a registration (anywhere) for this event
+        if (eventRegistrationRepository.existsByEvent_IdAndStudent_Id(eventId, registeredStudent.getId())) {
+            throw new BadRequestException("Student already registered for this event");
+        }
+
+        // 2. check: student already a member of some team for this event
+        if (eventMemberRegistrationRepository.existsByStudent_IdAndLinkedEvent_Event_Id(registeredStudent.getId(), eventId)) {
+            throw new BadRequestException("Student already part of a team for this event");
         }
 
         List<Student> allTeamMembers = studentRepository.findAllById(request.getTeamMemberIds());
@@ -93,11 +101,12 @@ public class EventRegistrationServiceImpl implements EventRegistrationService {
         EventRegistration linkedEventRegistration = eventRegistrationRepository.findByInviteCode(inviteCode)
                 .orElseThrow(()-> new EntityNotFoundException("Invalid Invite Code or Invite Code doesn't exist"));
 
+        Integer eventId = linkedEventRegistration.getEvent().getId();
         // ensure this registration was created for a team
         if(!"team".equalsIgnoreCase(linkedEventRegistration.getRegistrationType())){
             throw new BadRequestException("The event is not a team event");
         }
-
+// ====================CHECK IF EVENT ALLOWS CROSS BRANCH TEAM OR BRANCH SPECIFIC TEAMS ==============================
         if(linkedEventRegistration.getInviteExpiresAt().isBefore(LocalDateTime.now())){
             throw new BadRequestException("Invite has expired!");
         }
@@ -107,12 +116,27 @@ public class EventRegistrationServiceImpl implements EventRegistrationService {
 
         // this will just check if the teamMember already in the team or not
         // it will just pass the eventRegistration details that was registered by first person of team (leader)
-        boolean isAlreadyRegistered = eventMemberRegistrationRepository.existsByLinkedEventAndStudent(linkedEventRegistration, teamMember);
+//        boolean isAlreadyRegistered = eventMemberRegistrationRepository.existsByLinkedEventAndStudent(linkedEventRegistration, teamMember);
 
         // this will pass the event for which the team is registering,
         // so by getting that event, we can scan all the teams for that received event
         // and check if teamMember matches the same event or not in any other team
-        boolean isInAnotherTeam = eventMemberRegistrationRepository.existsByStudentInOtherTeam(linkedEventRegistration.getEvent(),teamMember);
+//        boolean isInAnotherTeam = eventMemberRegistrationRepository.existsByStudentInOtherTeam(linkedEventRegistration.getEvent(),teamMember);
+
+        // 1. check: student already member of THIS team
+        if (eventMemberRegistrationRepository.existsByLinkedEventAndStudent(linkedEventRegistration, teamMember)) {
+            throw new BadRequestException("Student already in this team");
+        }
+
+        // 2. check: student is member in another team for same event
+        if (eventMemberRegistrationRepository.existsByStudent_IdAndLinkedEvent_Event_Id(studentId, eventId)) {
+            throw new BadRequestException("Student already part of another team for this event");
+        }
+
+        // 3. check: student is already registered (event_registration) for this event
+        if (eventRegistrationRepository.existsByEvent_IdAndStudent_Id(eventId, studentId)) {
+            throw new BadRequestException("Student already registered for this event");
+        }
 
         // checking if the team is exceeding the team size
         Integer maxTeamSize = linkedEventRegistration.getEvent().getTeamSize();
@@ -139,5 +163,36 @@ public class EventRegistrationServiceImpl implements EventRegistrationService {
                 .orElseThrow(()-> new EntityNotFoundException("Registration disappeared"));
 
         return eventRegistrationMapper.toMemberResponse(updated);
+    }
+
+    @Override
+    public List<EventRegistrationResponse> getAllRegistrationsOfEvent(Integer collegeId, Integer eventId) throws BadRequestException {
+
+        Event linkedEvent = eventRepository.findById(eventId)
+                .orElseThrow(()-> new EntityNotFoundException("Event not Found!"));
+
+        if (linkedEvent.getClub() == null || linkedEvent.getClub().getCollege() == null) {
+            throw new BadRequestException("Event does not have a valid club/college association.");
+        }
+
+        if(!Objects.equals(linkedEvent.getClub().getCollege().getId(),collegeId)){
+            throw new BadRequestException("The Event does not belongs to specified college!");
+        }
+
+        //Go into the event field of the current entity (EventRegistration),
+        //then look inside that Event entity for its id field,
+        //and filter by that.
+        List<EventRegistration> allRegistrationsOfEvent = eventRegistrationRepository.findAllByEvent_Id(eventId);
+
+        if (linkedEvent.isTeamEvent()){
+
+            return allRegistrationsOfEvent.stream()
+                    .map(eventRegistrationMapper :: toListTeamParticipantsResponse)
+                    .collect(Collectors.toList());
+        }
+
+        return allRegistrationsOfEvent.stream()
+                .map(eventRegistrationMapper :: toListIndividualParticipantsResponse)
+                .collect(Collectors.toList());
     }
 }

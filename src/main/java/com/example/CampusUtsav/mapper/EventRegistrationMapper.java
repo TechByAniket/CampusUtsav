@@ -22,6 +22,7 @@ public class EventRegistrationMapper {
                                                               List<Student> allTeamMembers){
          EventRegistration registration = EventRegistration.builder()
                 .event(linkedEvent)
+
                 .student(registeredStudent)
                 .registrationType(req.getRegistrationType())
                 .teamName(req.getTeamName())
@@ -32,6 +33,7 @@ public class EventRegistrationMapper {
         List<EventMemberRegistration> members = allTeamMembers.stream()
                 .map(curMember->EventMemberRegistration.builder()
                         .linkedEvent(registration)
+                        .event(registration.getEvent())
                         .student(curMember)
                         .build())
                 .toList();
@@ -92,6 +94,27 @@ public class EventRegistrationMapper {
                 .teamMembers(reg.getTeamMembers().stream()
                         .map(curMember -> StudentSummary.from(curMember.getStudent()))
                         .collect(Collectors.toList()))
+                .build();
+    }
+
+    public EventRegistrationResponse toListIndividualParticipantsResponse(EventRegistration entry){
+        return EventRegistrationResponse.builder()
+                .id(entry.getId())
+                .student(StudentSummary.from(entry.getStudent()))
+                .event(EventSummary.from(entry.getEvent()))
+                .build();
+    }
+
+    public EventRegistrationResponse toListTeamParticipantsResponse(EventRegistration entry){
+        return EventRegistrationResponse.builder()
+                .id(entry.getId())
+                .teamName(entry.getTeamName())
+                .student(StudentSummary.from(entry.getStudent()))
+                .teamMembers(entry.getTeamMembers() == null ? List.of() :
+                        entry.getTeamMembers().stream()
+                                .map(curMember -> StudentSummary.from(curMember.getStudent()))
+                                .collect(Collectors.toList()))
+                .event(EventSummary.from(entry.getEvent()))
                 .build();
     }
 }

@@ -13,6 +13,8 @@ import org.springframework.stereotype.Repository;
 public interface EventMemberRegistrationRepository extends JpaRepository<EventMemberRegistration, Integer> {
 
     boolean existsByLinkedEventAndStudent(EventRegistration linkedEventRegistration, Student teamMember);
+    // check whether student is a member in any registration for same event
+    boolean existsByStudent_IdAndLinkedEvent_Event_Id(Integer studentId, Integer eventId);
 
 //    boolean existsByLinkedEventAndStudent(EventRegistration event, Student teamMember);
 

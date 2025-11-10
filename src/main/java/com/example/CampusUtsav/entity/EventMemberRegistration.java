@@ -14,7 +14,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @Builder
 @Table(name = "event_member_registration", uniqueConstraints = {
-        @UniqueConstraint(columnNames = {"registration_id", "student_id"}, name = "uk_registration_student")
+        @UniqueConstraint(columnNames = {"event_id", "student_id"}, name = "uk_registration_student")
 })
 public class EventMemberRegistration {
 
@@ -25,6 +25,10 @@ public class EventMemberRegistration {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "registration_id", nullable = false)
     private EventRegistration linkedEvent;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "event_id", nullable = false)
+    private Event event;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "student_id", nullable = false)

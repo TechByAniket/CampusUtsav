@@ -12,6 +12,7 @@ public class EventMemberRegistrationMapper {
     public EventMemberRegistration convertToLeader(EventRegistration registeredEvent, Student registeredStudent){
         return EventMemberRegistration.builder()
                 .linkedEvent(registeredEvent)
+                .event(registeredEvent.getEvent())
                 .student(registeredStudent)
                 .isLeader(true)
                 .build();
@@ -20,6 +21,7 @@ public class EventMemberRegistrationMapper {
     public EventMemberRegistration convertToMember(EventRegistration registeredEvent, Student registeredStudent){
         return EventMemberRegistration.builder()
                 .linkedEvent(registeredEvent)
+                .event(registeredEvent.getEvent())
                 .student(registeredStudent)
                 .isLeader(false)
                 .build();

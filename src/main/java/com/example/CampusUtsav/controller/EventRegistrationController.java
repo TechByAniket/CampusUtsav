@@ -11,6 +11,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @AllArgsConstructor
 @RequestMapping("/api")
@@ -22,6 +24,14 @@ public class EventRegistrationController {
     public ResponseEntity<EventRegistrationResponse> registerForEvent(@Valid @PathVariable Integer eventId,
                                                                       @RequestBody EventRegistrationRequest request) throws BadRequestException {
         EventRegistrationResponse response = eventRegistrationService.registerForEvent(eventId, request);
+        return ResponseEntity.status(HttpStatus.OK).body(response);
+    }
+
+    @GetMapping("/colleges/{collegeId}/events/{eventId}/registrations")
+    public ResponseEntity<List<EventRegistrationResponse>> getAllRegistrationsOfEvent(@PathVariable Integer collegeId,
+                                                                                      @PathVariable Integer eventId)
+                                                                                        throws BadRequestException {
+        List<EventRegistrationResponse> response = eventRegistrationService.getAllRegistrationsOfEvent(collegeId, eventId);
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 }

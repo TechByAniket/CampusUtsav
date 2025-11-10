@@ -22,7 +22,8 @@ import java.util.List;
         name = "event_registration",
         indexes = {
                 @Index(columnList = "inviteCode", name = "idx_event_registration_invite_code")
-        }
+        },
+        uniqueConstraints = @UniqueConstraint(columnNames = {"event_id", "student_id"})
 )
 public class EventRegistration {
 
@@ -66,7 +67,7 @@ public class EventRegistration {
     private LocalDateTime inviteExpiresAt;
 
     // === Team members for Team Events ===
-    @OneToMany(mappedBy = "linkedEvent" , cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "linkedEvent" , fetch = FetchType.EAGER, cascade = CascadeType.ALL, orphanRemoval = true)
     private List<EventMemberRegistration> teamMembers;
 
     // === Timestamps ===

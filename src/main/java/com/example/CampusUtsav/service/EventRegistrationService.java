@@ -6,10 +6,14 @@ import com.example.CampusUtsav.entity.EventRegistration;
 import jakarta.transaction.Transactional;
 import org.apache.coyote.BadRequestException;
 
+import java.util.List;
+
 public interface EventRegistrationService {
     @Transactional
     EventRegistrationResponse registerForEvent(Integer eventId, EventRegistrationRequest request) throws BadRequestException;
 
     @Transactional
     EventRegistrationResponse joinTeamByInviteLink(String inviteCode, Integer studentId) throws BadRequestException;
+
+    List<EventRegistrationResponse> getAllRegistrationsOfEvent (Integer collegeId, Integer eventId) throws BadRequestException;
 }
