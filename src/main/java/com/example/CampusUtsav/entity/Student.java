@@ -17,6 +17,11 @@ import java.time.LocalTime;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
+@Table(
+        uniqueConstraints = {
+                @UniqueConstraint(columnNames = {"college_id", "branch_id", "year", "division", "roll_no"})
+        }
+)
 public class Student {
 
     @Id
@@ -49,14 +54,14 @@ public class Student {
 
     @NotNull(message = "Roll number is required")
 //    @Pattern(regexp = "^[A-Za-z0-9-]+$", message = "Invalid roll number format")
-    private int rollNo;
+    private Integer rollNo;
 
     @Min(value = 1, message = "Year must be at least 1")
     @Max(value = 4, message = "Year cannot exceed 4")
     private int year;
 
     @NotBlank(message = "Division is required")
-    @Pattern(regexp = "^[A-Za-z]+$", message = "Division must contain only letters")
+    @Pattern(regexp = "^[A-Za-z0-9-]+$", message = "Division must contain only letters/numbers/hyphen")
     private String division;
 
     @Min(value = 2000, message = "Admission year must be valid")
@@ -89,6 +94,10 @@ public class Student {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "branch_id")
     private Branch branch;
+
+    @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
+    @JoinColumn(name = "user_id")
+    private User user;
 
     @PrePersist // Triggered automatically before a new entity is saved
     public void onCreate() {

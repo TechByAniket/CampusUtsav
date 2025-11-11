@@ -70,6 +70,9 @@ public class EventRegistration {
     @OneToMany(mappedBy = "linkedEvent" , fetch = FetchType.EAGER, cascade = CascadeType.ALL, orphanRemoval = true)
     private List<EventMemberRegistration> teamMembers;
 
+    @Column(columnDefinition = "TEXT") //   Feedback might be long, thus using 'TEXT'
+    private String feedback;
+
     // === Timestamps ===
     private LocalDateTime registeredAt;
     private LocalDateTime updatedAt;

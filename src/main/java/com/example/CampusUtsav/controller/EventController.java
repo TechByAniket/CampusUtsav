@@ -25,7 +25,6 @@ public class EventController {
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
-
     @GetMapping("/types")
     public ResponseEntity<List<String>> getAllEventTypes(){
         List<String> eventTypes = eventService.getAllEventTypes();

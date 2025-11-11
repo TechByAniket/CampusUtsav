@@ -11,6 +11,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hibernate.validator.constraints.URL;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -20,6 +21,11 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
+@Table(
+        uniqueConstraints = {
+                @UniqueConstraint(columnNames = {"college_id", "name", "short_form"})
+        }
+)
 public class Club {
 
     @Id
@@ -33,6 +39,9 @@ public class Club {
     private Integer id;
 
     private String username;
+
+    @NotBlank(message = "Short form is required")
+    @Column(length = 20)
     private String shortForm;
 
     @NotBlank(message = "Club/Committee/Society/Chapter name is required")
@@ -67,15 +76,28 @@ public class Club {
 
     private String logoUrl;
 
-    @NotBlank(message = "Website URL is required")
+//    @NotBlank(message = "Website URL is required")
     @Size(max = 255, message = "Website URL too long")
     @Column(unique = true)
+    @URL(protocol = "https",
+            message = "Invalid URL format")
     private String websiteUrl;
 
-    @NotBlank(message = "Website URL is required")
-    @Size(max = 255, message = "Website URL too long")
+    @NotBlank(message = "Instagram Page URL is required")
+    @Size(max = 255, message = "Instagram Page URL too long")
     @Column(unique = true)
+    @URL(protocol = "https"
+            ,host = "www.instagram.com",
+            message = "Invalid URL format")
     private String instagramUrl;
+
+//    @NotBlank(message = "LinkedIn Page URL is required")
+//    @Size(max = 255, message = "LinkedIn Page URL too long")
+    @Column(unique = true)
+    @URL(protocol = "https",
+            host = "www.linkedin.com",
+            message = "Invalid URL format")
+    private String linkedInUrl;
 
     @Column(nullable = false, columnDefinition = "BOOLEAN DEFAULT FALSE")
     private boolean emailVerified = false;
@@ -96,6 +118,10 @@ public class Club {
     @OneToMany(mappedBy = "club", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonManagedReference
     private List<Event> events;
+
+    @OneToOne(cascade = CascadeType.ALL)
+    @JoinColumn(name = "user_id")
+    private User user;
 
     @PrePersist
     public void onCreate() {

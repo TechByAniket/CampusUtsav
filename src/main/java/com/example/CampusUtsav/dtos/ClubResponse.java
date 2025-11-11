@@ -34,6 +34,7 @@ public class ClubResponse {
     private String logoUrl;
     private String websiteUrl;
     private String instagramUrl;
+    private String linkedInUrl;
     private boolean emailVerified;
     private boolean phoneVerified;
 //    private String verificationCode;

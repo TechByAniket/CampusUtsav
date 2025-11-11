@@ -18,7 +18,8 @@ public class ClubMapper {
                 .shortForm(req.getShortForm())
 //                .college
                 .description(req.getDescription())
-                .logoUrl(req.getLogoUrl())
+//                .logoUrl(req.getLogoUrl())
+                .linkedInUrl(req.getLinkedInUrl())
                 .name(req.getName())
                 .instagramUrl(req.getInstagramUrl())
                 .facultyCoordinatorName(req.getFacultyCoordinatorName())
@@ -47,6 +48,7 @@ public class ClubMapper {
                 .adminName(newClub.getAdminName())
                 .facultyCoordinatorEmail(newClub.getFacultyCoordinatorEmail())
                 .instagramUrl(newClub.getInstagramUrl())
+                .linkedInUrl(newClub.getLinkedInUrl())
                 .logoUrl(newClub.getLogoUrl())
                 .name(newClub.getName())
                 .facultyCoordinatorName(newClub.getFacultyCoordinatorName())

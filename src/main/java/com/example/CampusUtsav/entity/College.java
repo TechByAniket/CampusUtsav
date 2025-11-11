@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
 import lombok.*;
+import org.hibernate.validator.constraints.URL;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -59,6 +60,8 @@ public class College {
     @NotBlank(message = "Website URL is required")
     @Size(max = 255, message = "Website URL too long")
     @Column(unique = true)
+    @URL(host = "https",
+            message = "Invalid URL format")
     private String websiteUrl;
 
     @NotBlank(message = "Affiliation status is required")
@@ -102,6 +105,11 @@ public class College {
 
     @ElementCollection
     private Set<String> officialDomains = new HashSet<>(); // for storing official email domains of the college.(for student verification purpose)
+
+    @OneToOne(cascade = CascadeType.ALL)
+    @JoinColumn(name = "user_id")
+    private User user;
+
 
     @PrePersist // Triggered automatically before a new entity is saved
     public void onCreate() {

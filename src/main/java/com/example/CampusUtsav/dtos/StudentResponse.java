@@ -17,7 +17,7 @@ public class StudentResponse {
     private String username;
     private String email;
     private String phone;
-    private int rollNo;
+    private Integer rollNo;
     private String branch;
     private int year;
     private String division;

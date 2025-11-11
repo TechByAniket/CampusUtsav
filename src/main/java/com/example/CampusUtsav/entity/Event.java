@@ -13,6 +13,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
+import org.hibernate.validator.constraints.URL;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -25,6 +26,14 @@ import java.util.Map;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
+@Table(
+        uniqueConstraints = {
+                @UniqueConstraint(
+                        name = "unique_event_per_club_date_title",
+                        columnNames = {"club_id", "normalized_title"}
+                )
+        }
+)
 public class Event {
 
     @Id
@@ -76,7 +85,11 @@ public class Event {
     @Enumerated(EnumType.STRING)
     private EventStatus status;
 
-    private String registrationLink; // optional
+    @URL(protocol = "http",
+            message = "Invalid URL format")
+    @Column(nullable = true)
+    private String registrationLink;
+
 
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(columnDefinition = "jsonb")
@@ -94,6 +107,11 @@ public class Event {
 
     private boolean isFeatured = false;
     private boolean isActive = true;
+
+    @OneToOne(cascade = CascadeType.ALL)
+    @JoinColumn(name = "user_id")
+    private User user;
+
 
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
