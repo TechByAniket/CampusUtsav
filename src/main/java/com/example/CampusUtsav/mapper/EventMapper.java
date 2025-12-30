@@ -31,7 +31,7 @@ public class EventMapper {
                 .status(req.getStatus())
                 .registrationLink(req.getRegistrationLink())
                 .contactDetails(req.getContactDetails())
-                .extraInfo(req.getExtraInfo())
+//                .extraInfo(req.getExtraInfo())
                 .club(linkedClub)
                 .build();
     }
@@ -55,7 +55,7 @@ public class EventMapper {
                 .status(event.getStatus())
                 .registrationLink(event.getRegistrationLink())
                 .contactDetails(event.getContactDetails())
-                .extraInfo(event.getExtraInfo())
+//                .extraInfo(event.getExtraInfo())
                 .club(event.getClub())
                 .isFeatured(event.isFeatured())
                 .isActive(event.isActive())

@@ -61,7 +61,7 @@ public class ClubServiceImpl implements ClubService {
     }
 
     @Override
-    public List<ClubResponse> getAllClubsByCollege(int collegeId){
+    public List<ClubResponse> getAllClubsByCollege(Integer collegeId){
         College linkedCollege = collegeRepository.findById(collegeId)
                 .orElseThrow(()-> new EntityNotFoundException("College Not Found!"));
 

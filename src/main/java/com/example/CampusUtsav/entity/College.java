@@ -60,8 +60,7 @@ public class College {
     @NotBlank(message = "Website URL is required")
     @Size(max = 255, message = "Website URL too long")
     @Column(unique = true)
-    @URL(host = "https",
-            message = "Invalid URL format")
+    @URL(message = "Invalid URL format")
     private String websiteUrl;
 
     @NotBlank(message = "Affiliation status is required")

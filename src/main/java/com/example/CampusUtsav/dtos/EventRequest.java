@@ -10,6 +10,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hibernate.validator.constraints.URL;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -62,13 +63,13 @@ public class EventRequest {
 
     private EventStatus status; // optional, backend can default to PENDING
 
-    @Pattern(regexp = "^(https?://.+)?$", message = "Registration link must be a valid URL")
+    @URL(message = "Registration link must be a valid URL")
     private String registrationLink;
 
     private Map<@NotBlank(message = "Contact name cannot be blank") String,
                 @Pattern(regexp = "\\d{10}", message = "Contact number must be 10 digits") String> contactDetails;
 
-    private String extraInfo; // optional, JSON as string
+//    private String extraInfo; // optional, JSON as string
 
     @NotNull(message = "Club ID is required")
     private Integer clubId; // just the club id from frontend

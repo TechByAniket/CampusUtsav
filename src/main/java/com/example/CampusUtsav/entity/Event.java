@@ -85,8 +85,7 @@ public class Event {
     @Enumerated(EnumType.STRING)
     private EventStatus status;
 
-    @URL(protocol = "http",
-            message = "Invalid URL format")
+    @URL(message = "Invalid URL format")
     @Column(nullable = true)
     private String registrationLink;
 

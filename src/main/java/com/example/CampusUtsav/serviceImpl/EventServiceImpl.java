@@ -12,15 +12,20 @@ import com.example.CampusUtsav.repository.ClubRepository;
 import com.example.CampusUtsav.repository.CollegeRepository;
 import com.example.CampusUtsav.repository.EventRepository;
 import com.example.CampusUtsav.service.EventService;
+import com.example.CampusUtsav.service.SupabaseService;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @AllArgsConstructor
@@ -30,6 +35,7 @@ public class EventServiceImpl implements EventService {
     private final CollegeRepository collegeRepository;
     private final EventRepository eventRepository;
     private final EventMapper eventMapper;
+    private final SupabaseService supabaseService;
 
     @Override
     public List<String> getAllEventTypes() {
@@ -47,7 +53,7 @@ public class EventServiceImpl implements EventService {
 
     @Override
     @Transactional
-    public EventResponse createEvent(EventRequest request) {
+    public EventResponse createEvent(EventRequest request, MultipartFile file) {
         Club linkedClub = clubRepository.findById(request.getClubId())
                 .orElseThrow(()-> new EntityNotFoundException("Club Not Found"));
 
@@ -64,9 +70,17 @@ public class EventServiceImpl implements EventService {
 //        College linkedCollege = collegeRepository.findById(linkedClub.getCollege().getId())
 //                .orElseThrow(()-> new EntityNotFoundException("College Not Found!"));
 
+        String posterUrl = supabaseService.uploadFile(file);
+        if(posterUrl.isEmpty()){
+            throw new ResponseStatusException(
+                    HttpStatus.INTERNAL_SERVER_ERROR,
+                    "Failed to upload event poster"
+            );
+        }
         Event newEvent = eventMapper.convertToEventEntity(request, linkedCollege, linkedClub);
 
         newEvent = eventRepository.save(newEvent);
+        newEvent.setPosterUrl(posterUrl);
 
         return eventMapper.convertToEventResponse(newEvent);
     }

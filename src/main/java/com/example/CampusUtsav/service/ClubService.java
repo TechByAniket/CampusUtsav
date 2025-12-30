@@ -8,5 +8,5 @@ import java.util.List;
 public interface ClubService {
     ClubResponse registerClub(ClubRegistrationRequest request, int collegeId);
 
-    List<ClubResponse> getAllClubsByCollege(int collegeId);
+    List<ClubResponse> getAllClubsByCollege(Integer collegeId);
 }

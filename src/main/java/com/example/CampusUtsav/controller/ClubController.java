@@ -18,18 +18,16 @@ public class ClubController {
 
     private final ClubService clubService;
 
-    @PostMapping("/college/{collegeId}/club/register")
+    @PostMapping("/colleges/{collegeId}/clubs/register")
     public ResponseEntity<ClubResponse> registerClub(@RequestBody ClubRegistrationRequest request,
                                                      @PathVariable int collegeId ) {
         ClubResponse response = clubService.registerClub(request, collegeId);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
-    @GetMapping("/college/{collegeId}/clubs")
-    public ResponseEntity<List<ClubResponse>> getAllClubsByCollege(@PathVariable int collegeId){
+    @GetMapping("/colleges/{collegeId}/clubs")
+    public ResponseEntity<List<ClubResponse>> getAllClubsByCollege(@PathVariable Integer collegeId){
         List<ClubResponse> response = clubService.getAllClubsByCollege(collegeId);
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
-
-
 }
