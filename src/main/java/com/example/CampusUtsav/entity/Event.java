@@ -89,7 +89,6 @@ public class Event {
     @Column(nullable = true)
     private String registrationLink;
 
-
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(columnDefinition = "jsonb")
     private Map<String, String> contactDetails; // optional

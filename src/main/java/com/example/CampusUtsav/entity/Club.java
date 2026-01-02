@@ -71,7 +71,7 @@ public class Club {
     private String passwordHash;
 
     @NotBlank(message = "Club description is required")
-    @Column(length = 1500)
+//    @Column(length = 1500)
     private String description;
 
     private String logoUrl;
@@ -79,24 +79,24 @@ public class Club {
 //    @NotBlank(message = "Website URL is required")
     @Size(max = 255, message = "Website URL too long")
     @Column(unique = true)
-    @URL(protocol = "https",
-            message = "Invalid URL format")
+//    @URL(protocol = "https",
+//            message = "Invalid URL format")
     private String websiteUrl;
 
     @NotBlank(message = "Instagram Page URL is required")
     @Size(max = 255, message = "Instagram Page URL too long")
     @Column(unique = true)
-    @URL(protocol = "https"
-            ,host = "www.instagram.com",
-            message = "Invalid URL format")
+//    @URL(protocol = "https"
+//            ,host = "www.instagram.com",
+//            message = "Invalid URL format")
     private String instagramUrl;
 
 //    @NotBlank(message = "LinkedIn Page URL is required")
 //    @Size(max = 255, message = "LinkedIn Page URL too long")
     @Column(unique = true)
-    @URL(protocol = "https",
-            host = "www.linkedin.com",
-            message = "Invalid URL format")
+//    @URL(protocol = "https",
+//            host = "www.linkedin.com",
+//            message = "Invalid URL format")
     private String linkedInUrl;
 
     @Column(nullable = false, columnDefinition = "BOOLEAN DEFAULT FALSE")
@@ -120,7 +120,7 @@ public class Club {
     private List<Event> events;
 
     @OneToOne(cascade = CascadeType.ALL)
-    @JoinColumn(name = "user_id")
+    @JoinColumn(name = "user_id", nullable = false, unique = true)
     private User user;
 
     @PrePersist

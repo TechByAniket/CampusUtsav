@@ -56,8 +56,8 @@ public class CollegeRegistrationRequest {
     @NotBlank(message = "Password is required")
     private String password; // plaintext for registration
 
-    @URL(message = "Invalid URL format")
-    private String logoUrl;
+//    @URL(message = "Invalid URL format")
+//    private String logoUrl;
 
     @ElementCollection
     @NotEmpty(message = "At least one official domain is required")

@@ -12,12 +12,17 @@ import com.example.CampusUtsav.repository.BranchRepository;
 import com.example.CampusUtsav.repository.CollegeRepository;
 import com.example.CampusUtsav.repository.UserRepository;
 import com.example.CampusUtsav.service.CollegeService;
+import com.example.CampusUtsav.service.SupabaseService;
 import com.example.CampusUtsav.utils.CollegeUtils;
 import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -34,9 +39,10 @@ public class CollegeServiceImpl implements CollegeService {
     private final CollegeUtils collegeUtils;
     private final PasswordEncoder passwordEncoder;
     private final UserRepository userRepository;
+    private final SupabaseService supabaseService;
 
     @Override
-    public CollegeResponse registerCollege(CollegeRegistrationRequest req) {
+    public CollegeResponse registerCollege(CollegeRegistrationRequest req, MultipartFile file) {
 
         String normalized = req.getName().trim().toLowerCase().replaceAll("\\s+", "");
 
@@ -50,6 +56,14 @@ public class CollegeServiceImpl implements CollegeService {
 
         if ((collegeRepository.existsByNameIgnoreCase(req.getName())) || (collegeRepository.existsByNormalizedName(normalized))) {
             throw new IllegalArgumentException("College already registered");
+        }
+
+        String logoUrl = supabaseService.uploadFile(file);
+        if(logoUrl.isEmpty()){
+            throw new ResponseStatusException(
+                    HttpStatus.INTERNAL_SERVER_ERROR,
+                    "Failed to upload logo"
+            );
         }
 
         College newCollege = collegeMapper.convertToCollegeEntity(req);
@@ -69,14 +83,14 @@ public class CollegeServiceImpl implements CollegeService {
                 .passwordHash(encodedPassword)
                 .role(Role.ROLE_COLLEGE)
                 .build();
-
+        
         userRepository.save(user);
 
-        // Linking with corresponding entity
         newCollege.setUser(user);
-
-        newCollege = collegeRepository.save(newCollege);
         newCollege.setPasswordHash(encodedPassword);
+        newCollege.setLogoUrl(logoUrl);
+
+        collegeRepository.save(newCollege);
 
         return collegeMapper.convertToCollegeResponse(newCollege);
     }

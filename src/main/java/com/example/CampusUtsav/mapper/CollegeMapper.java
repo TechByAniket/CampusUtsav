@@ -25,7 +25,7 @@ public class CollegeMapper {
                 .affiliation(req.getAffiliation())
                 .passwordHash(req.getPassword())
                 .officialDomains(req.getOfficialDomains())
-                .logoUrl(req.getLogoUrl())
+//                .logoUrl(req.getLogoUrl())
                 .build();
     }
 

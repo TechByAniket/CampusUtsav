@@ -12,11 +12,16 @@ import com.example.CampusUtsav.repository.ClubRepository;
 import com.example.CampusUtsav.repository.CollegeRepository;
 import com.example.CampusUtsav.repository.UserRepository;
 import com.example.CampusUtsav.service.ClubService;
+import com.example.CampusUtsav.service.SupabaseService;
 import com.example.CampusUtsav.utils.ClubUtils;
 import jakarta.persistence.EntityNotFoundException;
+import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 
@@ -30,12 +35,22 @@ public class ClubServiceImpl implements ClubService {
     private final ClubUtils clubUtils;
     private final PasswordEncoder passwordEncoder;
     private final UserRepository userRepository;
+    private final SupabaseService supabaseService;
 
     @Override
-    public ClubResponse registerClub(ClubRegistrationRequest request, int collegeId) {
+    @Transactional
+    public ClubResponse registerClub(ClubRegistrationRequest request, int collegeId, MultipartFile logoFile) {
 //      Find the college from DB
         College linkedCollege = collegeRepository.findById(collegeId)
                                 .orElseThrow(()-> new EntityNotFoundException("College Not Found!"));
+
+        String logoUrl = supabaseService.uploadFile(logoFile);
+        if(logoUrl.isEmpty()){
+            throw new ResponseStatusException(
+                    HttpStatus.INTERNAL_SERVER_ERROR,
+                    "Failed to upload logo"
+            );
+        }
 
 //      Convert the request into the entity
         Club newClub = clubMapper.convertToClubEntity(request);
@@ -53,9 +68,10 @@ public class ClubServiceImpl implements ClubService {
 
         // Linking with corresponding entity
         newClub.setUser(user);
-
-        newClub = clubRepository.save(newClub);
         newClub.setPasswordHash(encodedPassword);
+        newClub.setLogoUrl(logoUrl);
+
+        clubRepository.save(newClub);
 
         return clubMapper.convertToClubResponse(newClub);
     }
