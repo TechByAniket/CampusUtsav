@@ -41,7 +41,11 @@ public class SecurityConfig {
                 .and()
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/auth/**", "/api/college/register", "/api/student/register").permitAll()
+                        .requestMatchers("/api/auth/**",
+                                "/api/college/register",
+                                "/api/student/register",
+                                "/api/events/categories-types")
+                        .permitAll()
                         .anyRequest().authenticated()
                 )
                 .userDetailsService(customUserDetailsService)

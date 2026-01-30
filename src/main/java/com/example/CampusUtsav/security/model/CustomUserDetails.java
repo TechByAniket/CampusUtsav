@@ -20,6 +20,10 @@ public class CustomUserDetails implements UserDetails {
         return Collections.singleton(new SimpleGrantedAuthority(user.getRole().name()));
     }
 
+    public Long getId(){
+        return user.getId();
+    }
+
     @Override
     public String getPassword(){
         return user.getPasswordHash();

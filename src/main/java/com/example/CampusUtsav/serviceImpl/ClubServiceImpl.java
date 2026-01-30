@@ -3,6 +3,7 @@ package com.example.CampusUtsav.serviceImpl;
 import com.example.CampusUtsav.dtos.ClubRegistrationRequest;
 import com.example.CampusUtsav.dtos.ClubResponse;
 import com.example.CampusUtsav.dtos.CollegeResponse;
+import com.example.CampusUtsav.dtos.miniDtos.ClubSummary;
 import com.example.CampusUtsav.entity.Club;
 import com.example.CampusUtsav.entity.College;
 import com.example.CampusUtsav.entity.User;
@@ -24,6 +25,7 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
+import java.util.Objects;
 
 @Service
 @AllArgsConstructor
@@ -77,7 +79,7 @@ public class ClubServiceImpl implements ClubService {
     }
 
     @Override
-    public List<ClubResponse> getAllClubsByCollege(Integer collegeId){
+    public List<ClubSummary> getAllClubsByCollege(Integer collegeId){
         College linkedCollege = collegeRepository.findById(collegeId)
                 .orElseThrow(()-> new EntityNotFoundException("College Not Found!"));
 
@@ -88,7 +90,22 @@ public class ClubServiceImpl implements ClubService {
         }
 
         return clubs.stream()
-                .map(clubMapper::convertToClubResponse)
+                .map(clubMapper::convertToClubSummary)
                 .toList();
+    }
+
+    @Override
+    public ClubResponse getClubDetailsByClubId(Integer collegeId, Integer clubId){
+        Club club = clubRepository.findById(clubId)
+                .orElseThrow(()-> new EntityNotFoundException("Club Not Found!"));
+
+        if (!Objects.equals(club.getCollege().getId(), collegeId)) {
+            throw new ResponseStatusException(
+                    HttpStatus.FORBIDDEN,
+                    "You are not allowed to access this club as it does not belong to your college."
+            );
+        }
+
+        return clubMapper.convertToClubResponse(club);
     }
 }

@@ -4,6 +4,7 @@ package com.example.CampusUtsav.mapper;
 import com.example.CampusUtsav.dtos.ClubRegistrationRequest;
 import com.example.CampusUtsav.dtos.ClubResponse;
 import com.example.CampusUtsav.dtos.CollegeSummaryResponse;
+import com.example.CampusUtsav.dtos.miniDtos.ClubSummary;
 import com.example.CampusUtsav.entity.Club;
 import org.springframework.stereotype.Component;
 
@@ -57,6 +58,16 @@ public class ClubMapper {
                 .websiteUrl(newClub.getWebsiteUrl())
                 .emailVerified(newClub.isEmailVerified())
                 .phoneVerified(newClub.isPhoneVerified())
+                .build();
+    }
+
+    public ClubSummary convertToClubSummary(Club club){
+        return ClubSummary.builder()
+                .id(club.getId())
+                .name(club.getName())
+                .adminName(club.getAdminName())
+                .logoUrl(club.getLogoUrl())
+                .shortForm(club.getShortForm())
                 .build();
     }
 }

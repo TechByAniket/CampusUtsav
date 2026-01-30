@@ -2,6 +2,7 @@ package com.example.CampusUtsav.serviceImpl;
 
 import com.example.CampusUtsav.service.SupabaseService;
 import lombok.AllArgsConstructor;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
@@ -22,7 +23,12 @@ public class SupabaseServiceImpl implements SupabaseService {
 
     private final WebClient webClient;
 
-    public SupabaseServiceImpl(WebClient webClient) {
+//    public SupabaseServiceImpl(WebClient webClient) {
+//        this.webClient = webClient;
+//    }
+
+    // Fixed: Added @Qualifier to resolve the ambiguity
+    public SupabaseServiceImpl(@Qualifier("supabaseWebClient") WebClient webClient) {
         this.webClient = webClient;
     }
 
@@ -58,8 +64,6 @@ public class SupabaseServiceImpl implements SupabaseService {
             throw new RuntimeException("Failed to upload file to Supabase", e);
         }
     }
-
-
 
 
     @Override

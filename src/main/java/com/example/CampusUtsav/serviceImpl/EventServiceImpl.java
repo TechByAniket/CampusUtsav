@@ -2,6 +2,7 @@ package com.example.CampusUtsav.serviceImpl;
 
 import com.example.CampusUtsav.dtos.EventRequest;
 import com.example.CampusUtsav.dtos.EventResponse;
+import com.example.CampusUtsav.dtos.miniDtos.EventSummary;
 import com.example.CampusUtsav.entity.Club;
 import com.example.CampusUtsav.entity.College;
 import com.example.CampusUtsav.entity.Event;
@@ -53,8 +54,8 @@ public class EventServiceImpl implements EventService {
 
     @Override
     @Transactional
-    public EventResponse createEvent(EventRequest request, MultipartFile file) {
-        Club linkedClub = clubRepository.findById(request.getClubId())
+    public EventResponse createEvent(EventRequest request, MultipartFile file, Integer clubId) {
+        Club linkedClub = clubRepository.findById(clubId)
                 .orElseThrow(()-> new EntityNotFoundException("Club Not Found"));
 
         College linkedCollege = linkedClub.getCollege();
@@ -83,5 +84,20 @@ public class EventServiceImpl implements EventService {
         newEvent.setPosterUrl(posterUrl);
 
         return eventMapper.convertToEventResponse(newEvent);
+    }
+
+    @Override
+    public List<EventSummary> getAllEventsByCollege(String collegeId){
+        return null;
+    }
+
+    @Override
+    public List<EventSummary> getAllEventsByClub(Integer clubId) {
+
+        List<Event> eventsByClub = eventRepository.findByClub_Id(clubId);
+
+        return eventsByClub.stream()
+                .map(eventMapper::convertToEventSummary) // or EventMapper.toSummary(event)
+                .toList(); // Java 16+
     }
 }

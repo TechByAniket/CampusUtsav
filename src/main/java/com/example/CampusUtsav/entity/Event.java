@@ -1,5 +1,6 @@
 package com.example.CampusUtsav.entity;
 
+import com.example.CampusUtsav.entity.enums.EventCategory;
 import com.example.CampusUtsav.entity.enums.EventStatus;
 import com.example.CampusUtsav.entity.enums.EventType;
 import com.fasterxml.jackson.annotation.JsonBackReference;
@@ -45,11 +46,17 @@ public class Event {
 
     private String normalizedTitle;
 
+//    @NotNull(message = "Event Category is required")
+    @Enumerated(EnumType.STRING)
+    private EventCategory eventCategory;
+
     @NotNull(message = "Event type is required")
     @Enumerated(EnumType.STRING) // stores enum as string in DB
     private EventType eventType;
 
     @NotBlank(message = "Description is required")
+    @Column(columnDefinition = "TEXT")
+    @Lob
     private String description;
 
     private int fees; // numeric amount
@@ -67,6 +74,8 @@ public class Event {
 
     @NotNull(message = "End time is required")
     private LocalTime endTime;
+
+    private LocalDate registrationDeadline;
 
     private boolean teamEvent = false;
     private Integer teamSize;
@@ -91,7 +100,8 @@ public class Event {
 
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(columnDefinition = "jsonb")
-    private Map<String, String> contactDetails; // optional
+    private Map<String, Map<String, String>> contactDetails;
+    // optional
 
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(columnDefinition = "jsonb")

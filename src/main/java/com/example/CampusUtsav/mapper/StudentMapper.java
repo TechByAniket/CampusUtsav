@@ -2,6 +2,7 @@ package com.example.CampusUtsav.mapper;
 
 import com.example.CampusUtsav.dtos.StudentRegistrationRequest;
 import com.example.CampusUtsav.dtos.StudentResponse;
+import com.example.CampusUtsav.dtos.miniDtos.StudentSummary;
 import com.example.CampusUtsav.entity.Branch;
 import com.example.CampusUtsav.entity.College;
 import com.example.CampusUtsav.entity.Student;
@@ -56,6 +57,22 @@ public class StudentMapper {
                 .phoneVerified(student.isPhoneVerified())
                 .createdAt(student.getCreatedAt())
                 .updatedAt(student.getUpdatedAt())
+                .build();
+    }
+
+    public StudentSummary convertToStudentSummary(Student student){
+        if(student == null) return null;
+        return StudentSummary.builder()
+                .id(student.getId())
+                .name(student.getName())
+                .gender(student.getGender())
+                .identificationNumber(student.getIdentificationNumber())
+                .email(student.getEmail())
+                .phone(student.getPhone())
+                .rollNo(student.getRollNo())
+                .year(student.getYear())
+                .division(student.getDivision())
+                .branch(student.getBranch().getShortForm())
                 .build();
     }
 }

@@ -54,13 +54,13 @@ public class ClubRegistrationRequest {
 //    private String logoUrl;
 
 //    @NotBlank(message = "Website URL is required")
-    @Size(max = 255, message = "Website URL too long")
+    @Size(message = "Website URL too long")
 //    @URL(protocol = "https",
 //            message = "Invalid URL format")
     private String websiteUrl;
 
     @NotBlank(message = "Instagram URL is required")
-    @Size(max = 255, message = "Instagram URL too long")
+    @Size(message = "Instagram URL too long")
 //    @URL(protocol = "https",
 //            host = "www.instagram.com",
 //            message = "Invalid URL format")

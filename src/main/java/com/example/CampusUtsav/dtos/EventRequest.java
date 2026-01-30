@@ -1,5 +1,6 @@
 package com.example.CampusUtsav.dtos;
 
+import com.example.CampusUtsav.entity.enums.EventCategory;
 import com.example.CampusUtsav.entity.enums.EventStatus;
 import com.example.CampusUtsav.entity.enums.EventType;
 import jakarta.validation.constraints.NotBlank;
@@ -27,6 +28,9 @@ public class EventRequest {
     @NotBlank(message = "Title is required")
     private String title;
 
+//    @NotNull(message = "Event Category is required")
+    private EventCategory eventCategory;
+
     @NotNull(message = "Event type is required")
     private EventType eventType;
 
@@ -50,12 +54,14 @@ public class EventRequest {
     @NotNull(message = "End time is required")
     private LocalTime endTime;
 
+    private LocalDate registrationDeadline;
+
     private boolean teamEvent;
 
     private int teamSize;
 
 //    @Min(value = 1, message = "Max participants must be at least 1")
-    private int maxParticipants;
+    private int maxParticipants; // have to add a check for maax partcipants in eventregistratioon
 
     private List<String> attachments;
 
@@ -66,12 +72,14 @@ public class EventRequest {
     @URL(message = "Registration link must be a valid URL")
     private String registrationLink;
 
-    private Map<@NotBlank(message = "Contact name cannot be blank") String,
-                @Pattern(regexp = "\\d{10}", message = "Contact number must be 10 digits") String> contactDetails;
+    private Map<String, Map<String, String>> contactDetails;
+
+//    private Map<@NotBlank(message = "Contact name cannot be blank") String,
+//                @Pattern(regexp = "\\d{10}", message = "Contact number must be 10 digits") String> contactDetails;
 
 //    private String extraInfo; // optional, JSON as string
 
-    @NotNull(message = "Club ID is required")
-    private Integer clubId; // just the club id from frontend
+//    @NotNull(message = "Club ID is required")
+//    private Integer clubId; // just the club id from frontend
 }
 

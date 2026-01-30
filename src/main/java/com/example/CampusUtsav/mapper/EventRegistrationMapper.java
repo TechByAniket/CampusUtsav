@@ -8,13 +8,18 @@ import com.example.CampusUtsav.entity.Event;
 import com.example.CampusUtsav.entity.EventMemberRegistration;
 import com.example.CampusUtsav.entity.EventRegistration;
 import com.example.CampusUtsav.entity.Student;
+import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
 @Component
+@AllArgsConstructor
 public class EventRegistrationMapper {
+
+    private final StudentMapper studentMapper;
+    private final EventMapper eventMapper;
 
     public EventRegistration convertToEventRegistrationEntity(EventRegistrationRequest req,
                                                               Event linkedEvent,
@@ -75,12 +80,15 @@ public class EventRegistrationMapper {
                 .inviteCode(reg.getInviteCode())
                 .inviteUrl(reg.getInviteUrl())
                 .registeredAt(reg.getRegisteredAt())
-                .event(EventSummary.from(reg.getEvent()))
-                .student(StudentSummary.from(reg.getStudent()))
-                .teamMembers(reg.getTeamMembers().stream()
-                        .map(curMember -> StudentSummary.from(curMember.getStudent()))
-                        .collect(Collectors.toList()))
+                .event(eventMapper.convertToEventSummary(reg.getEvent()))
+                .student(studentMapper.convertToStudentSummary(reg.getStudent()))
+                .teamMembers(
+                        reg.getTeamMembers().stream()
+                                .map(curMember -> studentMapper.convertToStudentSummary(curMember.getStudent()))
+                                .collect(Collectors.toList())
+                )
                 .build();
+
 
     }
 
@@ -89,10 +97,10 @@ public class EventRegistrationMapper {
                 .id(reg.getId())
                 .teamName(reg.getTeamName())
                 .registrationType(reg.getRegistrationType())
-                .event(EventSummary.from(reg.getEvent()))
-                .student(StudentSummary.from(reg.getStudent())) // leader info
+                .event(eventMapper.convertToEventSummary(reg.getEvent()))
+                .student(studentMapper.convertToStudentSummary(reg.getStudent())) // leader info
                 .teamMembers(reg.getTeamMembers().stream()
-                        .map(curMember -> StudentSummary.from(curMember.getStudent()))
+                        .map(curMember -> studentMapper.convertToStudentSummary(curMember.getStudent()))
                         .collect(Collectors.toList()))
                 .build();
     }
@@ -100,8 +108,8 @@ public class EventRegistrationMapper {
     public EventRegistrationResponse toListIndividualParticipantsResponse(EventRegistration entry){
         return EventRegistrationResponse.builder()
                 .id(entry.getId())
-                .student(StudentSummary.from(entry.getStudent()))
-                .event(EventSummary.from(entry.getEvent()))
+                .student(studentMapper.convertToStudentSummary(entry.getStudent()))
+                .event(eventMapper.convertToEventSummary(entry.getEvent()))
                 .build();
     }
 
@@ -109,12 +117,12 @@ public class EventRegistrationMapper {
         return EventRegistrationResponse.builder()
                 .id(entry.getId())
                 .teamName(entry.getTeamName())
-                .student(StudentSummary.from(entry.getStudent()))
+                .student(studentMapper.convertToStudentSummary(entry.getStudent()))
                 .teamMembers(entry.getTeamMembers() == null ? List.of() :
                         entry.getTeamMembers().stream()
-                                .map(curMember -> StudentSummary.from(curMember.getStudent()))
+                                .map(curMember -> studentMapper.convertToStudentSummary(curMember.getStudent()))
                                 .collect(Collectors.toList()))
-                .event(EventSummary.from(entry.getEvent()))
+                .event(eventMapper.convertToEventSummary(entry.getEvent()))
                 .build();
     }
 }

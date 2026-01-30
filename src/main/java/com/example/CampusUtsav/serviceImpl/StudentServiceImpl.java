@@ -2,6 +2,7 @@ package com.example.CampusUtsav.serviceImpl;
 
 import com.example.CampusUtsav.dtos.StudentRegistrationRequest;
 import com.example.CampusUtsav.dtos.StudentResponse;
+import com.example.CampusUtsav.dtos.miniDtos.StudentSummary;
 import com.example.CampusUtsav.entity.Branch;
 import com.example.CampusUtsav.entity.College;
 import com.example.CampusUtsav.entity.Student;
@@ -15,9 +16,12 @@ import com.example.CampusUtsav.repository.UserRepository;
 import com.example.CampusUtsav.service.StudentService;
 import com.example.CampusUtsav.utils.StudentUtils;
 import jakarta.persistence.EntityNotFoundException;
+import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
 
 @Service
 @AllArgsConstructor
@@ -34,6 +38,7 @@ public class StudentServiceImpl implements StudentService {
 
 
     @Override
+    @Transactional
     public StudentResponse registerStudent(StudentRegistrationRequest request) {
 
         if (request.getGraduationYear() <= request.getAdmissionYear()) {
@@ -41,17 +46,20 @@ public class StudentServiceImpl implements StudentService {
         }
 
         College linkedCollege = collegeRepository.findById(request.getCollegeId())
-                .orElseThrow(()-> new EntityNotFoundException("College Not Found!"));
+                .orElseThrow(() -> new EntityNotFoundException("College Not Found!"));
 
         Branch linkedBranch = branchRepository.findById(request.getBranchId())
-                .orElseThrow(()-> new EntityNotFoundException("Branch Not Found!"));
+                .orElseThrow(() -> new EntityNotFoundException("Branch Not Found!"));
 
-        Student newStudent = studentMapper.convertToStudentEntity(request, linkedCollege, linkedBranch);
-        newStudent.setUsername(studentUtils.generateStudentUsername(request, linkedCollege, linkedBranch));
+        Student newStudent = studentMapper.convertToStudentEntity(
+                request, linkedCollege, linkedBranch
+        );
+
+        newStudent.setUsername(
+                studentUtils.generateStudentUsername(request, linkedCollege, linkedBranch)
+        );
 
         String encodedPassword = passwordEncoder.encode(request.getPassword());
-
-        newStudent = studentRepository.save(newStudent);
         newStudent.setPasswordHash(encodedPassword);
 
         User user = User.builder()
@@ -60,11 +68,31 @@ public class StudentServiceImpl implements StudentService {
                 .role(Role.ROLE_STUDENT)
                 .build();
 
-        userRepository.save(user);
-
-        // Linking with corresponding entity
+        // Link BEFORE save
         newStudent.setUser(user);
+        studentRepository.save(newStudent);
 
         return studentMapper.convertToStudentResponse(newStudent);
     }
+
+    // ************* GET ALL STUDENTS OF A COLLEGE ************* //
+    @Override
+    public List<StudentSummary> getAllStudentsByCollege(Integer collegeId){
+        List<Student> studentsList = studentRepository.findByCollege_Id(collegeId)
+                .orElseThrow(()-> new EntityNotFoundException("Students not found!"));
+
+        return studentsList.stream()
+                .map(studentMapper::convertToStudentSummary)
+                .toList();
+    }
+
+    // ************* GET SUMMARY DETAILS OF A STUDENT ************* //
+    @Override
+    public StudentSummary getStudentSummary(String identificationNumber){
+        Student curStudent = studentRepository.findByIdentificationNumber(identificationNumber)
+                .orElseThrow(() -> new EntityNotFoundException("Student details not found!"));
+
+        return studentMapper.convertToStudentSummary(curStudent);
+    }
+
 }

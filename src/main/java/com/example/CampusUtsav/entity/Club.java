@@ -7,6 +7,7 @@ import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
+import jdk.jfr.Label;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -72,19 +73,20 @@ public class Club {
 
     @NotBlank(message = "Club description is required")
 //    @Column(length = 1500)
+    @Column(columnDefinition = "TEXT")
     private String description;
 
     private String logoUrl;
 
 //    @NotBlank(message = "Website URL is required")
-    @Size(max = 255, message = "Website URL too long")
+    @Size(message = "Website URL too long")
     @Column(unique = true)
 //    @URL(protocol = "https",
 //            message = "Invalid URL format")
     private String websiteUrl;
 
     @NotBlank(message = "Instagram Page URL is required")
-    @Size(max = 255, message = "Instagram Page URL too long")
+    @Size(message = "Instagram Page URL too long")
     @Column(unique = true)
 //    @URL(protocol = "https"
 //            ,host = "www.instagram.com",

@@ -2,6 +2,7 @@ package com.example.CampusUtsav.controller;
 
 import com.example.CampusUtsav.dtos.ClubRegistrationRequest;
 import com.example.CampusUtsav.dtos.ClubResponse;
+import com.example.CampusUtsav.dtos.miniDtos.ClubSummary;
 import com.example.CampusUtsav.service.ClubService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -45,8 +46,15 @@ public class ClubController {
     }
 
     @GetMapping("/colleges/{collegeId}/clubs")
-    public ResponseEntity<List<ClubResponse>> getAllClubsByCollege(@PathVariable Integer collegeId){
-        List<ClubResponse> response = clubService.getAllClubsByCollege(collegeId);
+    public ResponseEntity<List<ClubSummary>> getAllClubsByCollege(@PathVariable Integer collegeId){
+        List<ClubSummary> response = clubService.getAllClubsByCollege(collegeId);
+        return ResponseEntity.status(HttpStatus.OK).body(response);
+    }
+
+    @GetMapping("colleges/{collegeId}/clubs/{clubId}")
+    public ResponseEntity<ClubResponse> getClubDetailsByClubId(@PathVariable Integer collegeId,
+                                                               @PathVariable Integer clubId){
+        ClubResponse response = clubService.getClubDetailsByClubId(collegeId, clubId);
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 }

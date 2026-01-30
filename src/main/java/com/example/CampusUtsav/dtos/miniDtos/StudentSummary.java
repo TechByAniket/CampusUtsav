@@ -16,23 +16,9 @@ public class StudentSummary {
     private String gender;
     private String identificationNumber;
     private String email;
+    private String phone;
     private int rollNo;
     private int year;
     private String division;
     private String branch;
-
-    public static StudentSummary from(Student student){
-        if(student == null) return null;
-        return StudentSummary.builder()
-                .id(student.getId())
-                .name(student.getName())
-                .gender(student.getGender())
-                .identificationNumber(student.getIdentificationNumber())
-                .email(student.getEmail())
-                .rollNo(student.getRollNo())
-                .year(student.getYear())
-                .division(student.getDivision())
-                .branch(student.getBranch().getShortForm())
-                .build();
-    }
 }

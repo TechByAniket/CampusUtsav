@@ -1,6 +1,7 @@
 package com.example.CampusUtsav.dtos;
 
 import com.example.CampusUtsav.entity.Club;
+import com.example.CampusUtsav.entity.enums.EventCategory;
 import com.example.CampusUtsav.entity.enums.EventStatus;
 import com.example.CampusUtsav.entity.enums.EventType;
 import lombok.AllArgsConstructor;
@@ -20,12 +21,14 @@ import java.util.Map;
 public class EventResponse {
         private int id;
         private String title;
+        private EventCategory eventCategory;
         private EventType eventType;
         private int fees;
         private String description;
         private String posterUrl;
         private String venue;
         private LocalDate date;
+        private LocalDate registrationDeadline;
         private LocalTime startTime;
         private LocalTime endTime;
         private boolean teamEvent;
@@ -35,10 +38,11 @@ public class EventResponse {
         private List<String> tags;
         private EventStatus status;
         private String registrationLink;
-        private Map<String, String> contactDetails; // name → phone
+        private Map<String, Map<String, String>> contactDetails; // name → phone
         private String extraInfo; // JSON string
         private Club club;
-//        private String clubName; // for frontend display
+        private Integer collegeId;
+//      private String clubName; // for frontend display
         private boolean isFeatured;
         private boolean isActive;
     }

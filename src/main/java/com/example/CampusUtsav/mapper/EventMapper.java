@@ -2,6 +2,7 @@ package com.example.CampusUtsav.mapper;
 
 import com.example.CampusUtsav.dtos.EventRequest;
 import com.example.CampusUtsav.dtos.EventResponse;
+import com.example.CampusUtsav.dtos.miniDtos.EventSummary;
 import com.example.CampusUtsav.entity.Club;
 import com.example.CampusUtsav.entity.College;
 import com.example.CampusUtsav.entity.Event;
@@ -15,12 +16,14 @@ public class EventMapper {
         return Event.builder()
                 .title(req.getTitle())
                 .normalizedTitle(normalizedTitle)
+                .eventCategory(req.getEventCategory())
                 .eventType(req.getEventType())
                 .fees(req.getFees())
                 .description(req.getDescription())
                 .posterUrl(req.getPosterUrl())
                 .venue(req.getVenue())
                 .date(req.getDate())
+                .registrationDeadline(req.getRegistrationDeadline())
                 .startTime(req.getStartTime())
                 .endTime(req.getEndTime())
                 .teamEvent(req.isTeamEvent())
@@ -40,11 +43,14 @@ public class EventMapper {
         return EventResponse.builder()
                 .id(event.getId())
                 .title(event.getTitle())
+                .eventCategory(event.getEventCategory())
+                .eventType(event.getEventType())
                 .fees(event.getFees())
                 .description(event.getDescription())
                 .posterUrl(event.getPosterUrl())
                 .venue(event.getVenue())
                 .date(event.getDate())
+                .registrationDeadline(event.getRegistrationDeadline())
                 .startTime(event.getStartTime())
                 .endTime(event.getEndTime())
                 .teamEvent(event.isTeamEvent())
@@ -57,8 +63,24 @@ public class EventMapper {
                 .contactDetails(event.getContactDetails())
 //                .extraInfo(event.getExtraInfo())
                 .club(event.getClub())
+                .collegeId(event.getClub().getCollege().getId())
                 .isFeatured(event.isFeatured())
                 .isActive(event.isActive())
+                .build();
+    }
+
+    public EventSummary convertToEventSummary(Event event){
+        if(event ==  null) return null;
+        return EventSummary.builder()
+                .id(event.getId())
+                .title(event.getTitle())
+                .date(event.getDate())
+                .startTime(event.getStartTime())
+                .endTime(event.getEndTime())
+                .eventCategory(event.getEventCategory())
+                .eventType(event.getEventType())
+                .clubId(event.getClub().getId())
+                .clubName(event.getClub().getName())
                 .build();
     }
 }
