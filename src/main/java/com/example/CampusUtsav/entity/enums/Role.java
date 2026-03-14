@@ -2,10 +2,12 @@ package com.example.CampusUtsav.entity.enums;
 
 
 public enum Role {
-    ROLE_SUPER_ADMIN,
-    ROLE_COLLEGE,
+    ROLE_STUDENT,
     ROLE_CLUB,
-    ROLE_STUDENT
+    ROLE_FACULTY,    // New
+    ROLE_HOD,        // New
+    ROLE_PRINCIPAL,  // New
+    ROLE_DEAN
 }
 
 //  Prefix ROLE_ is helpful because hasRole("ADMIN") internally maps to ROLE_ADMIN.

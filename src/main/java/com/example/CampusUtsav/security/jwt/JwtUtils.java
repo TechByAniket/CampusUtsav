@@ -1,5 +1,6 @@
 package com.example.CampusUtsav.security.jwt;
 
+import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
@@ -20,10 +21,11 @@ public class JwtUtils {
     private long jwtExpirationMs;
 
     // Generate JWT Token
-    public String generateJwtToken(String username, String role){
+    public String generateJwtToken(String username, String role, Integer collegeId){
         return Jwts.builder()
                 .setSubject(username)
                 .claim("role",role)
+                .claim("collegeId", collegeId)
                 .setIssuedAt(new Date())
                 .setExpiration(new Date(System.currentTimeMillis() + jwtExpirationMs))
                 .signWith(SignatureAlgorithm.HS512, jwtSecret)
@@ -37,6 +39,16 @@ public class JwtUtils {
                 .parseClaimsJws(token)
                 .getBody()
                 .getSubject();
+    }
+
+    // Get collegeId from JWT token
+    public Integer getCollegeIdFromToken(String token) {
+        Claims claims = Jwts.parser()
+                .setSigningKey(jwtSecret)
+                .parseClaimsJws(token)
+                .getBody();
+
+        return claims.get("collegeId", Integer.class);
     }
 
     // Validate the JWT Token

@@ -19,6 +19,7 @@ import org.hibernate.validator.constraints.URL;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -120,13 +121,22 @@ public class Event {
     @JoinColumn(name = "user_id")
     private User user;
 
+//    @OneToMany(mappedBy = "event", cascade = CascadeType.ALL, orphanRemoval = true)
+//    @OrderBy("timestamp ASC") // This keeps the logs in chronological order
+//    private List<EventLog> approvalHistory = new ArrayList<>();
+//
+//    // Helper method to add a log and maintain both sides of the relationship
+//    public void addLog(EventLog log) {
+//        approvalHistory.add(log);
+//        log.setEvent(this);
+//    }
 
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
     @PrePersist
     protected void onCreate() {
-        this.status = EventStatus.PENDING;
+        this.status = EventStatus.SUBMITTED;
         this.createdAt = LocalDateTime.now();
         this.updatedAt = LocalDateTime.now();
     }

@@ -44,6 +44,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/auth/**",
                                 "/api/college/register",
                                 "/api/student/register",
+                                "/api/faculty/register",
                                 "/api/events/categories-types")
                         .permitAll()
                         .anyRequest().authenticated()

@@ -7,12 +7,10 @@ import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
-import jdk.jfr.Label;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.hibernate.validator.constraints.URL;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -61,12 +59,12 @@ public class Club {
     @NotBlank(message = "Phone number (Admin) is required")
     private String adminPhone;
 
-    @NotBlank(message = "Faculty coordinator name is required")
-    private String facultyCoordinatorName;
+//    @NotBlank(message = "Faculty coordinator name is required")
+//    private String facultyCoordinatorName;
 
-    @NotBlank(message = "Faculty coordinator email is required")
-    @Email(message = "Invalid email format")
-    private String facultyCoordinatorEmail;
+//    @NotBlank(message = "Faculty coordinator email is required")
+//    @Email(message = "Invalid email format")
+//    private String facultyCoordinatorEmail;
 
     @NotBlank(message = "Password is required")
     private String passwordHash;
@@ -120,6 +118,10 @@ public class Club {
     @OneToMany(mappedBy = "club", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonManagedReference
     private List<Event> events;
+
+    @OneToOne
+    @JoinColumn(name = "coordinator_id")
+    private Staff coordinator; // The specific Faculty mentoring this club
 
     @OneToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "user_id", nullable = false, unique = true)

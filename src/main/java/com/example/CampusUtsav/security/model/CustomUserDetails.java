@@ -2,6 +2,7 @@ package com.example.CampusUtsav.security.model;
 
 import com.example.CampusUtsav.entity.User;
 import lombok.AllArgsConstructor;
+import lombok.Getter;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -13,6 +14,9 @@ import java.util.Collections;
 public class CustomUserDetails implements UserDetails {
 
     private final User user;
+
+    @Getter
+    private final Integer collegeId;
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities(){

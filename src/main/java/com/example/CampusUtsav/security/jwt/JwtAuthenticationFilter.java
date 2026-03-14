@@ -1,5 +1,6 @@
 package com.example.CampusUtsav.security.jwt;
 
+import com.example.CampusUtsav.security.model.CustomUserDetails;
 import com.example.CampusUtsav.security.service.CustomUserDetailsService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -35,6 +36,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
             if ((jwtUtils.validateJwtToken(token))){
                 String email = jwtUtils.getUsernameFromJwtToken(token);
+                Integer collegeIdFromToken = jwtUtils.getCollegeIdFromToken(token);
                 UserDetails userDetails = customUserDetailsService.loadUserByUsername(email);
 
                 UsernamePasswordAuthenticationToken authentication =

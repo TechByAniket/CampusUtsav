@@ -81,7 +81,7 @@ public class CollegeServiceImpl implements CollegeService {
         User user = User.builder()
                 .email(newCollege.getEmail())
                 .passwordHash(encodedPassword)
-                .role(Role.ROLE_COLLEGE)
+                .role(Role.ROLE_DEAN)
                 .build();
         
         userRepository.save(user);

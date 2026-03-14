@@ -109,6 +109,10 @@ public class College {
     @JoinColumn(name = "user_id")
     private User user;
 
+    @OneToMany(mappedBy = "college", cascade = CascadeType.ALL)
+    @JsonManagedReference
+    private List<Staff> faculties = new ArrayList<>();
+
 
     @PrePersist // Triggered automatically before a new entity is saved
     public void onCreate() {
