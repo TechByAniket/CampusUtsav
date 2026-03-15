@@ -24,6 +24,7 @@ public class StaffMapper {
                 .email(req.getEmail())
                 .employeeId(req.getEmployeeId())
                 .isHod(false)
+                .isClubCoordinator(false)
                 .status(AccountStatus.ACTIVE) // --- FOR TEMPORARY TESTING PURPOSE --- //
                 .build();
     }
@@ -43,6 +44,7 @@ public class StaffMapper {
                 .role(userRole)
                 .status(staff.getStatus())
                 .isHod(staff.isHod())
+                .isClubCoordinator(staff.isClubCoordinator())
                 .employeeId(staff.getEmployeeId())
                 .email(staff.getEmail())
                 .phone(staff.getPhone())

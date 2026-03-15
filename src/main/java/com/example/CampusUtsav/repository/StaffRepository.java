@@ -15,6 +15,16 @@ public interface StaffRepository extends JpaRepository<Staff, Integer> {
     boolean existsByPhone(String phone);
     boolean existsByEmployeeId(String employeeId);
 
+    boolean existsByBranchIdAndCollegeIdAndIsHodTrue(Integer branchId, Integer collegeId);
+
+    Optional<Staff> findByBranchIdAndCollegeIdAndIsHodTrue(Integer branchId, Integer collegeId);
+
+    Optional<Staff> findByManagedClubIdAndCollegeId(Integer clubId, Integer collegeId);
+
+    Integer countByBranchIdAndCollegeIdAndIsHodTrue(Integer branchId, Integer collegeId);
+
+    Integer countByManagedClubIdAndCollegeIdAndIdNot(Integer clubId, Integer collegeId, Integer staffId);
+
     Optional<Staff> findByUser_Id(Long userId);
 
     // ---- NO NEED TO USE OPTIONAL here, because by default list handles null, it can be empty ----//

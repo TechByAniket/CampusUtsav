@@ -2,6 +2,7 @@ package com.example.CampusUtsav.serviceImpl;
 
 import com.example.CampusUtsav.dtos.CollegeRegistrationRequest;
 import com.example.CampusUtsav.dtos.CollegeResponse;
+import com.example.CampusUtsav.dtos.CollegeSummaryResponse;
 import com.example.CampusUtsav.entity.Branch;
 import com.example.CampusUtsav.entity.College;
 import com.example.CampusUtsav.entity.User;
@@ -24,6 +25,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -93,5 +95,16 @@ public class CollegeServiceImpl implements CollegeService {
         collegeRepository.save(newCollege);
 
         return collegeMapper.convertToCollegeResponse(newCollege);
+    }
+
+    @Override
+    public List<CollegeSummaryResponse> getAllRegisteredColleges(){
+        List<College> listOfColleges = collegeRepository.findAll();
+
+        if(listOfColleges.isEmpty()) return Collections.emptyList();
+
+        return listOfColleges.stream()
+                .map(collegeMapper :: toCollegeSummaryResponse)
+                .toList();
     }
 }

@@ -2,12 +2,16 @@ package com.example.CampusUtsav.entity;
 
 import com.example.CampusUtsav.entity.enums.AccountStatus;
 import com.example.CampusUtsav.entity.enums.Designation;
+import com.example.CampusUtsav.entity.enums.EventStatus;
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+
+import java.time.LocalDateTime;
 
 @Entity
 @Data
@@ -43,8 +47,9 @@ public class Staff {
     private boolean isHod;
 
     // Link for the first level of approval (Faculty Coordinator)
-    @OneToOne(mappedBy = "coordinator") // The Club is owner of this relationship, 'cooordinator' is the column name in Club Entity.
-    @JsonBackReference
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "managed_club_id") // Yeh column Staff table mein banega
+    @JsonManagedReference
     private Club managedClub;
 
     @Enumerated(EnumType.STRING)
@@ -54,4 +59,21 @@ public class Staff {
     @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
     @JoinColumn(name = "user_id")
     private User user;
+
+    private boolean isClubCoordinator;
+
+    private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
+
+    @PrePersist
+    protected void onCreate() {
+        this.createdAt = LocalDateTime.now();
+        this.updatedAt = LocalDateTime.now();
+    }
+
+    @PreUpdate
+    protected void onUpdate() {
+        this.updatedAt = LocalDateTime.now();
+    }
+
 }

@@ -24,6 +24,7 @@ public class StaffResponse {
     private Designation designation;
     private AccountStatus status;
     private boolean isHod;
+    private boolean isClubCoordinator;
     private String role;
     private Integer collegeId;
     private ClubSummary managedClubDetails;

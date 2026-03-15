@@ -119,9 +119,9 @@ public class Club {
     @JsonManagedReference
     private List<Event> events;
 
-    @OneToOne
-    @JoinColumn(name = "coordinator_id")
-    private Staff coordinator; // The specific Faculty mentoring this club
+    @OneToOne(mappedBy = "managedClub")
+    @JsonBackReference
+    private Staff coordinator;
 
     @OneToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "user_id", nullable = false, unique = true)

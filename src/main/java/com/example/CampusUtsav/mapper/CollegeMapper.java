@@ -3,8 +3,11 @@ package com.example.CampusUtsav.mapper;
 
 import com.example.CampusUtsav.dtos.CollegeRegistrationRequest;
 import com.example.CampusUtsav.dtos.CollegeResponse;
+import com.example.CampusUtsav.dtos.CollegeSummaryResponse;
 import com.example.CampusUtsav.entity.College;
 import org.springframework.stereotype.Component;
+
+import java.text.CollationElementIterator;
 
 @Component
 public class CollegeMapper {
@@ -49,6 +52,17 @@ public class CollegeMapper {
                 .updatedAt(college.getUpdatedAt())
                 .emailVerified(college.isEmailVerified())
                 .phoneVerified(college.isPhoneVerified()) // for boolean there is not 'get' , but 'is'
+                .build();
+    }
+
+    public CollegeSummaryResponse toCollegeSummaryResponse(College college){
+        return CollegeSummaryResponse.builder()
+                .id(college.getId())
+                .name(college.getName())
+                .shortForm(college.getShortForm())
+                .city(college.getCity())
+                .district(college.getDistrict())
+                .state(college.getState())
                 .build();
     }
 }

@@ -37,13 +37,18 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             if ((jwtUtils.validateJwtToken(token))){
                 String email = jwtUtils.getUsernameFromJwtToken(token);
                 Integer collegeIdFromToken = jwtUtils.getCollegeIdFromToken(token);
-                UserDetails userDetails = customUserDetailsService.loadUserByUsername(email);
+
+                // Load as CustomUserDetails directly
+                CustomUserDetails userDetails = (CustomUserDetails) customUserDetailsService.loadUserByUsername(email);
+
+                // Now this WILL work if getUser() is public in CustomUserDetails
+                CustomUserDetails principal = new CustomUserDetails(userDetails.getUser(), collegeIdFromToken);
 
                 UsernamePasswordAuthenticationToken authentication =
                         new UsernamePasswordAuthenticationToken(
-                                userDetails,
+                                principal,
                                 null,
-                                userDetails.getAuthorities()
+                                principal.getAuthorities()
                         );
                 SecurityContextHolder.getContext().setAuthentication(authentication);
             }
