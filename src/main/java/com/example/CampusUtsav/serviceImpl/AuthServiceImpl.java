@@ -75,9 +75,22 @@ public class AuthServiceImpl implements AuthService {
                         .orElseThrow(() -> new IllegalStateException("College not found"));
                 collegeId = college.getId();
             }
-            case "ROLE_FACULTY" -> {
+            case "ROLE_FACULTY", "ROLE_HOD" -> {
                 Staff staff = staffRepository.findByUser_Id(user.getId())
                         .orElseThrow(() -> new IllegalStateException("Staff not found"));
+
+                String status = String.valueOf(staff.getStatus());
+
+                if ("PENDING".equals(status)) {
+                    throw new IllegalStateException("Your account is awaiting ADMIN/DEAN approval.");
+                }
+                if ("SUSPENDED".equals(status)) {
+                    throw new IllegalStateException("Your account has been suspended. Please contact ADMIN/DEAN of your college.");
+                }
+                if ("DEACTIVATED".equals(status)) {
+                    throw new IllegalStateException("This account is no longer active.");
+                }
+
                 collegeId = staff.getCollege().getId();
             }
         }

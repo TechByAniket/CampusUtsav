@@ -7,10 +7,7 @@ import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -119,6 +116,7 @@ public class Club {
     @JsonManagedReference
     private List<Event> events;
 
+    @ToString.Exclude
     @OneToOne(mappedBy = "managedClub")
     @JsonBackReference
     private Staff coordinator;

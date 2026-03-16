@@ -48,9 +48,24 @@ public class Staff {
 
     // Link for the first level of approval (Faculty Coordinator)
     @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "managed_club_id") // Yeh column Staff table mein banega
+    @JoinColumn(name = "managed_club_id")
     @JsonManagedReference
     private Club managedClub;
+
+    public void setManagedClub(Club club) {
+        // 1. Break the old connection
+        if (this.managedClub != null) {
+            this.managedClub.setCoordinator(null);
+        }
+
+        // 2. New linking
+        this.managedClub = club;
+
+        // 3. Handshake: Telling club , this is your new coordinator
+        if (club != null && club.getCoordinator() != this) {
+            club.setCoordinator(this);
+        }
+    }
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)

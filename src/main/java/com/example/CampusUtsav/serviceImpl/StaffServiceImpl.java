@@ -104,6 +104,13 @@ public class StaffServiceImpl implements StaffService {
             }
         }
 
+        if (!"ACTIVE".equalsIgnoreCase(newStatus)) {
+            if (staff.isClubCoordinator()) {
+                throw new RuntimeException("Error: You cannot deactivate a club coordinator's account. " +
+                        "Please assign the club coordinator role of " + staff.getManagedClub().getShortForm() + "to someone else first!");
+            }
+        }
+
         staff.setStatus(AccountStatus.valueOf(newStatus.toUpperCase()));
         staffRepository.save(staff);
     }
@@ -113,6 +120,12 @@ public class StaffServiceImpl implements StaffService {
     public void updateStaffRole(Integer staffId, String newRole, Integer collegeId){
         Staff staff = staffRepository.findById(staffId)
                 .orElseThrow(()-> new RuntimeException("Staff member not found!"));
+
+        if (staff.getStatus() == null || !staff.getStatus().name().equalsIgnoreCase("ACTIVE")) {
+            String currentStatus = staff.getStatus() != null ? staff.getStatus().name() : "DEACTIVATED";
+            throw new RuntimeException("Cannot update role: This staff member is currently " + currentStatus +
+                    ". Please ACTIVATE the account before assigning new responsibilities.");
+        }
 
         if(!staff.getCollege().getId().equals(collegeId)){
             throw new RuntimeException("Unauthorized : You cannot manage staff from other colleges!");
@@ -151,6 +164,12 @@ public class StaffServiceImpl implements StaffService {
         staffRepository.save(staff);
     }
 
+
+    // --- CLUB TABLE will show NULL in coordinator_id, but we can still access coordinator details from CLUB object ---//
+    // Single Source of Truth: Data (ID) is stored only in one place to prevent mismatch.
+    //Logical Link: Hibernate creates a virtual bridge so the Club object can "reach back" to the Staff member.
+    //Efficiency: It saves space in the database while giving full access in the code.
+
     @Override
     @Transactional
     public void updateStaffClubAssignment(Integer staffId, Integer clubId, Integer collegeId) {
@@ -158,6 +177,12 @@ public class StaffServiceImpl implements StaffService {
 
         Staff staff = staffRepository.findById(staffId)
                 .orElseThrow(() -> new RuntimeException("Staff member not found!"));
+
+        if (staff.getStatus() == null || !staff.getStatus().name().equalsIgnoreCase("ACTIVE")) {
+            String currentStatus = staff.getStatus() != null ? staff.getStatus().name() : "DEACTIVATED";
+            throw new RuntimeException("Cannot update role: This staff member is currently " + currentStatus +
+                    ". Please ACTIVATE the account before assigning new responsibilities.");
+        }
 
         if (!staff.getCollege().getId().equals(collegeId)) {
             throw new RuntimeException("Unauthorized Access!");
@@ -184,7 +209,6 @@ public class StaffServiceImpl implements StaffService {
 
             staff.setManagedClub(club);
             staff.setClubCoordinator(true);
-
         } else {
             // --- CASE: SETTING TO "NONE" ---
             // if the current staff was already a club coordinator of any club
@@ -199,11 +223,9 @@ public class StaffServiceImpl implements StaffService {
                             " must have at least one coordinator. Assign a new one first to auto-swap!");
                 }
             }
-
             staff.setManagedClub(null);
             staff.setClubCoordinator(false);
         }
-
         staffRepository.save(staff);
     }
 }

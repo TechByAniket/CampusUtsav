@@ -1,6 +1,7 @@
 package com.example.CampusUtsav.security.model;
 
 import com.example.CampusUtsav.entity.User;
+import com.example.CampusUtsav.entity.enums.AccountStatus;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import org.springframework.security.core.GrantedAuthority;
@@ -18,6 +19,8 @@ public class CustomUserDetails implements UserDetails {
 
     @Getter
     private final Integer collegeId;
+
+    private final String status;
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities(){
@@ -43,6 +46,10 @@ public class CustomUserDetails implements UserDetails {
         return user.getReferenceId();
     }
 
+    @Override
+    public boolean isEnabled() {
+        return "ACTIVE".equalsIgnoreCase(this.status);
+    }
     // Optionals
     @Override
     public boolean isAccountNonExpired() {
@@ -56,11 +63,6 @@ public class CustomUserDetails implements UserDetails {
 
     @Override
     public boolean isCredentialsNonExpired() {
-        return true;
-    }
-
-    @Override
-    public boolean isEnabled() {
         return true;
     }
 
