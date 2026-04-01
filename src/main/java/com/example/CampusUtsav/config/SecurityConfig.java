@@ -46,7 +46,8 @@ public class SecurityConfig {
                                 "/api/college/register",
                                 "/api/student/register",
                                 "/api/faculty/register",
-                                "/api/events/categories-types")
+                                "/api/events/categories-types",
+                                "/api/events/statuses")
                         .permitAll()
                         .anyRequest().authenticated()
                 )

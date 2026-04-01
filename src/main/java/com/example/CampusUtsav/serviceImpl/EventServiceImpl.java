@@ -3,15 +3,15 @@ package com.example.CampusUtsav.serviceImpl;
 import com.example.CampusUtsav.dtos.EventRequest;
 import com.example.CampusUtsav.dtos.EventResponse;
 import com.example.CampusUtsav.dtos.miniDtos.EventSummary;
-import com.example.CampusUtsav.entity.Club;
-import com.example.CampusUtsav.entity.College;
-import com.example.CampusUtsav.entity.Event;
+import com.example.CampusUtsav.entity.*;
 import com.example.CampusUtsav.entity.enums.EventStatus;
 import com.example.CampusUtsav.entity.enums.EventType;
+import com.example.CampusUtsav.entity.enums.Role;
+import com.example.CampusUtsav.mapper.EventLogMapper;
 import com.example.CampusUtsav.mapper.EventMapper;
-import com.example.CampusUtsav.repository.ClubRepository;
-import com.example.CampusUtsav.repository.CollegeRepository;
-import com.example.CampusUtsav.repository.EventRepository;
+import com.example.CampusUtsav.repository.*;
+import com.example.CampusUtsav.security.model.CustomUserDetails;
+import com.example.CampusUtsav.service.EventLogService;
 import com.example.CampusUtsav.service.EventService;
 import com.example.CampusUtsav.service.SupabaseService;
 import jakarta.persistence.EntityNotFoundException;
@@ -20,13 +20,14 @@ import lombok.AllArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.Optional;
+import java.nio.file.AccessDeniedException;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 @AllArgsConstructor
@@ -37,6 +38,9 @@ public class EventServiceImpl implements EventService {
     private final EventRepository eventRepository;
     private final EventMapper eventMapper;
     private final SupabaseService supabaseService;
+    private final EventLogMapper eventLogMapper;
+    private final EventLogRepository eventLogRepository;
+    private final BranchRepository branchRepository;
 
     @Override
     public List<String> getAllEventTypes() {
@@ -54,7 +58,7 @@ public class EventServiceImpl implements EventService {
 
     @Override
     @Transactional
-    public EventResponse createEvent(EventRequest request, MultipartFile file, Integer clubId) {
+    public String createEvent(EventRequest request, MultipartFile file, Integer clubId) {
         Club linkedClub = clubRepository.findById(clubId)
                 .orElseThrow(()-> new EntityNotFoundException("Club Not Found"));
 
@@ -83,12 +87,93 @@ public class EventServiceImpl implements EventService {
         newEvent = eventRepository.save(newEvent);
         newEvent.setPosterUrl(posterUrl);
 
-        return eventMapper.convertToEventResponse(newEvent);
+        //------ Add this log in the eventlog table ------//
+        EventStatus action = EventStatus.SUBMITTED;
+        Role actionBy = Role.ROLE_CLUB;
+        Role forwardedTo = Role.ROLE_FACULTY;
+        EventStatus fromStatus = EventStatus.PENDING;
+        EventStatus toStatus = EventStatus.SUBMITTED;
+        String remarks = "Event Submitted for approvals";
+
+        EventLog eventLog = eventLogMapper.toEventLogEntity(action, actionBy, forwardedTo, fromStatus,toStatus, remarks, newEvent, 1);
+        eventLogRepository.save(eventLog);
+
+        return "Event successfully created and submitted for approvals!";
     }
 
     @Override
-    public List<EventSummary> getAllEventsByCollege(String collegeId){
-        return null;
+    @Transactional
+    public String resubmitEvent(EventRequest request, MultipartFile file, Integer eventId, CustomUserDetails currentClub) throws AccessDeniedException {
+
+        // 1. Fetch the EXISTING event first
+        Event curEvent = eventRepository.findById(eventId)
+                .orElseThrow(() -> new RuntimeException("Event not found with ID: " + eventId));
+
+        // 2. Validation Checks
+        if (curEvent.getStatus() != EventStatus.REVERTED) {
+            throw new RuntimeException("Only REVERTED events can be resubmitted. Current status: " + curEvent.getStatus());
+        }
+
+        if (!Objects.equals(currentClub.getProfileId(), curEvent.getClub().getId())) {
+            throw new AccessDeniedException("Unauthorized: You cannot resubmit events of other clubs.");
+        }
+
+        // 3. Update Fields (Do not create a new Object, update the existing one)
+        // Use your mapper to update 'curEvent' with 'request' data
+        eventMapper.updateEventFromRequest(request, curEvent);
+
+        // 4. Handle Poster (Only upload if a new file is provided)
+        if (file != null && !file.isEmpty()) {
+            String newPosterUrl = supabaseService.uploadFile(file);
+            if (newPosterUrl == null || newPosterUrl.isEmpty()) {
+                throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to upload poster");
+            }
+            curEvent.setPosterUrl(newPosterUrl);
+        }
+
+        // 5. Reset Event Status for the Workflow
+        curEvent.setStatus(EventStatus.SUBMITTED); // Or SUBMITTED, depending on your enum logic
+        eventRepository.save(curEvent);
+
+        // 6. Log the Versioning
+        EventLog lastLog = eventLogRepository.findFirstByEventOrderByIdDesc(curEvent)
+                .orElseThrow(() -> new RuntimeException("Previous event log not found!"));
+
+        EventStatus action = EventStatus.SUBMITTED;
+        Role actionBy = Role.ROLE_CLUB;
+        Role forwardedTo = Role.ROLE_FACULTY;
+        EventStatus fromStatus = EventStatus.REVERTED; // Fixed: It was coming FROM reverted
+        EventStatus toStatus = EventStatus.SUBMITTED;
+        String remarks = "Event Re-Submitted for approvals";
+        Integer newVersion = lastLog.getVersion() + 1;
+
+        EventLog newLog = eventLogMapper.toEventLogEntity(
+                action, actionBy, forwardedTo, fromStatus, toStatus, remarks, curEvent, newVersion
+        );
+
+        eventLogRepository.save(newLog);
+
+        return "Event successfully updated and resubmitted for further approvals!";
+    }
+
+    @Override
+    public List<EventSummary> getAllEventsByCollege(Integer collegeId, CustomUserDetails currentPrincipal) throws AccessDeniedException {
+        if (collegeId == null) {
+            throw new IllegalArgumentException("Invalid College Id!");
+        }
+        College curCollege = collegeRepository.findById(collegeId)
+                .orElseThrow(()-> new RuntimeException("College not found!"));
+
+        if(!Objects.equals(collegeId, currentPrincipal.getCollegeId())){
+            throw new AccessDeniedException("Unauthorised: You cannot view another college's events!");
+        }
+        List<Event> events = eventRepository.findByClub_College_Id(collegeId);
+
+        if(events.isEmpty()) return Collections.emptyList();
+
+        return events.stream()
+                .map(eventMapper :: convertToEventSummary)
+                .toList();
     }
 
     @Override
@@ -98,6 +183,41 @@ public class EventServiceImpl implements EventService {
 
         return eventsByClub.stream()
                 .map(eventMapper::convertToEventSummary) // or EventMapper.toSummary(event)
-                .toList(); // Java 16+
+                .toList();
+    }
+
+    @Override
+    public EventResponse getEventDetailsByEventId(Integer eventId, CustomUserDetails currentUser) throws AccessDeniedException {
+        Event curEvent = eventRepository.findById(eventId)
+                .orElseThrow(()-> new RuntimeException("Event not found!"));
+
+        if(!Objects.equals(curEvent.getClub().getCollege().getId() , currentUser.getCollegeId())){
+            throw new AccessDeniedException("Unauthorised: Access Denied to events from other college!");
+        }
+
+        // Fetch all branch short forms in a single query
+        List<Branch> branches = branchRepository.findAllById(curEvent.getAllowedBranches());
+
+        // Convert the list of entities into a Map<Integer, String>
+        Map<Integer, String> allowedBranches = branches.stream()
+                .collect(Collectors.toMap(
+                        Branch::getId,
+                        Branch::getShortForm
+                ));
+
+        Map<Integer, String> yearLabels = Map.of(
+                1, "FY",
+                2, "SY",
+                3, "TY",
+                4, "FINAL"
+        );
+
+        Map<Integer, String> allowedYears = curEvent.getAllowedYears().stream()
+                .collect(Collectors.toMap(
+                        id -> id,
+                        id -> yearLabels.getOrDefault(id, "Unknown")
+                ));
+
+        return eventMapper.convertToEventResponse(curEvent, allowedBranches, allowedYears);
     }
 }

@@ -7,7 +7,7 @@ import com.example.CampusUtsav.dtos.miniDtos.StudentSummary;
 import java.util.List;
 
 public interface StudentService {
-    StudentResponse registerStudent(StudentRegistrationRequest request);
+    String registerStudent(StudentRegistrationRequest request);
     List<StudentSummary> getAllStudentsByCollege(Integer collegeId);
     StudentSummary getStudentSummary(String identificationNumber);
 

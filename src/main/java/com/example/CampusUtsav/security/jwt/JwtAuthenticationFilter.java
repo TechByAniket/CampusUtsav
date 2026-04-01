@@ -49,6 +49,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                         String email = jwtUtils.getUsernameFromJwtToken(token);
                         Integer collegeIdFromToken = jwtUtils.getCollegeIdFromToken(token);
                         String role = jwtUtils.getRoleFromJwtToken(token);
+                        Integer profileId = jwtUtils.getProfileIdFromJwtToken(token);
 
                         // 2. Performance Tip: loadUserByUsername ki jagah seedha User object nikal sakte ho
                         // ya fir userDetails ko filter logic mein reuse karo.
@@ -61,7 +62,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                                     .orElse("DEACTIVATED");
                         }
 
-                        CustomUserDetails principal = new CustomUserDetails(userDetails.getUser(), collegeIdFromToken, status);
+                        CustomUserDetails principal = new CustomUserDetails(userDetails.getUser(), collegeIdFromToken, status, profileId);
 
                         // 3. 🛡️ The Most Important Check: Only authenticate if ENABLED
                         if (principal.isEnabled()) {

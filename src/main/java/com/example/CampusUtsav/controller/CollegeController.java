@@ -16,6 +16,8 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 @RestController
 @AllArgsConstructor
@@ -43,9 +45,21 @@ public class CollegeController {
         }
     }
 
+    @GetMapping("/public/colleges/{collegeId}/branches")
+    public ResponseEntity<Map<Integer,String>> getAllBranchesOfCollege(@PathVariable Integer collegeId){
+        Map<Integer, String> response = collegeService.getAllBranchesOfCollege(collegeId);
+        return ResponseEntity.status(HttpStatus.OK).body(response);
+    }
+
     @GetMapping("/public/colleges")
     public ResponseEntity<List<CollegeSummaryResponse>> getAllRegisteredColleges(){
         List<CollegeSummaryResponse> response = collegeService.getAllRegisteredColleges();
+        return ResponseEntity.status(HttpStatus.OK).body(response);
+    }
+
+    @GetMapping("/public/colleges/{collegeId}/official-domains")
+    public ResponseEntity<Set<String>> getAllOfficialDomainsOfCollege(@PathVariable Integer collegeId){
+        Set<String> response = collegeService.getAllOfficialDomainsOfCollege(collegeId);
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 }

@@ -1,5 +1,6 @@
 package com.example.CampusUtsav.dtos;
 
+import com.example.CampusUtsav.entity.Branch;
 import jakarta.persistence.Column;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
@@ -27,13 +28,6 @@ public class ClubRegistrationRequest {
     @Column(length = 20)
     private String shortForm;
 
-    @NotBlank(message = "Faculty coordinator name is required")
-    private String facultyCoordinatorName;
-
-    @NotBlank(message = "Faculty coordinator email is required")
-    @Email(message = "Invalid email format")
-    private String facultyCoordinatorEmail;
-
     @Email(message = "Invalid email format")
     @NotBlank(message = "Admin email is required")
     private String adminEmail;
@@ -47,28 +41,16 @@ public class ClubRegistrationRequest {
     private String password;
 
     @NotBlank(message = "Club description is required")
-//    @Size(max = 1500)
     private String description;
 
-//    @URL(message = "Invalid URL format")
-//    private String logoUrl;
+    private Integer branchId;
 
-//    @NotBlank(message = "Website URL is required")
     @Size(message = "Website URL too long")
-//    @URL(protocol = "https",
-//            message = "Invalid URL format")
     private String websiteUrl;
 
     @NotBlank(message = "Instagram URL is required")
     @Size(message = "Instagram URL too long")
-//    @URL(protocol = "https",
-//            host = "www.instagram.com",
-//            message = "Invalid URL format")
     private String instagramUrl;
-
-//    @URL(protocol = "https",
-//            host = "www.linkedin.com",
-//            message = "Invalid URL format")
     private String linkedInUrl;
 
 }

@@ -39,7 +39,7 @@ public class StudentServiceImpl implements StudentService {
 
     @Override
     @Transactional
-    public StudentResponse registerStudent(StudentRegistrationRequest request) {
+    public String registerStudent(StudentRegistrationRequest request) {
 
         if (request.getGraduationYear() <= request.getAdmissionYear()) {
             throw new IllegalArgumentException("Graduation year must be after admission year");
@@ -72,7 +72,7 @@ public class StudentServiceImpl implements StudentService {
         newStudent.setUser(user);
         studentRepository.save(newStudent);
 
-        return studentMapper.convertToStudentResponse(newStudent);
+        return "Student registration successful!";
     }
 
     // ************* GET ALL STUDENTS OF A COLLEGE ************* //

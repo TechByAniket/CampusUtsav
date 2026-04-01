@@ -1,9 +1,11 @@
 package com.example.CampusUtsav.dtos;
 
+import com.example.CampusUtsav.dtos.miniDtos.ClubSummary;
 import com.example.CampusUtsav.entity.Club;
 import com.example.CampusUtsav.entity.enums.EventCategory;
 import com.example.CampusUtsav.entity.enums.EventStatus;
 import com.example.CampusUtsav.entity.enums.EventType;
+import com.fasterxml.jackson.databind.JsonNode;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -34,14 +36,18 @@ public class EventResponse {
         private boolean teamEvent;
         private int teamSize;
         private int maxParticipants;
-        private List<String> attachments;
+        private Map<String,Object> publicAttachments;
+        private Map<String,Object> privateAttachments;
         private List<String> tags;
         private EventStatus status;
         private String registrationLink;
         private Map<String, Map<String, String>> contactDetails; // name → phone
         private String extraInfo; // JSON string
-        private Club club;
+        private ClubSummary club;
         private Integer collegeId;
+        private Map<Integer, String> allowedBranches;
+        private Map<Integer, String> allowedYears;
+
 //      private String clubName; // for frontend display
         private boolean isFeatured;
         private boolean isActive;

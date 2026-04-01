@@ -20,8 +20,8 @@ public class StudentController {
     private final StudentService studentService;
 
     @PostMapping("/student/register")
-    public ResponseEntity<StudentResponse> registerStudent(@Valid @RequestBody StudentRegistrationRequest request){
-        StudentResponse response = studentService.registerStudent(request);
+    public ResponseEntity<String> registerStudent(@Valid @RequestBody StudentRegistrationRequest request){
+        String response = studentService.registerStudent(request);
 
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }

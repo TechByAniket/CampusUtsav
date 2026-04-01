@@ -1,6 +1,8 @@
 package com.example.CampusUtsav.entity;
 
+import com.example.CampusUtsav.entity.enums.AccountStatus;
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
@@ -73,6 +75,10 @@ public class Club {
 
     private String logoUrl;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "status")
+    private AccountStatus status;
+
 //    @NotBlank(message = "Website URL is required")
     @Size(message = "Website URL too long")
     @Column(unique = true)
@@ -112,8 +118,13 @@ public class Club {
     @JsonBackReference
     private College college;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "branch_id")
+    private Branch branch;
+
     @OneToMany(mappedBy = "club", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonManagedReference
+    @JsonIgnoreProperties("club")
     private List<Event> events;
 
     @ToString.Exclude

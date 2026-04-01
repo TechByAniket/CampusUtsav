@@ -51,6 +51,7 @@ public class AuthServiceImpl implements AuthService {
 
         Integer collegeId = null;
         StudentSummary studentSummary = null;
+        Integer profileId = null;
 
         switch (role) {
             case "ROLE_STUDENT" -> {
@@ -58,7 +59,7 @@ public class AuthServiceImpl implements AuthService {
                         .findByUser_Id(user.getId())
                         .orElseThrow(() -> new IllegalStateException("Student not found"));
                 collegeId = student.getCollege().getId();
-
+                profileId = student.getId();
                 studentSummary = studentMapper.convertToStudentSummary(student);
             }
 
@@ -66,13 +67,28 @@ public class AuthServiceImpl implements AuthService {
                 Club club = clubRepository
                         .findByUser_Id(user.getId())
                         .orElseThrow(() -> new IllegalStateException("Club not found"));
+
+                String status = String.valueOf(club.getStatus());
+
+                if ("PENDING".equals(status)) {
+                    throw new IllegalStateException("Your account is awaiting Principal's approval.");
+                }
+                if ("SUSPENDED".equals(status)) {
+                    throw new IllegalStateException("Your account has been suspended. Please contact Principal of your college.");
+                }
+                if ("DEACTIVATED".equals(status)) {
+                    throw new IllegalStateException("This account is no longer active.");
+                }
+
+                profileId = club.getId();
                 collegeId = club.getCollege().getId();
             }
 
-            case "ROLE_DEAN" -> {
+            case "ROLE_PRINCIPAL" -> {
                 College college = collegeRepository
                         .findByUser_Id(user.getId())
                         .orElseThrow(() -> new IllegalStateException("College not found"));
+                profileId = college.getId();
                 collegeId = college.getId();
             }
             case "ROLE_FACULTY", "ROLE_HOD" -> {
@@ -91,10 +107,11 @@ public class AuthServiceImpl implements AuthService {
                     throw new IllegalStateException("This account is no longer active.");
                 }
 
+                profileId = staff.getId();
                 collegeId = staff.getCollege().getId();
             }
         }
-        String token = jwtUtils.generateJwtToken(user.getUsername(), role, collegeId);
-        return new LoginResponse(user.getUsername(), role, token, collegeId, studentSummary);
+        String token = jwtUtils.generateJwtToken(user.getUsername(), role, collegeId, profileId);
+        return new LoginResponse(user.getUsername(), role, token, collegeId, studentSummary, profileId);
     }
 }

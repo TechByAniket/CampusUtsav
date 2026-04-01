@@ -36,7 +36,7 @@ public class User {
 
     // Optional reference to the corresponding domain row (e.g. student.id / college.id).
     // For some cases, for a safer side
-    private Long referenceId;
+    private Integer referenceId;
 
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;

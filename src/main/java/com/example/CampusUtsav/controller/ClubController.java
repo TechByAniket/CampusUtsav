@@ -2,6 +2,7 @@ package com.example.CampusUtsav.controller;
 
 import com.example.CampusUtsav.dtos.ClubRegistrationRequest;
 import com.example.CampusUtsav.dtos.ClubResponse;
+import com.example.CampusUtsav.dtos.StaffResponse;
 import com.example.CampusUtsav.dtos.miniDtos.ClubSummary;
 import com.example.CampusUtsav.security.model.CustomUserDetails;
 import com.example.CampusUtsav.service.ClubService;
@@ -17,7 +18,9 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.nio.file.AccessDeniedException;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @AllArgsConstructor
@@ -28,14 +31,14 @@ public class ClubController {
     private final ClubService clubService;
 
 //    @PostMapping("/colleges/{collegeId}/clubs/register")
-    @PostMapping(value = "/college/{collegeId}/club/register", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<ClubResponse> registerClub(@RequestPart("club") String clubDetails,
+    @PostMapping(value = "/public/college/{collegeId}/club/register", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<String> registerClub(@RequestPart("club") String clubDetails,
                                                      @RequestPart("file") MultipartFile logoFile,
-                                                     @PathVariable int collegeId ) {
+                                                     @PathVariable Integer collegeId ) {
         try{
             ClubRegistrationRequest request = objectMapper.readValue(clubDetails, ClubRegistrationRequest.class);
 
-            ClubResponse response = clubService.registerClub(request, collegeId, logoFile);
+            String response = clubService.registerClub(request, collegeId, logoFile);
             return ResponseEntity.status(HttpStatus.CREATED).body(response);
 
         } catch(JsonProcessingException e){
@@ -47,16 +50,32 @@ public class ClubController {
         }
     }
 
-    @GetMapping("/colleges/clubs")
-    public ResponseEntity<List<ClubSummary>> getAllClubsByCollege(@AuthenticationPrincipal CustomUserDetails currentUser){
-        List<ClubSummary> response = clubService.getAllClubsByCollege(currentUser.getCollegeId());
+    @GetMapping("/public/colleges/{collegeId}/clubs")
+    public ResponseEntity<List<ClubSummary>> getAllClubsByCollege(@PathVariable Integer collegeId){
+        List<ClubSummary> response = clubService.getAllClubsByCollege(collegeId);
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
-    @GetMapping("colleges/{collegeId}/clubs/{clubId}")
+    @GetMapping("/colleges/{collegeId}/clubs/{clubId}")
     public ResponseEntity<ClubResponse> getClubDetailsByClubId(@PathVariable Integer collegeId,
                                                                @PathVariable Integer clubId){
         ClubResponse response = clubService.getClubDetailsByClubId(collegeId, clubId);
+        return ResponseEntity.status(HttpStatus.OK).body(response);
+    }
+
+    @GetMapping("/admin/clubs")
+    public ResponseEntity<List<ClubSummary>> getStaffByCollegeId(@AuthenticationPrincipal CustomUserDetails currentPrincipal){
+
+        List<ClubSummary> response = clubService.getAllClubsForPrincipal(currentPrincipal);
+        return ResponseEntity.status(HttpStatus.OK).body(response);
+    }
+
+    @PatchMapping("/admin/clubs/{clubId}/status")
+    public ResponseEntity<String> updateClubAccountStatus(@PathVariable Integer clubId,
+                                                      @RequestBody Map<String, String> request,
+                                                      @AuthenticationPrincipal CustomUserDetails currentPrincipal) throws AccessDeniedException {
+        String newStatus = request.get("status");
+        String response = clubService.updateClubAccountStatus(clubId, newStatus, currentPrincipal);
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 }

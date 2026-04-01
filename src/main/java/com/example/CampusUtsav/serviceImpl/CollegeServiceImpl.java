@@ -27,6 +27,8 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
@@ -83,7 +85,7 @@ public class CollegeServiceImpl implements CollegeService {
         User user = User.builder()
                 .email(newCollege.getEmail())
                 .passwordHash(encodedPassword)
-                .role(Role.ROLE_DEAN)
+                .role(Role.ROLE_PRINCIPAL)
                 .build();
         
         userRepository.save(user);
@@ -98,6 +100,18 @@ public class CollegeServiceImpl implements CollegeService {
     }
 
     @Override
+    public Map<Integer, String> getAllBranchesOfCollege(Integer collegeId){
+        College curCollege = collegeRepository.findById(collegeId)
+                .orElseThrow(()-> new RuntimeException("College not found!"));
+
+        return curCollege.getBranches().stream()
+                .collect(Collectors.toMap(
+                        Branch::getId,          // Key: Branch ID
+                        Branch::getShortForm    // Value: Branch Short Form (e.g. CSE)
+                ));
+    }
+
+    @Override
     public List<CollegeSummaryResponse> getAllRegisteredColleges(){
         List<College> listOfColleges = collegeRepository.findAll();
 
@@ -106,5 +120,13 @@ public class CollegeServiceImpl implements CollegeService {
         return listOfColleges.stream()
                 .map(collegeMapper :: toCollegeSummaryResponse)
                 .toList();
+    }
+
+    @Override
+    public Set<String> getAllOfficialDomainsOfCollege(Integer collegeId){
+        College curCollege = collegeRepository.findById(collegeId)
+                .orElseThrow(()-> new RuntimeException("College not found!"));
+
+        return curCollege.getOfficialDomains();
     }
 }

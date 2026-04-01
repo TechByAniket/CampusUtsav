@@ -1,5 +1,6 @@
 package com.example.CampusUtsav.dtos;
 
+import com.example.CampusUtsav.entity.Branch;
 import com.example.CampusUtsav.entity.College;
 import jakarta.persistence.Column;
 import jakarta.persistence.FetchType;
@@ -31,6 +32,7 @@ public class ClubResponse {
     private String adminEmail;
     private String adminPhone;
     private String description;
+    private String branchShortForm;
     private String logoUrl;
     private String websiteUrl;
     private String instagramUrl;

@@ -1,5 +1,6 @@
 package com.example.CampusUtsav.dtos.miniDtos;
 
+import com.example.CampusUtsav.entity.enums.AccountStatus;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -14,5 +15,7 @@ public class ClubSummary {
     private String name;
     private String shortForm;
     private String adminName;
+    private String managedBy;
+    private AccountStatus status;
     private String logoUrl;
 }

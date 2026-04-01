@@ -19,4 +19,5 @@ public class LoginResponse {
 
     // for students only:
     private StudentSummary studentSummary;
+    private Integer profileId;
 }

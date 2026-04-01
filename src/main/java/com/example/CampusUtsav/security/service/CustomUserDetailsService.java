@@ -35,7 +35,7 @@ public class CustomUserDetailsService implements UserDetailsService {
                 currentStatus = staff.get().getStatus().name();
             }
         }
-        return new CustomUserDetails(user, null, currentStatus);
+        return new CustomUserDetails(user, null, currentStatus, null);
     }
 }
 

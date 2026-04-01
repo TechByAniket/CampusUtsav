@@ -7,7 +7,7 @@ public enum Role {
     ROLE_FACULTY,    // New
     ROLE_HOD,        // New
     ROLE_PRINCIPAL,  // New
-    ROLE_DEAN
+//    ROLE_DEAN
 }
 
 //  Prefix ROLE_ is helpful because hasRole("ADMIN") internally maps to ROLE_ADMIN.

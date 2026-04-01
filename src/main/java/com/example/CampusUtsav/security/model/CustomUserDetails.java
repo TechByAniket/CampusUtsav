@@ -22,6 +22,9 @@ public class CustomUserDetails implements UserDetails {
 
     private final String status;
 
+    @Getter
+    private final Integer profileId;
+
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities(){
         // spring expects ROLE_ prefix
@@ -40,10 +43,6 @@ public class CustomUserDetails implements UserDetails {
     @Override
     public String getUsername(){
         return user.getEmail();
-    }
-
-    public Long getReferenceId(){
-        return user.getReferenceId();
     }
 
     @Override

@@ -52,6 +52,7 @@ public class ClubMapper {
                 .linkedInUrl(newClub.getLinkedInUrl())
                 .logoUrl(newClub.getLogoUrl())
                 .name(newClub.getName())
+                .branchShortForm(newClub.getBranch().getShortForm())
 //                .facultyCoordinatorName(newClub.getFacultyCoordinatorName())
                 .createdAt(newClub.getCreatedAt())
                 .updatedAt(newClub.getUpdatedAt())
@@ -67,6 +68,8 @@ public class ClubMapper {
                 .name(club.getName())
                 .adminName(club.getAdminName())
                 .logoUrl(club.getLogoUrl())
+                .managedBy(club.getCoordinator() != null ? club.getCoordinator().getName() : null)
+                .status(club.getStatus())
                 .shortForm(club.getShortForm())
                 .build();
     }

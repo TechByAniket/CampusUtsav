@@ -3,7 +3,11 @@ package com.example.CampusUtsav.entity;
 import com.example.CampusUtsav.entity.enums.EventCategory;
 import com.example.CampusUtsav.entity.enums.EventStatus;
 import com.example.CampusUtsav.entity.enums.EventType;
+import com.example.CampusUtsav.entity.enums.Role;
+import com.example.CampusUtsav.utils.JsonToMapConverter;
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.databind.JsonNode;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
@@ -57,7 +61,6 @@ public class Event {
 
     @NotBlank(message = "Description is required")
     @Column(columnDefinition = "TEXT")
-    @Lob
     private String description;
 
     private int fees; // numeric amount
@@ -84,8 +87,14 @@ public class Event {
     private int maxParticipants;
 
     @JdbcTypeCode(SqlTypes.JSON)
-    @Column(columnDefinition = "jsonb")
-    private List<String> attachments; // optional
+    @Column(name = "private_attachments" ,columnDefinition = "jsonb")
+    @Convert(converter = JsonToMapConverter.class)
+    private Map<String, Object> privateAttachments;
+
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(name = "public_attachments" ,columnDefinition = "jsonb")
+    @Convert(converter = JsonToMapConverter.class)
+    private Map<String, Object> publicAttachments;
 
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(columnDefinition = "jsonb")
@@ -94,6 +103,10 @@ public class Event {
     @NotNull(message = "Event status is required")
     @Enumerated(EnumType.STRING)
     private EventStatus status;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "pending_approval_at")
+    private Role pendingApprovalAt;
 
     @URL(message = "Invalid URL format")
     @Column(nullable = true)
@@ -111,32 +124,32 @@ public class Event {
     @ManyToOne(fetch =FetchType.LAZY)
     @JoinColumn(name = "club_id", nullable = false)
     @NotNull(message = "Club is required")
+    @JsonIgnoreProperties("events")
     @JsonBackReference
     private Club club;
 
     private boolean isFeatured = false;
     private boolean isActive = true;
 
+    @Column(name = "allowed_years", columnDefinition = "int4[]")
+    private List<Integer> allowedYears; // Storing years in number format
+
+    @Column(name = "allowed_branches", columnDefinition = "int4[]")
+    private List<Integer> allowedBranches; // Storing branch ids
+
     @OneToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "user_id")
     private User user;
 
-//    @OneToMany(mappedBy = "event", cascade = CascadeType.ALL, orphanRemoval = true)
-//    @OrderBy("timestamp ASC") // This keeps the logs in chronological order
-//    private List<EventLog> approvalHistory = new ArrayList<>();
-//
-//    // Helper method to add a log and maintain both sides of the relationship
-//    public void addLog(EventLog log) {
-//        approvalHistory.add(log);
-//        log.setEvent(this);
-//    }
+    @OneToMany(mappedBy = "event", cascade = CascadeType.ALL)
+    @OrderBy("timestamp DESC")
+    private List<EventLog> approvalHistory = new ArrayList<>();
 
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
     @PrePersist
     protected void onCreate() {
-        this.status = EventStatus.SUBMITTED;
         this.createdAt = LocalDateTime.now();
         this.updatedAt = LocalDateTime.now();
     }

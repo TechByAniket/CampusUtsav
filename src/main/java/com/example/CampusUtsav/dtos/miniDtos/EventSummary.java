@@ -3,6 +3,7 @@ package com.example.CampusUtsav.dtos.miniDtos;
 import com.example.CampusUtsav.entity.Club;
 import com.example.CampusUtsav.entity.Event;
 import com.example.CampusUtsav.entity.enums.EventCategory;
+import com.example.CampusUtsav.entity.enums.EventStatus;
 import com.example.CampusUtsav.entity.enums.EventType;
 import jakarta.persistence.criteria.CriteriaBuilder;
 import lombok.AllArgsConstructor;
@@ -26,7 +27,13 @@ public class EventSummary {
     private LocalTime endTime;
     private EventCategory eventCategory;
     private EventType eventType;
+    private String venue;
+    private String remarks;
+    private EventStatus status;
+    private String posterUrl;
     private Integer clubId;
+    private String clubNameShortForm;
+    private String clubLogoUrl;
     private String clubName;
 
 //    public static EventSummary from(Event event){

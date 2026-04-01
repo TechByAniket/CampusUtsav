@@ -3,6 +3,8 @@ package com.example.CampusUtsav.dtos;
 import com.example.CampusUtsav.entity.enums.EventCategory;
 import com.example.CampusUtsav.entity.enums.EventStatus;
 import com.example.CampusUtsav.entity.enums.EventType;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.JsonNode;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
@@ -40,7 +42,7 @@ public class EventRequest {
 
     private int fees;
 
-    private String posterUrl; // optional
+//    private String posterUrl; // optional
 
     @NotBlank(message = "Venue is required")
     private String venue;
@@ -61,17 +63,25 @@ public class EventRequest {
     private int teamSize;
 
 //    @Min(value = 1, message = "Max participants must be at least 1")
-    private int maxParticipants; // have to add a check for maax partcipants in eventregistratioon
+    private int maxParticipants; // have to add a check for max partcipants in eventregistratioon
 
-    private List<String> attachments;
+    @JsonProperty("public_attachments")
+    private Map<String, Object> publicAttachments;
+
+    @JsonProperty("private_attachments")
+    private Map<String, Object> privateAttachments;
+
+    private List<Integer> allowed_branches;
+    private List<Integer> allowed_years;
 
     private List<@NotBlank(message = "Tag cannot be blank") String> tags;
 
-    private EventStatus status; // optional, backend can default to PENDING
+//    private EventStatus status; // optional, backend can default to PENDING
 
     @URL(message = "Registration link must be a valid URL")
     private String registrationLink;
 
+    @JsonProperty("contact_details")
     private Map<String, Map<String, String>> contactDetails;
 
 //    private Map<@NotBlank(message = "Contact name cannot be blank") String,
