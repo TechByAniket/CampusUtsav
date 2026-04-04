@@ -25,9 +25,15 @@ public class StudentResponse {
     private int graduationYear;
     private int collegeId;
     private String collegeName;
+    private String collegeShortForm;
 //    private String profileImageUrl;
     private boolean emailVerified;
     private boolean phoneVerified;
+
+    private String identificationNumber;
+    private String skills;
+    private String interests;
+
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 }

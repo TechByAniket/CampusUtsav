@@ -16,7 +16,8 @@ public interface EventService {
 
     String createEvent(EventRequest request, MultipartFile file, Integer clubId);
 
-    List<EventSummary> getAllEventsByCollege(Integer collegeId, CustomUserDetails currentPrincipal) throws AccessDeniedException;
+    // ***** FOR EVENTS PAGE ***** //
+    List<EventSummary> getAllEventsByCollege(Integer collegeId, CustomUserDetails currentUser) throws AccessDeniedException;
 
     List<EventSummary> getAllEventsByClub(Integer clubId);
 

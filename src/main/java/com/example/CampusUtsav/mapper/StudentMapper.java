@@ -53,6 +53,10 @@ public class StudentMapper {
                 .graduationYear(student.getGraduationYear())
                 .collegeId(student.getCollege() != null ? student.getCollege().getId() : null)
                 .collegeName(student.getCollege() != null ? student.getCollege().getName() : null)
+                .collegeShortForm(student.getCollege() != null ? student.getCollege().getShortForm() : null)
+                .identificationNumber(student.getIdentificationNumber())
+                .skills(student.getSkills())
+                .interests(student.getInterests())
                 .emailVerified(student.isEmailVerified())
                 .phoneVerified(student.isPhoneVerified())
                 .createdAt(student.getCreatedAt())
@@ -72,6 +76,7 @@ public class StudentMapper {
                 .rollNo(student.getRollNo())
                 .year(student.getYear())
                 .division(student.getDivision())
+                .collegeId(student.getCollege().getId())
                 .branch(student.getBranch().getShortForm())
                 .build();
     }

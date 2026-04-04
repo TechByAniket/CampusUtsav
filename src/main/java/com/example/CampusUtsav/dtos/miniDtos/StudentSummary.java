@@ -21,4 +21,5 @@ public class StudentSummary {
     private int year;
     private String division;
     private String branch;
+    private Integer collegeId;
 }

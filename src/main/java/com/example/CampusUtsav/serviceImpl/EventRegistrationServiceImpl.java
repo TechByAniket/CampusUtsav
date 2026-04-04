@@ -6,6 +6,7 @@ import com.example.CampusUtsav.entity.*;
 import com.example.CampusUtsav.mapper.EventMemberRegistrationMapper;
 import com.example.CampusUtsav.mapper.EventRegistrationMapper;
 import com.example.CampusUtsav.repository.*;
+import com.example.CampusUtsav.security.model.CustomUserDetails;
 import com.example.CampusUtsav.service.EventRegistrationService;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
@@ -35,9 +36,15 @@ public class EventRegistrationServiceImpl implements EventRegistrationService {
 
     @Override
     @Transactional
-    public EventRegistrationResponse registerForEvent(Integer eventId, EventRegistrationRequest request) throws BadRequestException {
+    public EventRegistrationResponse registerForEvent(Integer eventId, EventRegistrationRequest request, CustomUserDetails currentUser) throws BadRequestException {
+        if(eventId == null) throw new RuntimeException("Invalid event Id!");
+
         Event linkedEvent = eventRepository.findById(eventId)
                 .orElseThrow(()-> new EntityNotFoundException("Event Not Found!"));
+
+        if(!Objects.equals(linkedEvent.getClub().getCollege().getId(), currentUser.getCollegeId())){
+            throw new RuntimeException("You are not allowed to register for events of other colleges!");
+        }
 
         Student registeredStudent = studentRepository.findById(request.getStudentId())
                 .orElseThrow(()-> new EntityNotFoundException("Student Not Found!"));

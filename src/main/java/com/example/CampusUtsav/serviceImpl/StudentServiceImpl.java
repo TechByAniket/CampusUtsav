@@ -13,6 +13,7 @@ import com.example.CampusUtsav.repository.BranchRepository;
 import com.example.CampusUtsav.repository.CollegeRepository;
 import com.example.CampusUtsav.repository.StudentRepository;
 import com.example.CampusUtsav.repository.UserRepository;
+import com.example.CampusUtsav.security.model.CustomUserDetails;
 import com.example.CampusUtsav.service.StudentService;
 import com.example.CampusUtsav.utils.StudentUtils;
 import jakarta.persistence.EntityNotFoundException;
@@ -93,6 +94,15 @@ public class StudentServiceImpl implements StudentService {
                 .orElseThrow(() -> new EntityNotFoundException("Student details not found!"));
 
         return studentMapper.convertToStudentSummary(curStudent);
+    }
+
+    // ************* GET PROFILE DETAILS OF A STUDENT *********** //
+    @Override
+    public StudentResponse getMyStudentProfileDetails(CustomUserDetails currentUser){
+        Student curStudent = studentRepository.findById(currentUser.getProfileId())
+                .orElseThrow(()-> new RuntimeException("Student not found!"));
+
+        return studentMapper.convertToStudentResponse(curStudent);
     }
 
 }

@@ -99,8 +99,8 @@ public class EventController {
 
     @GetMapping("/colleges/{collegeId}/events")
     public ResponseEntity<List<EventSummary>> getAllEventsByCollege(@PathVariable Integer collegeId,
-                                                                    @AuthenticationPrincipal CustomUserDetails currentPrincipal)throws AccessDeniedException{
-        List<EventSummary> response = eventService.getAllEventsByCollege(collegeId, currentPrincipal);
+                                                                    @AuthenticationPrincipal CustomUserDetails currentUser)throws AccessDeniedException{
+        List<EventSummary> response = eventService.getAllEventsByCollege(collegeId, currentUser);
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 

@@ -2,6 +2,7 @@ package com.example.CampusUtsav.controller;
 
 import com.example.CampusUtsav.dtos.EventRegistrationRequest;
 import com.example.CampusUtsav.dtos.EventRegistrationResponse;
+import com.example.CampusUtsav.security.model.CustomUserDetails;
 import com.example.CampusUtsav.service.EventRegistrationService;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
@@ -9,6 +10,7 @@ import org.apache.coyote.BadRequestException;
 import org.springframework.core.annotation.AliasFor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -20,10 +22,11 @@ public class EventRegistrationController {
 
     private final EventRegistrationService eventRegistrationService;
 
-    @PostMapping("/register/{eventId}")
+    @PostMapping("/events/{eventId}/register")
     public ResponseEntity<EventRegistrationResponse> registerForEvent(@Valid @PathVariable Integer eventId,
-                                                                      @RequestBody EventRegistrationRequest request) throws BadRequestException {
-        EventRegistrationResponse response = eventRegistrationService.registerForEvent(eventId, request);
+                                                                      @RequestBody EventRegistrationRequest request,
+                                                                      @AuthenticationPrincipal CustomUserDetails currentUser) throws BadRequestException {
+        EventRegistrationResponse response = eventRegistrationService.registerForEvent(eventId, request, currentUser);
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 

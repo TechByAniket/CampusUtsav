@@ -19,7 +19,7 @@ public interface EventRepository extends JpaRepository<Event, Integer> {
     List<Event> findByClub_Id(Integer clubId);
 
     @EntityGraph(attributePaths = {"club", "club.college"})
-    List<Event> findByClub_College_Id(Integer collegeId);
+    List<Event> findByClub_College_IdAndStatus(Integer collegeId, EventStatus status);
 
     List<Event> findAllByStatusAndPendingApprovalAtAndClub(EventStatus status, Role pendingApprovalAt, Club currentClub);
 

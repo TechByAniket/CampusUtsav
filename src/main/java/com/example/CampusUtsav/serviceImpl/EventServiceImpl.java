@@ -157,17 +157,19 @@ public class EventServiceImpl implements EventService {
     }
 
     @Override
-    public List<EventSummary> getAllEventsByCollege(Integer collegeId, CustomUserDetails currentPrincipal) throws AccessDeniedException {
+    public List<EventSummary> getAllEventsByCollege(Integer collegeId, CustomUserDetails currentUser) throws AccessDeniedException {
         if (collegeId == null) {
             throw new IllegalArgumentException("Invalid College Id!");
         }
         College curCollege = collegeRepository.findById(collegeId)
                 .orElseThrow(()-> new RuntimeException("College not found!"));
 
-        if(!Objects.equals(collegeId, currentPrincipal.getCollegeId())){
+        if(!Objects.equals(collegeId, currentUser.getCollegeId())){
             throw new AccessDeniedException("Unauthorised: You cannot view another college's events!");
         }
-        List<Event> events = eventRepository.findByClub_College_Id(collegeId);
+
+        // get only the approved events
+        List<Event> events = eventRepository.findByClub_College_IdAndStatus(collegeId, EventStatus.APPROVED);
 
         if(events.isEmpty()) return Collections.emptyList();
 
@@ -193,6 +195,10 @@ public class EventServiceImpl implements EventService {
 
         if(!Objects.equals(curEvent.getClub().getCollege().getId() , currentUser.getCollegeId())){
             throw new AccessDeniedException("Unauthorised: Access Denied to events from other college!");
+        }
+
+        if(curEvent.getStatus() != EventStatus.APPROVED){
+            throw new RuntimeException("Event is not approved!");
         }
 
         // Fetch all branch short forms in a single query
