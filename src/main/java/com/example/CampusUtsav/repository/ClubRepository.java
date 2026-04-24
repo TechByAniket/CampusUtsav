@@ -4,6 +4,8 @@ import com.example.CampusUtsav.entity.Club;
 import com.example.CampusUtsav.entity.College;
 import com.example.CampusUtsav.entity.enums.AccountStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -18,4 +20,7 @@ public interface ClubRepository extends JpaRepository<Club, Integer> {
     Optional<Club> findByUser_Id(Long userId);
 
     Optional<Club> findByAdminEmail(String email);
+
+    @Query("SELECT c.shortForm FROM Club c WHERE c.id = :clubId")
+    Optional<String> findShortFormById(@Param("clubId") Long clubId);
 }
