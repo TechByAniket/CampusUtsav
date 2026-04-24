@@ -72,4 +72,23 @@ public interface EventRepository extends JpaRepository<Event, Integer> {
             @Param("collegeId") Integer collegeId,
             @Param("branchId") Integer branchId);
 
+    // ---- For PRINCIPAL -> Events count by category ---- //
+    @Query("SELECT e.eventCategory, COUNT(e) FROM Event e " +
+            "WHERE e.club.college.id = :collegeId " +
+            "GROUP BY e.eventCategory")
+    List<Object[]> countEventsByCategoryForCollege(@Param("collegeId") Integer collegeId);
+
+    // ---- For HOD -> Events count by category of their branch's clubs ---- //
+    @Query("SELECT e.eventCategory, COUNT(e) FROM Event e " +
+            "WHERE e.club.college.id = :collegeId AND e.club.branch.id = :branchId " +
+            "GROUP BY e.eventCategory")
+    List<Object[]> countEventsByCategoryForBranch(@Param("collegeId") Integer collegeId,
+                                                  @Param("branchId") Integer branchId);
+
+    // ---- For FACULTY -> Events count by category of their managed club ---- //
+    @Query("SELECT e.eventCategory, COUNT(e) FROM Event e " +
+            "WHERE e.club.college.id = :collegeId AND e.club.coordinator.id = :staffId " +
+            "GROUP BY e.eventCategory")
+    List<Object[]> countEventsByCategoryForCoordinator(@Param("collegeId") Integer collegeId,
+                                                       @Param("staffId") Integer staffId);
 }

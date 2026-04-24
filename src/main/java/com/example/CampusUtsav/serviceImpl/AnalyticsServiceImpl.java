@@ -54,16 +54,50 @@ public class AnalyticsServiceImpl implements AnalyticsService {
             throw new RuntimeException("Access Denied: Role not authorized for analytics!");
         }
 
-        return mapToCountMap(eventsCount);
+        return mapToCountMap(eventsCount, "club");
     }
 
-    private Map<String, Integer> mapToCountMap(List<Object[]> rawData) {
+    @Override
+    public Map<String, Integer> getEventsCountByCategory(CustomUserDetails currentUser) {
+        if (currentUser == null) {
+            throw new RuntimeException("Unauthorised! Login first.");
+        }
+
+        Role userRole = currentUser.getUser().getRole();
+        Integer collegeId = currentUser.getCollegeId();
+
+        List<Object[]> eventsCountByCategory;
+
+        if (userRole == Role.ROLE_PRINCIPAL) {
+            validateCollege(collegeId);
+            eventsCountByCategory = eventRepository.countEventsByCategoryForCollege(collegeId);
+        }
+        else if (userRole == Role.ROLE_HOD) {
+            validateHOD(currentUser.getProfileId());
+            Integer branchId = staffRepository.getBranchIdOfStaffByStaffId(currentUser.getProfileId());
+            if (branchId == null) throw new RuntimeException("Branch not assigned!");
+
+            eventsCountByCategory = eventRepository.countEventsByCategoryForBranch(collegeId, branchId);
+        }
+        else if (userRole == Role.ROLE_FACULTY) {
+            Integer staffId = currentUser.getProfileId();
+            validateFaculty(staffId);
+            // ---!!! CHECK IF FACULTY MANAGES A CLUB OR NOT !!!--- //
+            eventsCountByCategory = eventRepository.countEventsByCategoryForCoordinator(collegeId, staffId);
+        } else {
+            throw new RuntimeException("Access Denied: You don't have permission to view analytics.");
+        }
+        return mapToCountMap(eventsCountByCategory, "category");
+    }
+
+    private Map<String, Integer> mapToCountMap(List<Object[]> rawData, String labelType) {
         Map<String, Integer> counts = new HashMap<>();
         if (rawData != null) {
             for (Object[] row : rawData) {
-                String clubName = (row[0] != null) ? row[0].toString() : "Unknown Club";
+                // label == clubName for 'getEventsCountByClub' & label = categoryName for 'getEventsCountByCategory'
+                String label = (row[0] != null) ? row[0].toString() : "Unknown";
                 Integer count = (row[1] != null) ? ((Number) row[1]).intValue() : 0;
-                counts.put(clubName, count);
+                counts.put(label, count);
             }
         }
         return counts;
@@ -80,6 +114,14 @@ public class AnalyticsServiceImpl implements AnalyticsService {
         // otherwise this is fine.
         if (!staffRepository.checkIfActiveHOD(profileId)) {
             throw new RuntimeException("HOD profile not found or inactive!");
+        }
+    }
+
+    private void validateFaculty(Integer profileId) {
+        // combine exists and active check in one query if possible,
+        // otherwise this is fine.
+        if (!staffRepository.existsById(profileId)) {
+            throw new RuntimeException("Faculty/Staff profile not found!");
         }
     }
 }

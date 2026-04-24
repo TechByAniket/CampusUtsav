@@ -26,4 +26,10 @@ public class AnalyticsController {
         Map<String, Integer> response = analyticsService.getEventsCountByClub(currentUser);
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
+
+    @GetMapping("/event-categories")
+    public ResponseEntity<Map<String, Integer>> getEventsCountByCategory(@AuthenticationPrincipal CustomUserDetails currentUser){
+        Map<String, Integer> response = analyticsService.getEventsCountByCategory(currentUser);
+        return ResponseEntity.status(HttpStatus.OK).body(response);
+    }
 }
