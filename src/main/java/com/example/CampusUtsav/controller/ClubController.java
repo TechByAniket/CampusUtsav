@@ -2,6 +2,7 @@ package com.example.CampusUtsav.controller;
 
 import com.example.CampusUtsav.dtos.ClubRegistrationRequest;
 import com.example.CampusUtsav.dtos.ClubResponse;
+import com.example.CampusUtsav.dtos.CollegeResponse;
 import com.example.CampusUtsav.dtos.StaffResponse;
 import com.example.CampusUtsav.dtos.miniDtos.ClubSummary;
 import com.example.CampusUtsav.security.model.CustomUserDetails;
@@ -76,6 +77,12 @@ public class ClubController {
                                                       @AuthenticationPrincipal CustomUserDetails currentPrincipal) throws AccessDeniedException {
         String newStatus = request.get("status");
         String response = clubService.updateClubAccountStatus(clubId, newStatus, currentPrincipal);
+        return ResponseEntity.status(HttpStatus.OK).body(response);
+    }
+
+    @GetMapping("/club/me")
+    public ResponseEntity<ClubResponse> getMyCollegeProfileDetails(@AuthenticationPrincipal CustomUserDetails currentUser){
+        ClubResponse response = clubService.getMyClubProfileDetails(currentUser);
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 }

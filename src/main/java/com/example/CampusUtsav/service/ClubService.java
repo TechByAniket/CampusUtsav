@@ -19,4 +19,6 @@ public interface ClubService {
     List<ClubSummary> getAllClubsForPrincipal(CustomUserDetails currentPrincipal);
 
     ClubResponse getClubDetailsByClubId(Integer collegeId, Integer clubId);
+
+    ClubResponse getMyClubProfileDetails(CustomUserDetails currentUser);
 }

@@ -2,7 +2,9 @@ package com.example.CampusUtsav.controller;
 
 import com.example.CampusUtsav.dtos.CollegeRegistrationRequest;
 import com.example.CampusUtsav.dtos.CollegeResponse;
-import com.example.CampusUtsav.dtos.CollegeSummaryResponse;
+import com.example.CampusUtsav.dtos.StaffResponse;
+import com.example.CampusUtsav.dtos.miniDtos.CollegeSummary;
+import com.example.CampusUtsav.security.model.CustomUserDetails;
 import com.example.CampusUtsav.service.CollegeService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -11,6 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
@@ -52,8 +55,8 @@ public class CollegeController {
     }
 
     @GetMapping("/public/colleges")
-    public ResponseEntity<List<CollegeSummaryResponse>> getAllRegisteredColleges(){
-        List<CollegeSummaryResponse> response = collegeService.getAllRegisteredColleges();
+    public ResponseEntity<List<CollegeSummary>> getAllRegisteredColleges(){
+        List<CollegeSummary> response = collegeService.getAllRegisteredColleges();
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
@@ -62,4 +65,11 @@ public class CollegeController {
         Set<String> response = collegeService.getAllOfficialDomainsOfCollege(collegeId);
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
+
+    @GetMapping("/college/me")
+    public ResponseEntity<CollegeResponse> getMyCollegeProfileDetails(@AuthenticationPrincipal CustomUserDetails currentUser){
+        CollegeResponse response = collegeService.getMyCollegeProfileDetails(currentUser);
+        return ResponseEntity.status(HttpStatus.OK).body(response);
+    }
+
 }

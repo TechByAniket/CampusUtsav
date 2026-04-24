@@ -12,11 +12,10 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @Builder
 public class CollegeResponse {
-    private int id;
+    private Integer id;
     private String name;
     private String shortForm;
     private String username;
-    private String normalizedName;
     private String affiliation;
     private String adminName;
     private String email;

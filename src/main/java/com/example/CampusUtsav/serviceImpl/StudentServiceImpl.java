@@ -22,7 +22,10 @@ import lombok.AllArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.io.ObjectStreamClass;
+import java.nio.file.AccessDeniedException;
 import java.util.List;
+import java.util.Objects;
 
 @Service
 @AllArgsConstructor
@@ -78,7 +81,13 @@ public class StudentServiceImpl implements StudentService {
 
     // ************* GET ALL STUDENTS OF A COLLEGE ************* //
     @Override
-    public List<StudentSummary> getAllStudentsByCollege(Integer collegeId){
+    public List<StudentSummary> getAllStudentsByCollege(CustomUserDetails currentUser, Integer collegeId) throws AccessDeniedException {
+        if(currentUser == null) throw new RuntimeException("Unauthorised! You aren't logged in!");
+
+        if(!Objects.equals(currentUser.getCollegeId(), collegeId)){
+            throw new AccessDeniedException("Unauthorized! You cannot view other college's students");
+        }
+
         List<Student> studentsList = studentRepository.findByCollege_Id(collegeId)
                 .orElseThrow(()-> new EntityNotFoundException("Students not found!"));
 
@@ -99,10 +108,17 @@ public class StudentServiceImpl implements StudentService {
     // ************* GET PROFILE DETAILS OF A STUDENT *********** //
     @Override
     public StudentResponse getMyStudentProfileDetails(CustomUserDetails currentUser){
-        Student curStudent = studentRepository.findById(currentUser.getProfileId())
-                .orElseThrow(()-> new RuntimeException("Student not found!"));
+        if (currentUser == null || currentUser.getUser() == null) {
+            throw new RuntimeException("Unauthorized access!");
+        }
 
-        return studentMapper.convertToStudentResponse(curStudent);
+        Role userRole = currentUser.getUser().getRole();
+        if(userRole == Role.ROLE_STUDENT) {
+            Student curStudent = studentRepository.findById(currentUser.getProfileId())
+                    .orElseThrow(() -> new RuntimeException("Student not found!"));
+
+            return studentMapper.convertToStudentResponse(curStudent);
+        }
+        throw new RuntimeException("Access Denied: Logged in user is not a STUDENT!");
     }
-
 }

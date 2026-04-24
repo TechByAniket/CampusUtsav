@@ -3,8 +3,8 @@ package com.example.CampusUtsav.mapper;
 
 import com.example.CampusUtsav.dtos.ClubRegistrationRequest;
 import com.example.CampusUtsav.dtos.ClubResponse;
-import com.example.CampusUtsav.dtos.CollegeSummaryResponse;
 import com.example.CampusUtsav.dtos.miniDtos.ClubSummary;
+import com.example.CampusUtsav.dtos.miniDtos.CollegeSummary;
 import com.example.CampusUtsav.entity.Club;
 import org.springframework.stereotype.Component;
 
@@ -33,13 +33,14 @@ public class ClubMapper {
     public ClubResponse convertToClubResponse(Club newClub){
         return ClubResponse.builder()
                 .id(newClub.getId())
-                .college(CollegeSummaryResponse.builder()
+                .college(CollegeSummary.builder()
                         .id(newClub.getCollege().getId())
                         .name(newClub.getCollege().getName())
                         .shortForm(newClub.getCollege().getShortForm())
                         .city(newClub.getCollege().getCity())
                         .district(newClub.getCollege().getDistrict())
                         .state(newClub.getCollege().getState())
+                        .logoUrl(newClub.getCollege().getLogoUrl())
                         .build())
                 .description(newClub.getDescription())
                 .username(newClub.getUsername())

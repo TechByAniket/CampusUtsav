@@ -186,4 +186,21 @@ public class ClubServiceImpl implements ClubService {
 
         return "Club Status updated to " + targetStatus + " successfully!";
     }
+
+    @Override
+    public ClubResponse getMyClubProfileDetails(CustomUserDetails currentUser){
+        if (currentUser == null || currentUser.getUser() == null) {
+            throw new RuntimeException("Unauthorized access!");
+        }
+
+        Role userRole = currentUser.getUser().getRole();
+
+        if (userRole == Role.ROLE_CLUB) {
+            Club curClub = clubRepository.findById(currentUser.getProfileId())
+                    .orElseThrow(() -> new RuntimeException("Club profile not found!"));
+
+            return clubMapper.convertToClubResponse(curClub);
+        }
+        throw new RuntimeException("Access Denied: Logged in user is not a CLUB!");
+    }
 }

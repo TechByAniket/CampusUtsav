@@ -66,6 +66,11 @@ public class StaffController {
 
         staffService.updateStaffClubAssignment(staffId, clubId, collegeId);
         return ResponseEntity.status(HttpStatus.OK).body("Club Assignment Updated");
+    }
 
+    @GetMapping("/staff/me")
+    public ResponseEntity<StaffResponse> getMyStaffProfileDetails(@AuthenticationPrincipal CustomUserDetails currentUser){
+        StaffResponse response = staffService.getMyStaffProfileDetails(currentUser);
+        return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 }

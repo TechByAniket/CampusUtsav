@@ -1,5 +1,6 @@
 package com.example.CampusUtsav.dtos;
 
+import com.example.CampusUtsav.dtos.miniDtos.CollegeSummary;
 import com.example.CampusUtsav.entity.Branch;
 import com.example.CampusUtsav.entity.College;
 import jakarta.persistence.Column;
@@ -42,5 +43,5 @@ public class ClubResponse {
 //    private String verificationCode;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
-    private CollegeSummaryResponse college;
+    private CollegeSummary college;
 }

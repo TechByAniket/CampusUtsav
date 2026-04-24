@@ -2,9 +2,10 @@ package com.example.CampusUtsav.serviceImpl;
 
 import com.example.CampusUtsav.dtos.CollegeRegistrationRequest;
 import com.example.CampusUtsav.dtos.CollegeResponse;
-import com.example.CampusUtsav.dtos.CollegeSummaryResponse;
+import com.example.CampusUtsav.dtos.miniDtos.CollegeSummary;
 import com.example.CampusUtsav.entity.Branch;
 import com.example.CampusUtsav.entity.College;
+import com.example.CampusUtsav.entity.Staff;
 import com.example.CampusUtsav.entity.User;
 import com.example.CampusUtsav.entity.enums.Role;
 import com.example.CampusUtsav.mapper.BranchMapper;
@@ -12,6 +13,7 @@ import com.example.CampusUtsav.mapper.CollegeMapper;
 import com.example.CampusUtsav.repository.BranchRepository;
 import com.example.CampusUtsav.repository.CollegeRepository;
 import com.example.CampusUtsav.repository.UserRepository;
+import com.example.CampusUtsav.security.model.CustomUserDetails;
 import com.example.CampusUtsav.service.CollegeService;
 import com.example.CampusUtsav.service.SupabaseService;
 import com.example.CampusUtsav.utils.CollegeUtils;
@@ -112,13 +114,13 @@ public class CollegeServiceImpl implements CollegeService {
     }
 
     @Override
-    public List<CollegeSummaryResponse> getAllRegisteredColleges(){
+    public List<CollegeSummary> getAllRegisteredColleges(){
         List<College> listOfColleges = collegeRepository.findAll();
 
         if(listOfColleges.isEmpty()) return Collections.emptyList();
 
         return listOfColleges.stream()
-                .map(collegeMapper :: toCollegeSummaryResponse)
+                .map(collegeMapper :: toCollegeSummary)
                 .toList();
     }
 
@@ -128,5 +130,23 @@ public class CollegeServiceImpl implements CollegeService {
                 .orElseThrow(()-> new RuntimeException("College not found!"));
 
         return curCollege.getOfficialDomains();
+    }
+
+    @Override
+    public CollegeResponse getMyCollegeProfileDetails(CustomUserDetails currentUser){
+        if (currentUser == null || currentUser.getUser() == null) {
+            throw new RuntimeException("Unauthorized access!");
+        }
+
+        Role userRole = currentUser.getUser().getRole();
+
+        if (userRole == Role.ROLE_PRINCIPAL) {
+            College curCollege = collegeRepository.findById(currentUser.getProfileId())
+                    .orElseThrow(() -> new RuntimeException("College profile not found!"));
+
+            return collegeMapper.convertToCollegeResponse(curCollege);
+        }
+
+        throw new RuntimeException("Access Denied: Logged in user is not a PRINCIPAL!");
     }
 }

@@ -8,6 +8,7 @@ import com.example.CampusUtsav.entity.enums.Role;
 import com.example.CampusUtsav.exception.DuplicateResourceException;
 import com.example.CampusUtsav.mapper.StaffMapper;
 import com.example.CampusUtsav.repository.*;
+import com.example.CampusUtsav.security.model.CustomUserDetails;
 import com.example.CampusUtsav.service.StaffService;
 import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
@@ -15,6 +16,7 @@ import lombok.AllArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.nio.file.AccessDeniedException;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -227,5 +229,24 @@ public class StaffServiceImpl implements StaffService {
             staff.setClubCoordinator(false);
         }
         staffRepository.save(staff);
+    }
+
+    // ************* GET PROFILE DETAILS OF A STAFF *********** //
+    @Override
+    public StaffResponse getMyStaffProfileDetails(CustomUserDetails currentUser) {
+        if (currentUser == null || currentUser.getUser() == null) {
+            throw new RuntimeException("Unauthorized access!");
+        }
+
+        Role userRole = currentUser.getUser().getRole();
+
+        if (userRole == Role.ROLE_FACULTY || userRole == Role.ROLE_HOD) {
+            Staff curStaff = staffRepository.findById(currentUser.getProfileId())
+                    .orElseThrow(() -> new RuntimeException("Staff profile not found!"));
+
+            return staffMapper.toStaffResponse(curStaff);
+        }
+
+        throw new RuntimeException("Access Denied: Logged in user is not a STAFF!");
     }
 }

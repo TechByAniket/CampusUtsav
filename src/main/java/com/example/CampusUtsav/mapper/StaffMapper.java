@@ -3,6 +3,7 @@ package com.example.CampusUtsav.mapper;
 import com.example.CampusUtsav.dtos.StaffRegistrationRequest;
 import com.example.CampusUtsav.dtos.StaffResponse;
 import com.example.CampusUtsav.dtos.miniDtos.ClubSummary;
+import com.example.CampusUtsav.dtos.miniDtos.CollegeSummary;
 import com.example.CampusUtsav.entity.Branch;
 import com.example.CampusUtsav.entity.Club;
 import com.example.CampusUtsav.entity.College;
@@ -48,7 +49,6 @@ public class StaffMapper {
                 .employeeId(staff.getEmployeeId())
                 .email(staff.getEmail())
                 .phone(staff.getPhone())
-                .collegeId(staff.getCollege().getId())
                 .managedClubDetails(managedClub != null
                         ?
                         ClubSummary.builder()
@@ -60,6 +60,17 @@ public class StaffMapper {
                         .build()
                         :
                         null)
+                .college(CollegeSummary.builder()
+                        .id(staff.getCollege().getId())
+                        .name(staff.getCollege().getName())
+                        .shortForm(staff.getCollege().getShortForm())
+                        .city(staff.getCollege().getCity())
+                        .district(staff.getCollege().getDistrict())
+                        .state(staff.getCollege().getState())
+                        .logoUrl(staff.getCollege().getLogoUrl())
+                        .build())
+                .createdAt(staff.getCreatedAt())
+                .userRole(staff.getUser().getRole())
                 .build();
     }
 }

@@ -14,6 +14,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+import java.nio.file.AccessDeniedException;
 import java.util.List;
 
 @RestController
@@ -31,8 +32,9 @@ public class StudentController {
     }
 
     @GetMapping("/colleges/{collegeId}/students")
-    ResponseEntity<List<StudentSummary>> getAllStudentsByCollege(@PathVariable Integer collegeId){
-        List<StudentSummary> response = studentService.getAllStudentsByCollege(collegeId);
+    ResponseEntity<List<StudentSummary>> getAllStudentsByCollege(@AuthenticationPrincipal CustomUserDetails currentUser,
+                                                                 @PathVariable Integer collegeId) throws AccessDeniedException {
+        List<StudentSummary> response = studentService.getAllStudentsByCollege(currentUser, collegeId);
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 

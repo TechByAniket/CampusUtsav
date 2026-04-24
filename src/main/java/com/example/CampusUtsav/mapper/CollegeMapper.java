@@ -3,7 +3,7 @@ package com.example.CampusUtsav.mapper;
 
 import com.example.CampusUtsav.dtos.CollegeRegistrationRequest;
 import com.example.CampusUtsav.dtos.CollegeResponse;
-import com.example.CampusUtsav.dtos.CollegeSummaryResponse;
+import com.example.CampusUtsav.dtos.miniDtos.CollegeSummary;
 import com.example.CampusUtsav.entity.College;
 import org.springframework.stereotype.Component;
 
@@ -38,7 +38,6 @@ public class CollegeMapper {
                 .name(college.getName())
                 .username(college.getUsername())
                 .shortForm(college.getShortForm())
-                .normalizedName(college.getNormalizedName())
                 .affiliation(college.getAffiliation())
                 .adminName(college.getAdminName())
                 .email(college.getEmail())
@@ -55,14 +54,15 @@ public class CollegeMapper {
                 .build();
     }
 
-    public CollegeSummaryResponse toCollegeSummaryResponse(College college){
-        return CollegeSummaryResponse.builder()
+    public CollegeSummary toCollegeSummary(College college){
+        return CollegeSummary.builder()
                 .id(college.getId())
                 .name(college.getName())
                 .shortForm(college.getShortForm())
                 .city(college.getCity())
                 .district(college.getDistrict())
                 .state(college.getState())
+                .logoUrl(college.getLogoUrl())
                 .build();
     }
 }
