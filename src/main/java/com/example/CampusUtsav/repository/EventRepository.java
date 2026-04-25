@@ -7,6 +7,8 @@ import com.example.CampusUtsav.entity.enums.EventStatus;
 import com.example.CampusUtsav.entity.enums.Role;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDate;
@@ -43,4 +45,50 @@ public interface EventRepository extends JpaRepository<Event, Integer> {
     @EntityGraph(attributePaths = {"club", "club.branch"})
     List<Event> findAllByClub_Branch_IdAndStatusAndPendingApprovalAt(Integer branchId, EventStatus status, Role pendingApprovalAt);
 //    List<Event> findAllByClubIdAndStatusAndPendingApprovalAt(Integer clubId, EventStatus currentStatus, Role pendingApprovalAt);
+
+
+    // ---- Analytics Methods ---- //
+//    @Query("SELECT c.id, COUNT(e) FROM Event e " +
+//            "JOIN e.club c " +
+//            "WHERE c.college.id = :collegeId " +
+//            "GROUP BY c.id")
+//    List<Object[]> countEventsByClubForCollege(@Param("collegeId") Integer collegeId);
+
+
+    // ---- For PRINCIPAL -> Events counts of Clubs under given college ---- //
+    // OUTPUT = [["CODECELL", 15L], ["CSI", 8L], ["IEEE", 12L]]
+    @Query("SELECT c.shortForm, COUNT(e) FROM Event e " +
+            "JOIN e.club c " +
+            "WHERE c.college.id = :collegeId " +
+            "GROUP BY c.shortForm")
+    List<Object[]> countEventsByClubShortFormForCollege(@Param("collegeId") Integer collegeId);
+
+    // ---- For HOD -> Events counts of Clubs under given branch ---- //
+    @Query("SELECT c.shortForm, COUNT(e) FROM Event e " +
+            "JOIN e.club c " +
+            "WHERE c.college.id = :collegeId AND c.branch.id = :branchId " +
+            "GROUP BY c.shortForm")
+    List<Object[]> countEventsByClubShortFormAndBranchForCollege(
+            @Param("collegeId") Integer collegeId,
+            @Param("branchId") Integer branchId);
+
+    // ---- For PRINCIPAL -> Events count by category ---- //
+    @Query("SELECT e.eventCategory, COUNT(e) FROM Event e " +
+            "WHERE e.club.college.id = :collegeId " +
+            "GROUP BY e.eventCategory")
+    List<Object[]> countEventsByCategoryForCollege(@Param("collegeId") Integer collegeId);
+
+    // ---- For HOD -> Events count by category of their branch's clubs ---- //
+    @Query("SELECT e.eventCategory, COUNT(e) FROM Event e " +
+            "WHERE e.club.college.id = :collegeId AND e.club.branch.id = :branchId " +
+            "GROUP BY e.eventCategory")
+    List<Object[]> countEventsByCategoryForBranch(@Param("collegeId") Integer collegeId,
+                                                  @Param("branchId") Integer branchId);
+
+    // ---- For FACULTY -> Events count by category of their managed club ---- //
+    @Query("SELECT e.eventCategory, COUNT(e) FROM Event e " +
+            "WHERE e.club.college.id = :collegeId AND e.club.coordinator.id = :staffId " +
+            "GROUP BY e.eventCategory")
+    List<Object[]> countEventsByCategoryForCoordinator(@Param("collegeId") Integer collegeId,
+                                                       @Param("staffId") Integer staffId);
 }

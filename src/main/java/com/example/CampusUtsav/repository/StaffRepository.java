@@ -4,6 +4,8 @@ import com.example.CampusUtsav.entity.College;
 import com.example.CampusUtsav.entity.Staff;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import javax.swing.text.html.Option;
@@ -37,4 +39,10 @@ public interface StaffRepository extends JpaRepository<Staff, Integer> {
     // - ENTITYGRAPH is used for database optimizations and to solve N+1 Query problem - //
     @EntityGraph(attributePaths = {"branch", "managedClub"})
     List<Staff> findAllByCollegeId(Integer collegeId);
+
+    @Query(value = "SELECT s.branch_id FROM staff s WHERE s.id = :staffId", nativeQuery = true)
+    Integer getBranchIdOfStaffByStaffId(@Param("staffId") Integer staffId);
+
+    @Query(value = "SELECT s.is_hod FROM staff s WHERE s.id = :staffId", nativeQuery = true)
+    boolean checkIfActiveHOD(@Param("staffId") Integer staffId);
 }
