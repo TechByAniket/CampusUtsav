@@ -30,7 +30,6 @@ public class EventRequest {
     @NotBlank(message = "Title is required")
     private String title;
 
-//    @NotNull(message = "Event Category is required")
     private EventCategory eventCategory;
 
     @NotNull(message = "Event type is required")
@@ -41,8 +40,6 @@ public class EventRequest {
     private String description;
 
     private int fees;
-
-//    private String posterUrl; // optional
 
     @NotBlank(message = "Venue is required")
     private String venue;

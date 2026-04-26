@@ -1,6 +1,7 @@
 package com.example.CampusUtsav.controller;
 
 import com.example.CampusUtsav.dtos.AiPromptRequest;
+import com.example.CampusUtsav.dtos.EventParticipantsResponse;
 import com.example.CampusUtsav.dtos.EventRequest;
 import com.example.CampusUtsav.dtos.EventResponse;
 import com.example.CampusUtsav.dtos.miniDtos.EventSummary;
@@ -141,5 +142,15 @@ public class EventController {
         List<String> eventStatuses = eventService.getAllEventStatuses();
 
         return ResponseEntity.status(HttpStatus.OK).body(eventStatuses);
+    }
+
+    // ====================================
+    // GET EVENTS PARTICIPANTS
+    // ====================================
+    @GetMapping("/events/{eventId}/participants")
+    public ResponseEntity<EventParticipantsResponse> getEventParticipants(@PathVariable Integer eventId,
+                                                                          @AuthenticationPrincipal CustomUserDetails currentUser) throws AccessDeniedException{
+        EventParticipantsResponse response = eventService.getEventParticipants(eventId, currentUser);
+        return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 }

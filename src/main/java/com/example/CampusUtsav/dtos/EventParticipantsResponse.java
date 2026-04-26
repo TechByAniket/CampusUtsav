@@ -1,22 +1,24 @@
 package com.example.CampusUtsav.dtos;
 
-import com.example.CampusUtsav.dtos.miniDtos.EventSummary;
 import com.example.CampusUtsav.dtos.miniDtos.StudentSummary;
+import com.example.CampusUtsav.dtos.miniDtos.TeamParticipant;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.time.LocalDateTime;
 import java.util.List;
 
 @Data
-@NoArgsConstructor
 @AllArgsConstructor
+@NoArgsConstructor
 @Builder
-public class EventRegistrationResponse {
-    private Integer registrationId;
+public class EventParticipantsResponse {
+
     private Integer eventId;
-    private String registrationType;
-    private String message;
+    private String eventTitle;
+
+    private List<StudentSummary> individuals;
+
+    private List<TeamParticipant> teams;
 }
