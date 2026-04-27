@@ -15,18 +15,13 @@ import java.util.List;
 @Builder
 public class EventRegistrationRequest {
 
-    @NotNull(message = "Event ID is required")
-    private Integer eventId;
-
-    @NotNull(message = "Student ID is required")
     private Integer studentId;
+
+    private Integer leaderId;
 
     private String teamName;
 
-    @NotBlank(message = "Registration type is required")
     private String registrationType; // "INDIVIDUAL" or "TEAM"
 
-    private String extraInfo; // optional, e.g., dynamic form data as JSON
-
-    private List<Integer> teamMemberIds; // optional for team registrations
+    private List<Integer> teamMemberIds;
 }

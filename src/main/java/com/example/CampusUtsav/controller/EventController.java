@@ -1,8 +1,6 @@
 package com.example.CampusUtsav.controller;
 
-import com.example.CampusUtsav.dtos.AiPromptRequest;
-import com.example.CampusUtsav.dtos.EventRequest;
-import com.example.CampusUtsav.dtos.EventResponse;
+import com.example.CampusUtsav.dtos.*;
 import com.example.CampusUtsav.dtos.miniDtos.EventSummary;
 import com.example.CampusUtsav.entity.enums.EventCategory;
 import com.example.CampusUtsav.entity.enums.EventType;
@@ -141,5 +139,25 @@ public class EventController {
         List<String> eventStatuses = eventService.getAllEventStatuses();
 
         return ResponseEntity.status(HttpStatus.OK).body(eventStatuses);
+    }
+
+    // ====================================
+    // GET EVENTS PARTICIPANTS
+    // ====================================
+    @GetMapping("/events/{eventId}/participants")
+    public ResponseEntity<EventParticipantsResponse> getEventParticipants(@PathVariable Integer eventId,
+                                                                          @AuthenticationPrincipal CustomUserDetails currentUser) throws AccessDeniedException{
+        EventParticipantsResponse response = eventService.getEventParticipants(eventId, currentUser);
+        return ResponseEntity.status(HttpStatus.OK).body(response);
+    }
+
+    // ====================================
+    // GET EVENTS REGISTRATIONS (includes payment status, registeredAt (for admins in short)
+    // ====================================
+    @GetMapping("/events/{eventId}/registrations")
+    public ResponseEntity<EventRegistrationsAdminResponse> getEventRegistrations(@PathVariable Integer eventId,
+                                                                 @AuthenticationPrincipal CustomUserDetails currentUser) throws AccessDeniedException{
+        EventRegistrationsAdminResponse response = eventService.getEventRegistrations(eventId, currentUser);
+        return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 }

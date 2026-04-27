@@ -1,21 +1,22 @@
 package com.example.CampusUtsav.serviceImpl;
 
-import com.example.CampusUtsav.dtos.EventRequest;
-import com.example.CampusUtsav.dtos.EventResponse;
-import com.example.CampusUtsav.dtos.miniDtos.EventSummary;
+import com.example.CampusUtsav.dtos.*;
+import com.example.CampusUtsav.dtos.miniDtos.*;
 import com.example.CampusUtsav.entity.*;
 import com.example.CampusUtsav.entity.enums.EventStatus;
 import com.example.CampusUtsav.entity.enums.EventType;
 import com.example.CampusUtsav.entity.enums.Role;
 import com.example.CampusUtsav.mapper.EventLogMapper;
 import com.example.CampusUtsav.mapper.EventMapper;
+import com.example.CampusUtsav.mapper.EventRegistrationMapper;
+import com.example.CampusUtsav.mapper.StudentMapper;
 import com.example.CampusUtsav.repository.*;
 import com.example.CampusUtsav.security.model.CustomUserDetails;
 import com.example.CampusUtsav.service.EventLogService;
 import com.example.CampusUtsav.service.EventService;
 import com.example.CampusUtsav.service.SupabaseService;
 import jakarta.persistence.EntityNotFoundException;
-import jakarta.transaction.Transactional;
+import org.springframework.transaction.annotation.Transactional;
 import lombok.AllArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -41,6 +42,10 @@ public class EventServiceImpl implements EventService {
     private final EventLogMapper eventLogMapper;
     private final EventLogRepository eventLogRepository;
     private final BranchRepository branchRepository;
+    private final StaffRepository staffRepository;
+    private final StudentMapper studentMapper;
+    private final EventRegistrationRepository eventRegistrationRepository;
+    private final EventRegistrationMapper eventRegistrationMapper;
 
     @Override
     public List<String> getAllEventTypes() {
@@ -225,5 +230,152 @@ public class EventServiceImpl implements EventService {
                 ));
 
         return eventMapper.convertToEventResponse(curEvent, allowedBranches, allowedYears);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public EventParticipantsResponse getEventParticipants(Integer eventId, CustomUserDetails currentUser) throws AccessDeniedException {
+
+        Role userRole = currentUser.getUser().getRole();
+
+        // =========================
+        // 1. Validate Event
+        // =========================
+        Event event = eventRepository.findById(eventId)
+                .orElseThrow(() -> new EntityNotFoundException("Event not found"));
+
+        if(!Objects.equals(currentUser.getCollegeId(), event.getClub().getCollege().getId())){
+            throw new AccessDeniedException("Unauthorised: You can't view participant details of other college's event!");
+        }
+
+        if(userRole == Role.ROLE_HOD){
+            Staff curHod = staffRepository.findById(currentUser.getProfileId())
+                    .orElseThrow(()-> new RuntimeException("HOD profile not found!"));
+
+            if (!curHod.isHod()) throw new AccessDeniedException("You are not Head Of Department!");
+            if(!Objects.equals(curHod.getBranch().getId(), event.getClub().getBranch().getId())){
+                throw new AccessDeniedException("You can't view participants details of events that comes under different branches!");
+            }
+        }
+
+        if(userRole == Role.ROLE_FACULTY){
+            Staff curFaculty = staffRepository.findById(currentUser.getProfileId())
+                    .orElseThrow(()-> new RuntimeException("Faculty profile not found!"));
+
+            if (!curFaculty.isClubCoordinator()) throw new AccessDeniedException("You are not a Club Coordinator!");
+            if(!Objects.equals(curFaculty.getManagedClub().getId(), event.getClub().getId())){
+                throw new AccessDeniedException("You can't view participants details of events of clubs that you don't manage!");
+            }
+        }
+
+        // =========================
+        // 2. Fetch all registrations
+        // =========================
+        List<EventRegistration> registrations =
+                eventRegistrationRepository.findByEvent_Id(eventId);
+
+        // =========================
+        // 3. Split INDIVIDUAL
+        // =========================
+        List<StudentSummary> individuals = registrations.stream()
+                .filter(r -> r.getStudent() != null)
+                .map(r -> studentMapper.convertToStudentSummary(r.getStudent()))
+                .toList();
+
+        // =========================
+        // 4. GROUP TEAM MEMBERS
+        // =========================
+        List<TeamParticipant> teams = registrations.stream()
+                .filter(r -> r.getTeam() != null)
+                .map(r -> {
+
+                    Team team = r.getTeam();
+
+                    return new TeamParticipant(
+                            team.getId(),
+                            team.getName(),
+                            studentMapper.convertToStudentSummary(team.getLeader()),
+
+                            team.getMembers().stream()
+                                    .map(m -> studentMapper.convertToStudentSummary(m.getStudent()))
+                                    .toList()
+                    );
+                })
+                .toList();
+
+        // =========================
+        // 5. Build response
+        // =========================
+        return new EventParticipantsResponse(
+                event.getId(),
+                event.getTitle(),
+                individuals,
+                teams
+        );
+    }
+
+
+    // =====================================
+    // FOR CLUBS, COLLEGES, FACULTIES TO SEE THE LIST OF REGISTRATIONS FOF EVENT
+    // =====================================
+    @Override
+    @Transactional(readOnly = true)
+    public EventRegistrationsAdminResponse getEventRegistrations(Integer eventId, CustomUserDetails currentUser) throws AccessDeniedException {
+
+        Integer collegeId = currentUser.getCollegeId();
+        Integer profileId = currentUser.getProfileId();
+        Role userRole =  currentUser.getUser().getRole();
+
+        Event event = eventRepository.findById(eventId)
+                .orElseThrow(()-> new RuntimeException("Event not found!"));
+
+        if(userRole == Role.ROLE_PRINCIPAL && !Objects.equals(event.getClub().getCollege().getId(), collegeId)){
+            throw new AccessDeniedException("You are not allowed to see registrations of other college's event!");
+        }
+
+        if (userRole == Role.ROLE_HOD) {
+            Staff curHod = staffRepository.findById(currentUser.getProfileId())
+                    .orElseThrow(()-> new RuntimeException("HOD profile not found!"));
+
+            if (!curHod.isHod()) throw new AccessDeniedException("You are not Head Of Department!");
+            if(!Objects.equals(curHod.getBranch().getId(), event.getClub().getBranch().getId())){
+                throw new AccessDeniedException("You can't view registration details of events that comes under different branches!");
+            }
+        }
+
+        if(userRole == Role.ROLE_FACULTY){
+            Staff curFaculty = staffRepository.findById(currentUser.getProfileId())
+                    .orElseThrow(()-> new RuntimeException("Faculty profile not found!"));
+
+            if (!curFaculty.isClubCoordinator()) throw new AccessDeniedException("You are not a Club Coordinator!");
+            if(!Objects.equals(curFaculty.getManagedClub().getId(), event.getClub().getId())){
+                throw new AccessDeniedException("You can't view registration details of events of clubs that you don't manage!");
+            }
+        }
+
+        // 2. Fetch full graph (single query)
+        List<EventRegistration> registrations =
+                eventRegistrationRepository.fetchFullEventGraph(eventId);
+
+        // =========================
+        // 👤 INDIVIDUAL REGISTRATIONS
+        // =========================
+        List<IndividualRegistration> individuals = registrations.stream()
+                .filter(r -> r.getStudent() != null)
+                .map(eventRegistrationMapper::toIndividualDTO)
+                .toList();
+
+        // =========================
+        // 👥 TEAM REGISTRATIONS
+        // =========================
+        List<TeamRegistration> teams = registrations.stream()
+                .filter(r -> r.getTeam() != null)
+                .map(eventRegistrationMapper::toTeamDTO)
+                .toList();
+
+        // =========================
+        // FINAL RESPONSE
+        // =========================
+        return new EventRegistrationsAdminResponse(eventId, individuals, teams);
     }
 }

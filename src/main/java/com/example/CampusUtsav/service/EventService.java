@@ -1,5 +1,7 @@
 package com.example.CampusUtsav.service;
 
+import com.example.CampusUtsav.dtos.EventParticipantsResponse;
+import com.example.CampusUtsav.dtos.EventRegistrationsAdminResponse;
 import com.example.CampusUtsav.dtos.EventRequest;
 import com.example.CampusUtsav.dtos.EventResponse;
 import com.example.CampusUtsav.dtos.miniDtos.EventSummary;
@@ -24,4 +26,8 @@ public interface EventService {
     EventResponse getEventDetailsByEventId(Integer eventId, CustomUserDetails currentUser) throws AccessDeniedException;
 
     String resubmitEvent(EventRequest request,MultipartFile file,Integer eventId,CustomUserDetails currentClub) throws AccessDeniedException;
+
+    EventParticipantsResponse getEventParticipants(Integer eventId, CustomUserDetails currentUser) throws AccessDeniedException;
+
+    EventRegistrationsAdminResponse getEventRegistrations(Integer eventId, CustomUserDetails currentUser) throws AccessDeniedException;
 }

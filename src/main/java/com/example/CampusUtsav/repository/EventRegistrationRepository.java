@@ -4,6 +4,8 @@ import com.example.CampusUtsav.entity.Event;
 import com.example.CampusUtsav.entity.EventRegistration;
 import com.example.CampusUtsav.entity.Student;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -14,9 +16,22 @@ public interface EventRegistrationRepository extends JpaRepository<EventRegistra
     boolean existsByEventAndStudent(Event linkedEvent, Student registeredStudent);
 
 //    EventRegistration findByInviteCode(String inviteCode);
-    Optional<EventRegistration> findByInviteCode(String inviteCode);
+//    Optional<EventRegistration> findByInviteCode(String inviteCode);
 
-    List<EventRegistration> findAllByEvent_Id(Integer eventId);
+//    List<EventRegistration> findAllByEvent_Id(Integer eventId);
 
     boolean existsByEvent_IdAndStudent_Id(Integer eventId, Integer studentId);
+
+    List<EventRegistration> findByEvent_Id(Integer eventId);
+
+    @Query("""
+    SELECT DISTINCT er FROM EventRegistration er
+    LEFT JOIN FETCH er.student s
+    LEFT JOIN FETCH er.team t
+    LEFT JOIN FETCH t.leader l
+    LEFT JOIN FETCH t.members tm
+    LEFT JOIN FETCH tm.student ms
+    WHERE er.event.id = :eventId
+""")
+    List<EventRegistration> fetchFullEventGraph(@Param("eventId") Integer eventId);
 }
