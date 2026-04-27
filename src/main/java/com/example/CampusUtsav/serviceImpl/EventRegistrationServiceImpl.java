@@ -16,6 +16,7 @@ import com.example.CampusUtsav.security.model.CustomUserDetails;
 import com.example.CampusUtsav.service.EventRegistrationService;
 import jakarta.persistence.EntityNotFoundException;
 //import jakarta.transaction.Transactional;
+import org.apache.coyote.BadRequestException;
 import org.springframework.transaction.annotation.Transactional;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -149,6 +150,107 @@ public class EventRegistrationServiceImpl implements EventRegistrationService {
         }
 
         throw new RuntimeException("Invalid registration type");
+    }
+
+    @Override
+    @Transactional
+    public String deleteEventRegistration(
+            Integer eventId,
+            Integer registrationId,
+            CustomUserDetails currentUser
+    ) throws AccessDeniedException, BadRequestException {
+
+        // =========================
+        // Getting Roles
+        // =========================
+        boolean isClubAdmin = currentUser.getUser().getRole() == Role.ROLE_CLUB;
+        boolean isPrincipal = currentUser.getUser().getRole() == Role.ROLE_PRINCIPAL;
+        boolean isStudent = currentUser.getUser().getRole() == Role.ROLE_STUDENT;
+
+        // block for disallowed roles
+        if (currentUser.getUser().getRole() == Role.ROLE_FACULTY ||
+                currentUser.getUser().getRole() == Role.ROLE_HOD) {
+
+            throw new AccessDeniedException("You cannot perform this action!");
+        }
+
+        // =========================
+        // Fetch Event
+        // =========================
+        Event event = eventRepository.findById(eventId)
+                .orElseThrow(() -> new EntityNotFoundException("Event not found!"));
+
+        // =========================
+        // Ownership checks
+        // =========================
+
+        // Club must own event
+        boolean isEventOwnerClub = isClubAdmin &&
+                Objects.equals(currentUser.getProfileId(), event.getClub().getId());
+
+        // Principal must belong to same college
+        boolean isSameCollegePrincipal = isPrincipal &&
+                Objects.equals(currentUser.getCollegeId(), event.getClub().getCollege().getId());
+
+        // =========================
+        // Fetch Registration
+        // =========================
+        EventRegistration registration = eventRegistrationRepository
+                .findById(registrationId)
+                .orElseThrow(() -> new EntityNotFoundException("Registration not found"));
+
+        // =========================
+        // Check if registration belongs to claimed event
+        // =========================
+        if (!Objects.equals(registration.getEvent().getId(), eventId)) {
+            throw new BadRequestException("Registration does not belong to this event");
+        }
+
+        // =========================
+        // DELETE INDIVIDUAL REGISTRATION
+        // =========================
+        if (registration.getStudent() != null) {
+
+            // ❗ FIX: allow Student OR Club OR Principal
+            boolean isStudentOwner = isStudent &&
+                            Objects.equals(registration.getStudent().getId(), currentUser.getProfileId());
+
+            boolean isAllowed = isStudentOwner || isEventOwnerClub || isSameCollegePrincipal;
+
+            if (!isAllowed) {
+                throw new AccessDeniedException("Not allowed to delete this registration");
+            }
+
+            eventRegistrationRepository.delete(registration);
+            return "Individual registration deleted successfully";
+        }
+
+        // =========================
+        // DELETE TEAM REGISTRATION
+        // =========================
+        if (registration.getTeam() != null) {
+
+            Team team = registration.getTeam();
+
+            // ❗ FIX: allow Leader OR Club OR Principal
+            boolean isLeader = isStudent &&
+                            Objects.equals(team.getLeader().getId(), currentUser.getProfileId());
+
+            boolean isAllowed = isLeader || isEventOwnerClub || isSameCollegePrincipal;
+
+            if (!isAllowed) {
+                throw new AccessDeniedException("Not allowed to delete this team");
+            }
+
+            eventRegistrationRepository.delete(registration);
+            teamRepository.delete(team);
+
+            return "Team registration deleted successfully";
+        }
+        // =========================
+        // FALLBACK
+        // =========================
+        throw new RuntimeException("Invalid registration");
     }
 
 

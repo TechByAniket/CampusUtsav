@@ -31,6 +31,16 @@ public class EventRegistrationController {
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
+    // ===========================================
+    // DELETE EVENT REGISTRATION ( INDIVIDUAL or TEAM )
+    // ===========================================
+    @DeleteMapping("events/{eventId}/registrations/{registrationId}")
+    public ResponseEntity<String> deleteEventRegistration(@PathVariable Integer eventId,
+                                                        @PathVariable Integer registrationId,
+                                                        @AuthenticationPrincipal CustomUserDetails currentUser) throws AccessDeniedException, BadRequestException {
+        String response = eventRegistrationService.deleteEventRegistration(eventId, registrationId, currentUser);
+        return ResponseEntity.status(HttpStatus.OK).body(response);
+    }
 
 //    @GetMapping("/colleges/{collegeId}/events/{eventId}/registrations")
 //    public ResponseEntity<List<EventRegistrationResponse>> getAllRegistrationsOfEvent(@PathVariable Integer collegeId,
