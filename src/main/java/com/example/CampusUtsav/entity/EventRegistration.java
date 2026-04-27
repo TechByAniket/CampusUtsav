@@ -42,5 +42,10 @@ public class EventRegistration {
 
     private boolean paymentDone;
 
-    private LocalDateTime registeredAt = LocalDateTime.now();
+    private LocalDateTime registeredAt;
+
+    @PrePersist
+    protected void onRegister(){
+        this.registeredAt = LocalDateTime.now();
+    }
 }

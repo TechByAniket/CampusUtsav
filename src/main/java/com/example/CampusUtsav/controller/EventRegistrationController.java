@@ -13,6 +13,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+import java.nio.file.AccessDeniedException;
 import java.util.List;
 
 @RestController
@@ -29,6 +30,7 @@ public class EventRegistrationController {
         EventRegistrationResponse response = eventRegistrationService.registerForEvent(eventId, request, currentUser);
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
+
 
 //    @GetMapping("/colleges/{collegeId}/events/{eventId}/registrations")
 //    public ResponseEntity<List<EventRegistrationResponse>> getAllRegistrationsOfEvent(@PathVariable Integer collegeId,

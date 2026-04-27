@@ -17,8 +17,6 @@ public class EventParticipantsResponse {
 
     private Integer eventId;
     private String eventTitle;
-
     private List<StudentSummary> individuals;
-
     private List<TeamParticipant> teams;
 }
