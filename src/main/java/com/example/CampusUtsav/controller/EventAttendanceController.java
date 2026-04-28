@@ -37,6 +37,14 @@ public class EventAttendanceController {
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
+    @PostMapping("/events/{eventId}/attendance/stop")
+    public ResponseEntity<String> stopAttendance(@PathVariable Integer eventId,
+                                                 @AuthenticationPrincipal CustomUserDetails currentUser) {
+
+        String response = eventAttendanceService.stopAttendance(eventId, currentUser);
+        return ResponseEntity.status(HttpStatus.OK).body(response);
+    }
+
     @GetMapping("/events/{eventId}/attendance")
     public ResponseEntity<EventAttendanceResponse> getEventAttendance(@PathVariable Integer eventId,
                                                                       @AuthenticationPrincipal CustomUserDetails currentUser){

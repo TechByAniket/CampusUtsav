@@ -13,4 +13,6 @@ public interface EventAttendanceService {
     EventAttendanceResponse getEventAttendance(Integer eventId, CustomUserDetails currentUser);
 
     AttendanceTokenResponse getAttendanceToken(Integer eventId, CustomUserDetails currentUser);
+
+    String stopAttendance(Integer eventId, CustomUserDetails currentUser);
 }

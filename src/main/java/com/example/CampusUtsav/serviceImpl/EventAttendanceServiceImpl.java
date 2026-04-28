@@ -338,4 +338,36 @@ public class EventAttendanceServiceImpl implements EventAttendanceService {
                 .expiresAt(event.getAttendanceEndTime())
                 .build();
     }
+
+    @Override
+    @Transactional
+    public String stopAttendance(Integer eventId, CustomUserDetails currentUser) {
+
+        if (currentUser.getUser().getRole() != Role.ROLE_CLUB) {
+            throw new AccessDeniedException("Unauthorised");
+        }
+
+        Event event = eventRepository.findById(eventId)
+                .orElseThrow(() -> new EntityNotFoundException("Event not found"));
+
+        // Ownership check
+        if (!Objects.equals(event.getClub().getId(), currentUser.getProfileId())) {
+            throw new AccessDeniedException("Not allowed");
+        }
+
+        // If not active
+        if (!event.isAttendanceActive()) {
+            throw new RuntimeException("Attendance is not active");
+        }
+
+        // Stop attendance
+        event.setAttendanceActive(false);
+
+        // Optional: end it immediately
+        event.setAttendanceEndTime(LocalDateTime.now());
+
+        eventRepository.save(event);
+
+        return "Attendance stopped successfully";
+    }
 }
