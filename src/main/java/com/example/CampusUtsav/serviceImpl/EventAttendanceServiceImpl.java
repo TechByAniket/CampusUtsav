@@ -2,6 +2,7 @@ package com.example.CampusUtsav.serviceImpl;
 
 import com.example.CampusUtsav.dtos.AttendanceTokenResponse;
 import com.example.CampusUtsav.dtos.EventAttendanceResponse;
+import com.example.CampusUtsav.dtos.EventAttendanceStatusResponse;
 import com.example.CampusUtsav.dtos.miniDtos.StudentAttendance;
 import com.example.CampusUtsav.entity.*;
 import com.example.CampusUtsav.entity.enums.Role;
@@ -15,7 +16,9 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -45,6 +48,8 @@ public class EventAttendanceServiceImpl implements EventAttendanceService {
 
         Event event = eventRepository.findById(eventId)
                 .orElseThrow(() -> new EntityNotFoundException("Event not found"));
+
+        validateAttendanceStartWindow(event);
 
         // =========================
         // 1. Attendance session check
@@ -136,6 +141,8 @@ public class EventAttendanceServiceImpl implements EventAttendanceService {
         if (!Objects.equals(event.getClub().getId(), currentUser.getProfileId())) {
             throw new AccessDeniedException("Not allowed");
         }
+
+        validateAttendanceStartWindow(event);
 
         // Already active
         if (event.isAttendanceActive()) {
@@ -304,6 +311,8 @@ public class EventAttendanceServiceImpl implements EventAttendanceService {
             throw new AccessDeniedException("You can't access this event QR");
         }
 
+        validateAttendanceStartWindow(event);
+
         // =========================
         // 1. Session validation
         // =========================
@@ -355,6 +364,8 @@ public class EventAttendanceServiceImpl implements EventAttendanceService {
             throw new AccessDeniedException("Not allowed");
         }
 
+        validateAttendanceStartWindow(event);
+
         // If not active
         if (!event.isAttendanceActive()) {
             throw new RuntimeException("Attendance is not active");
@@ -369,5 +380,60 @@ public class EventAttendanceServiceImpl implements EventAttendanceService {
         eventRepository.save(event);
 
         return "Attendance stopped successfully";
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public EventAttendanceStatusResponse getEventAttendanceStatus(Integer eventId, CustomUserDetails currentUser) {
+
+        if(currentUser.getUser().getRole() != Role.ROLE_CLUB){
+            throw new AccessDeniedException("Unauthorised!");
+        }
+
+        Event event = eventRepository.findById(eventId)
+                .orElseThrow(() -> new EntityNotFoundException("Event not found"));
+
+        if (!Objects.equals(event.getClub().getId(), currentUser.getProfileId())) {
+            throw new AccessDeniedException("Not allowed");
+        }
+
+        validateAttendanceStartWindow(event);
+
+        return EventAttendanceStatusResponse.builder()
+                .active(event.isAttendanceActive())
+                .startTime(event.getAttendanceStartTime())
+                .endTime(event.getAttendanceEndTime())
+                .build();
+    }
+
+    private void validateAttendanceStartWindow(Event event) {
+
+        LocalDateTime now = LocalDateTime.now();
+
+        LocalDate eventDate = event.getDate();
+        LocalTime eventStartTime = event.getStartTime();
+
+        LocalDateTime eventStartDateTime = LocalDateTime.of(eventDate, eventStartTime);
+
+        // Attendance can only be started one hour before event startTime
+        LocalDateTime allowedStartTime = eventStartDateTime.minusHours(1);
+
+        if (now.isBefore(allowedStartTime)) {
+            throw new RuntimeException(
+                    "Attendance can only be started within 1 hour before event start time"
+            );
+        }
+
+        LocalTime eventEndTime = event.getEndTime();
+
+        if (eventEndTime == null) {
+            throw new RuntimeException("Event end time not defined");
+        }
+
+        LocalDateTime eventEndDateTimePlusTwoHours = LocalDateTime.of(eventDate, eventEndTime).plusHours(2);
+
+        if(now.isAfter(eventEndDateTimePlusTwoHours)){
+            throw new RuntimeException("Event already ended, attendance window is closed!");
+        }
     }
 }
