@@ -27,6 +27,7 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.nio.file.AccessDeniedException;
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -202,7 +203,7 @@ public class EventServiceImpl implements EventService {
             throw new AccessDeniedException("Unauthorised: Access Denied to events from other college!");
         }
 
-        if(curEvent.getStatus() != EventStatus.APPROVED){
+        if((curEvent.getStatus() != EventStatus.APPROVED) && (currentUser.getUser().getRole() != Role.ROLE_CLUB)){
             throw new RuntimeException("Event is not approved!");
         }
 

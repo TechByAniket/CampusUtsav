@@ -4,7 +4,11 @@ import com.example.CampusUtsav.entity.TeamMember;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
+
 @Repository
 public interface TeamMemberRepository extends JpaRepository<TeamMember, Integer> {
     boolean existsByEvent_IdAndStudent_Id(Integer eventId, Integer studentId);
+
+    List<TeamMember> findByEvent_Id(Integer eventId);
 }
