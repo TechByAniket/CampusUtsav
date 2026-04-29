@@ -26,6 +26,7 @@ import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 @Entity
 @Data
@@ -147,6 +148,10 @@ public class Event {
 
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+    private LocalDateTime attendanceStartTime;
+    private LocalDateTime attendanceEndTime;
+    private boolean attendanceActive;
+    private String attendanceSalt;
 
     @PrePersist
     protected void onCreate() {
