@@ -11,4 +11,9 @@ public interface TeamMemberRepository extends JpaRepository<TeamMember, Integer>
     boolean existsByEvent_IdAndStudent_Id(Integer eventId, Integer studentId);
 
     List<TeamMember> findByEvent_Id(Integer eventId);
+
+    // =========================
+    // Fetch TEAM registrations of a student
+    // =========================
+    List<TeamMember> findByStudent_Id(Integer studentId);
 }

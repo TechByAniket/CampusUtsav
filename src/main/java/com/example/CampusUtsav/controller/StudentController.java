@@ -2,6 +2,7 @@ package com.example.CampusUtsav.controller;
 
 import com.example.CampusUtsav.dtos.CollegeResponse;
 import com.example.CampusUtsav.dtos.StudentRegistrationRequest;
+import com.example.CampusUtsav.dtos.StudentRegistrationsResponse;
 import com.example.CampusUtsav.dtos.StudentResponse;
 import com.example.CampusUtsav.dtos.miniDtos.StudentSummary;
 import com.example.CampusUtsav.repository.CollegeRepository;
@@ -51,4 +52,9 @@ public class StudentController {
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
+    @GetMapping("/me/registrations")
+    public ResponseEntity<List<StudentRegistrationsResponse>> getStudentRegistrations(@AuthenticationPrincipal CustomUserDetails currentUser){
+        List<StudentRegistrationsResponse> response = studentService.getStudentRegistrations(currentUser);
+        return ResponseEntity.status(HttpStatus.OK).body(response);
+    }
 }
