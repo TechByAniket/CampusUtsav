@@ -212,7 +212,7 @@ public class EventAttendanceServiceImpl implements EventAttendanceService {
             }
 
             if (!Objects.equals(curFaculty.getManagedClub().getId(), event.getClub().getId())) {
-                throw new AccessDeniedException("You can't view other club's events!");
+                throw new AccessDeniedException("You can't view other club's event attendance!");
             }
         }
 
