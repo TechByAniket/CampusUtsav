@@ -22,6 +22,8 @@ public class StudentRegistrationsResponse {
     private LocalTime startTime;
     private LocalTime endTime;
 
+    private boolean attendanceActive;
+
     private String venue;
     private String clubName;
     private String clubShortForm;

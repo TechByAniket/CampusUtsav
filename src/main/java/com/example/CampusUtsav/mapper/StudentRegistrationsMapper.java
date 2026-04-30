@@ -24,6 +24,7 @@ public class StudentRegistrationsMapper {
                 .venue(event.getVenue())
                 .clubName(event.getClub().getName())
                 .clubShortForm(event.getClub().getShortForm())
+                .attendanceActive(event.isAttendanceActive())
                 .registrationType(registrationType)
                 .teamName(
                         "TEAM".equals(registrationType) && teamMember != null
