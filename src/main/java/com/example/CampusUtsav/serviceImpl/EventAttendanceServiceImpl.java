@@ -426,10 +426,11 @@ public class EventAttendanceServiceImpl implements EventAttendanceService {
 
         LocalDateTime now = LocalDateTime.now();
 
-        LocalDate eventDate = event.getDate();
+        LocalDate eventStartDate = event.getStartDate();
+        LocalDate eventEndDate = event.getEndDate();
         LocalTime eventStartTime = event.getStartTime();
 
-        LocalDateTime eventStartDateTime = LocalDateTime.of(eventDate, eventStartTime);
+        LocalDateTime eventStartDateTime = LocalDateTime.of(eventStartDate, eventStartTime);
 
         // Attendance can only be started one hour before event startTime
         LocalDateTime allowedStartTime = eventStartDateTime.minusHours(1);
@@ -446,9 +447,11 @@ public class EventAttendanceServiceImpl implements EventAttendanceService {
             throw new RuntimeException("Event end time not defined");
         }
 
-        LocalDateTime eventEndDateTimePlusTwoHours = LocalDateTime.of(eventDate, eventEndTime).plusHours(2);
+        // Use endDate instead of startDate for event end
+        LocalDateTime eventEndDateTimePlusTwoHours =
+                LocalDateTime.of(eventEndDate, eventEndTime).plusHours(2);
 
-        if(now.isAfter(eventEndDateTimePlusTwoHours)){
+        if (now.isAfter(eventEndDateTimePlusTwoHours)) {
             throw new RuntimeException("Event already ended, attendance window is closed!");
         }
     }

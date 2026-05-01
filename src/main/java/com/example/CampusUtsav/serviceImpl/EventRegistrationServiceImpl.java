@@ -22,6 +22,8 @@ import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.nio.file.AccessDeniedException;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.*;
 
 @Service
@@ -56,6 +58,10 @@ public class EventRegistrationServiceImpl implements EventRegistrationService {
 
         if (!Objects.equals(event.getClub().getCollege().getId(), currentUser.getCollegeId())) {
             throw new RuntimeException("Not allowed for other college events");
+        }
+
+        if (LocalDate.now().isAfter(event.getRegistrationDeadline())){
+            throw new RuntimeException("Registration unsuccessful: Registration deadline passed!");
         }
 
         String type = request.getRegistrationType().toUpperCase();
@@ -110,6 +116,21 @@ public class EventRegistrationServiceImpl implements EventRegistrationService {
                 List<Student> updated = new ArrayList<>(members);
                 updated.add(leader);
                 members = updated;
+            }
+
+            // =========================
+            // Team size validation (ADDED)
+            // =========================
+            int teamSize = members.size();
+
+            if (event.getMinTeamSize() != null && teamSize < event.getMinTeamSize()) {
+                throw new RuntimeException("Team size is less than minimum allowed ("
+                        + event.getMinTeamSize() + ")");
+            }
+
+            if (event.getMaxTeamSize() != null && teamSize > event.getMaxTeamSize()) {
+                throw new RuntimeException("Team size exceeds maximum allowed ("
+                        + event.getMaxTeamSize() + ")");
             }
 
             // validate conflicts

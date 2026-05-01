@@ -72,7 +72,12 @@ public class Event {
     private String venue;
 
     @NotNull(message = "Event date is required")
-    private LocalDate date;
+    @Column(name = "start_date")
+    private LocalDate startDate;
+
+    @NotNull(message = "Event date is required")
+    @Column(name = "end_date")
+    private LocalDate endDate;
 
     @NotNull(message = "Start time is required")
     private LocalTime startTime;
@@ -83,7 +88,11 @@ public class Event {
     private LocalDate registrationDeadline;
 
     private boolean teamEvent = false;
-    private Integer teamSize;
+    @Column(name = "max_team_size")
+    private Integer maxTeamSize;
+
+    @Column(name = "min_team_size")
+    private Integer minTeamSize;
 //    @Min(value = 1, message = "Max participants must be at least 1")
     private int maxParticipants;
 

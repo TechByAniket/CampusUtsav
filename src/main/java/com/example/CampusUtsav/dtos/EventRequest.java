@@ -45,7 +45,10 @@ public class EventRequest {
     private String venue;
 
     @NotNull(message = "Event date is required")
-    private LocalDate date;
+    private LocalDate startDate;
+
+    @NotNull(message = "Event date is required")
+    private LocalDate endDate;
 
     @NotNull(message = "Start time is required")
     private LocalTime startTime;
@@ -57,7 +60,8 @@ public class EventRequest {
 
     private boolean teamEvent;
 
-    private int teamSize;
+    private int maxTeamSize;
+    private int minTeamSize;
 
 //    @Min(value = 1, message = "Max participants must be at least 1")
     private int maxParticipants; // have to add a check for max partcipants in eventregistratioon

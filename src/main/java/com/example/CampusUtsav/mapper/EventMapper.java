@@ -33,12 +33,14 @@ public class EventMapper {
                 .allowedYears(req.getAllowed_years())
 //                .posterUrl(req.getPosterUrl())
                 .venue(req.getVenue())
-                .date(req.getDate())
+                .startDate(req.getStartDate())
+                .endDate(req.getEndDate())
                 .registrationDeadline(req.getRegistrationDeadline())
                 .startTime(req.getStartTime())
                 .endTime(req.getEndTime())
                 .teamEvent(req.isTeamEvent())
-                .teamSize(req.getTeamSize())
+                .maxTeamSize(req.getMaxTeamSize())
+                .minTeamSize(req.getMinTeamSize())
                 .maxParticipants(req.getMaxParticipants())
                 .privateAttachments(req.getPrivateAttachments())
                 .publicAttachments(req.getPublicAttachments())
@@ -64,12 +66,14 @@ public class EventMapper {
         existingEvent.setAllowedBranches(req.getAllowed_branches());
         existingEvent.setAllowedYears(req.getAllowed_years());
         existingEvent.setVenue(req.getVenue());
-        existingEvent.setDate(req.getDate());
+        existingEvent.setStartDate(req.getStartDate());
+        existingEvent.setEndDate(req.getEndDate());
         existingEvent.setRegistrationDeadline(req.getRegistrationDeadline());
         existingEvent.setStartTime(req.getStartTime());
         existingEvent.setEndTime(req.getEndTime());
         existingEvent.setTeamEvent(req.isTeamEvent());
-        existingEvent.setTeamSize(req.getTeamSize());
+        existingEvent.setMinTeamSize(req.getMinTeamSize());
+        existingEvent.setMaxTeamSize(req.getMaxTeamSize());
         existingEvent.setMaxParticipants(req.getMaxParticipants());
         existingEvent.setPrivateAttachments(req.getPrivateAttachments());
         existingEvent.setPublicAttachments(req.getPublicAttachments());
@@ -90,12 +94,14 @@ public class EventMapper {
                 .description(event.getDescription())
                 .posterUrl(event.getPosterUrl())
                 .venue(event.getVenue())
-                .date(event.getDate())
+                .startDate(event.getStartDate())
+                .endDate(event.getEndDate())
                 .registrationDeadline(event.getRegistrationDeadline())
                 .startTime(event.getStartTime())
                 .endTime(event.getEndTime())
                 .teamEvent(event.isTeamEvent())
-                .teamSize(event.getTeamSize())
+                .minTeamSize(event.getMinTeamSize())
+                .maxTeamSize(event.getMaxTeamSize())
                 .maxParticipants(event.getMaxParticipants())
                 .publicAttachments(event.getPublicAttachments())
                 .privateAttachments(event.getPrivateAttachments())
@@ -118,7 +124,8 @@ public class EventMapper {
         return EventSummary.builder()
                 .id(event.getId())
                 .title(event.getTitle())
-                .date(event.getDate())
+                .startDate(event.getStartDate())
+                .endDate(event.getEndDate())
                 .status(event.getStatus())
                 .startTime(event.getStartTime())
                 .endTime(event.getEndTime())
