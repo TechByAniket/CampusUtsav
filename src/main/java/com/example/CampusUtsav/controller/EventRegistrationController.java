@@ -10,10 +10,11 @@ import org.apache.coyote.BadRequestException;
 import org.springframework.core.annotation.AliasFor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
-import java.nio.file.AccessDeniedException;
+
 import java.util.List;
 
 @RestController
@@ -32,21 +33,12 @@ public class EventRegistrationController {
     }
 
     // ===========================================
-    // DELETE EVENT REGISTRATION ( INDIVIDUAL or TEAM )
+    // CANCEL EVENT REGISTRATION ( INDIVIDUAL or TEAM )
     // ===========================================
-    @DeleteMapping("events/{eventId}/registrations/{registrationId}")
-    public ResponseEntity<String> deleteEventRegistration(@PathVariable Integer eventId,
-                                                        @PathVariable Integer registrationId,
-                                                        @AuthenticationPrincipal CustomUserDetails currentUser) throws AccessDeniedException, BadRequestException {
-        String response = eventRegistrationService.deleteEventRegistration(eventId, registrationId, currentUser);
+    @PatchMapping("/registrations/{registrationId}/cancel")
+    public ResponseEntity<String> cancelEventRegistration(@PathVariable Integer registrationId,
+                                                        @AuthenticationPrincipal CustomUserDetails currentUser) throws AccessDeniedException {
+        String response = eventRegistrationService.cancelEventRegistration(registrationId, currentUser);
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
-
-//    @GetMapping("/colleges/{collegeId}/events/{eventId}/registrations")
-//    public ResponseEntity<List<EventRegistrationResponse>> getAllRegistrationsOfEvent(@PathVariable Integer collegeId,
-//                                                                                      @PathVariable Integer eventId)
-//                                                                                        throws BadRequestException {
-//        List<EventRegistrationResponse> response = eventRegistrationService.getAllRegistrationsOfEvent(collegeId, eventId);
-//        return ResponseEntity.status(HttpStatus.OK).body(response);
-//    }
 }

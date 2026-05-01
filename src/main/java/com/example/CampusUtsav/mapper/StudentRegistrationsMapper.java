@@ -3,6 +3,8 @@ package com.example.CampusUtsav.mapper;
 import com.example.CampusUtsav.dtos.StudentRegistrationsResponse;
 import com.example.CampusUtsav.entity.Event;
 import com.example.CampusUtsav.entity.TeamMember;
+import com.example.CampusUtsav.entity.enums.TeamMemberStatus;
+import com.example.CampusUtsav.entity.enums.TeamStatus;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -27,8 +29,19 @@ public class StudentRegistrationsMapper {
                 .clubShortForm(event.getClub().getShortForm())
                 .attendanceActive(event.isAttendanceActive())
                 .registrationType(registrationType)
+                .teamMemberId(
+                        "TEAM".equals(registrationType)
+                                && teamMember != null
+                                && teamMember.getStatus() == TeamMemberStatus.ACTIVE
+                                && teamMember.getTeam().getStatus() != TeamStatus.CANCELLED
+                                ? teamMember.getId()
+                                : null
+                )
                 .teamName(
-                        "TEAM".equals(registrationType) && teamMember != null
+                        "TEAM".equals(registrationType)
+                                && teamMember != null
+                                && teamMember.getStatus() == TeamMemberStatus.ACTIVE
+                                && teamMember.getTeam().getStatus() != TeamStatus.CANCELLED
                                 ? teamMember.getTeam().getName()
                                 : null
                 )

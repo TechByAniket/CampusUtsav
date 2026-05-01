@@ -1,5 +1,6 @@
 package com.example.CampusUtsav.entity;
 
+import com.example.CampusUtsav.entity.enums.TeamStatus;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -32,4 +33,7 @@ public class Team {
 
     @OneToMany(mappedBy = "team", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<TeamMember> members = new ArrayList<>();
+
+    @Enumerated(EnumType.STRING)
+    private TeamStatus status;
 }

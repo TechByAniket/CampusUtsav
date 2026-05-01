@@ -34,4 +34,5 @@ public class StudentRegistrationsResponse {
 
     private String registrationType;
     private String teamName;
+    private Integer teamMemberId;
 }

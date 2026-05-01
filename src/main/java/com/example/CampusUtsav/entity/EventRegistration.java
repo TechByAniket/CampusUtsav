@@ -1,5 +1,6 @@
 package com.example.CampusUtsav.entity;
 
+import com.example.CampusUtsav.entity.enums.RegistrationStatus;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -43,6 +44,9 @@ public class EventRegistration {
     private boolean paymentDone;
 
     private LocalDateTime registeredAt;
+
+    @Enumerated(EnumType.STRING)
+    private RegistrationStatus status;
 
     @PrePersist
     protected void onRegister(){
