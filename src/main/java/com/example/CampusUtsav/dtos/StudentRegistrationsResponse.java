@@ -18,7 +18,8 @@ public class StudentRegistrationsResponse {
     private Integer eventId;
 
     private String eventTitle;
-    private LocalDate eventDate;
+    private LocalDate eventStartDate;
+    private LocalDate eventEndDate;
     private LocalTime startTime;
     private LocalTime endTime;
 

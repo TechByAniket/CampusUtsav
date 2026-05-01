@@ -72,8 +72,8 @@ public class EventServiceImpl implements EventService {
 
         String normalizedTitle = request.getTitle().trim().toLowerCase().replaceAll("\\s+", "");
 
-        boolean exists = eventRepository.existsByNormalizedTitleAndDateAndClubId(
-                normalizedTitle, request.getDate(), linkedClub.getId());
+        boolean exists = eventRepository.existsByNormalizedTitleAndStartDateAndClubId(
+                normalizedTitle, request.getStartDate(), linkedClub.getId());
 
         if (exists) {
             throw new IllegalArgumentException("Event with same title, date and club already exists");

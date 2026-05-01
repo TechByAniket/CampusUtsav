@@ -33,7 +33,8 @@ public class EventMapper {
                 .allowedYears(req.getAllowed_years())
 //                .posterUrl(req.getPosterUrl())
                 .venue(req.getVenue())
-                .date(req.getDate())
+                .startDate(req.getStartDate())
+                .endDate(req.getEndDate())
                 .registrationDeadline(req.getRegistrationDeadline())
                 .startTime(req.getStartTime())
                 .endTime(req.getEndTime())
@@ -65,7 +66,8 @@ public class EventMapper {
         existingEvent.setAllowedBranches(req.getAllowed_branches());
         existingEvent.setAllowedYears(req.getAllowed_years());
         existingEvent.setVenue(req.getVenue());
-        existingEvent.setDate(req.getDate());
+        existingEvent.setStartDate(req.getStartDate());
+        existingEvent.setEndDate(req.getEndDate());
         existingEvent.setRegistrationDeadline(req.getRegistrationDeadline());
         existingEvent.setStartTime(req.getStartTime());
         existingEvent.setEndTime(req.getEndTime());
@@ -92,7 +94,8 @@ public class EventMapper {
                 .description(event.getDescription())
                 .posterUrl(event.getPosterUrl())
                 .venue(event.getVenue())
-                .date(event.getDate())
+                .startDate(event.getStartDate())
+                .endDate(event.getEndDate())
                 .registrationDeadline(event.getRegistrationDeadline())
                 .startTime(event.getStartTime())
                 .endTime(event.getEndTime())
@@ -121,7 +124,8 @@ public class EventMapper {
         return EventSummary.builder()
                 .id(event.getId())
                 .title(event.getTitle())
-                .date(event.getDate())
+                .startDate(event.getStartDate())
+                .endDate(event.getEndDate())
                 .status(event.getStatus())
                 .startTime(event.getStartTime())
                 .endTime(event.getEndTime())

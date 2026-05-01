@@ -22,7 +22,8 @@ import java.time.LocalTime;
 public class EventSummary {
     private Integer id;
     private String title;
-    private LocalDate date;
+    private LocalDate startDate;
+    private LocalDate endDate;
     private LocalTime startTime;
     private LocalTime endTime;
     private EventCategory eventCategory;

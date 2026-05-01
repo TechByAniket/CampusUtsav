@@ -72,7 +72,12 @@ public class Event {
     private String venue;
 
     @NotNull(message = "Event date is required")
-    private LocalDate date;
+    @Column(name = "start_date")
+    private LocalDate startDate;
+
+    @NotNull(message = "Event date is required")
+    @Column(name = "end_date")
+    private LocalDate endDate;
 
     @NotNull(message = "Start time is required")
     private LocalTime startTime;

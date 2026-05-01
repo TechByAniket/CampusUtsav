@@ -45,7 +45,10 @@ public class EventRequest {
     private String venue;
 
     @NotNull(message = "Event date is required")
-    private LocalDate date;
+    private LocalDate startDate;
+
+    @NotNull(message = "Event date is required")
+    private LocalDate endDate;
 
     @NotNull(message = "Start time is required")
     private LocalTime startTime;

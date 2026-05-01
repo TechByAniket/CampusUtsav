@@ -29,7 +29,8 @@ public class EventResponse {
         private String description;
         private String posterUrl;
         private String venue;
-        private LocalDate date;
+        private LocalDate startDate;
+        private LocalDate endDate;
         private LocalDate registrationDeadline;
         private LocalTime startTime;
         private LocalTime endTime;
