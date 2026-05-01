@@ -7,7 +7,7 @@ import com.example.CampusUtsav.security.model.CustomUserDetails;
 
 public interface EventAttendanceService {
 
-    String markAttendance(Integer eventId, String token, CustomUserDetails customUserDetails);
+    String markAttendance(String token, CustomUserDetails customUserDetails);
 
     String startAttendance(Integer eventId, CustomUserDetails currentUser);
 

@@ -37,7 +37,6 @@ public class EventAttendanceServiceImpl implements EventAttendanceService {
     @Override
     @Transactional
     public String markAttendance(
-            Integer eventId,
             String token,
             CustomUserDetails currentUser
     ) {
@@ -46,13 +45,32 @@ public class EventAttendanceServiceImpl implements EventAttendanceService {
             throw new AccessDeniedException("Unauthorised");
         }
 
+        // =========================
+        // 0. Extract eventId from token
+        // =========================
+        token = token.trim();
+
+        String[] parts = token.split("-");
+
+        if (parts.length != 3) {
+            throw new RuntimeException("Invalid QR format");
+        }
+
+        Integer eventId;
+        try {
+            eventId = Integer.parseInt(parts[0]);
+        } catch (NumberFormatException e) {
+            throw new RuntimeException("Invalid eventId in QR");
+        }
+
+        // =========================
+        // 1. Fetch event
+        // =========================
         Event event = eventRepository.findById(eventId)
                 .orElseThrow(() -> new EntityNotFoundException("Event not found"));
 
-        validateAttendanceStartWindow(event);
-
         // =========================
-        // 1. Attendance session check
+        // 2. Attendance session check
         // =========================
         if (!event.isAttendanceActive()) {
             throw new RuntimeException("Attendance not started");
@@ -70,10 +88,8 @@ public class EventAttendanceServiceImpl implements EventAttendanceService {
         }
 
         // =========================
-        // 2. Token validation (ROTATING + SALT)
+        // 3. Token validation (ROTATING + SALT)
         // =========================
-        token = token.trim();
-
         long window = System.currentTimeMillis() / 30000;
 
         String salt = event.getAttendanceSalt();
@@ -88,7 +104,7 @@ public class EventAttendanceServiceImpl implements EventAttendanceService {
         Integer studentId = currentUser.getProfileId();
 
         // =========================
-        // 3. Registration check
+        // 4. Registration check
         // =========================
         boolean registered =
                 eventRegistrationRepository.existsByEvent_IdAndStudent_Id(eventId, studentId)
@@ -99,7 +115,7 @@ public class EventAttendanceServiceImpl implements EventAttendanceService {
         }
 
         // =========================
-        // 4. Duplicate check
+        // 5. Duplicate check
         // =========================
         if (eventAttendanceRepository.existsByEvent_IdAndStudent_Id(eventId, studentId)) {
             throw new RuntimeException("Attendance already marked");
@@ -109,7 +125,7 @@ public class EventAttendanceServiceImpl implements EventAttendanceService {
                 .orElseThrow(() -> new EntityNotFoundException("Student not found"));
 
         // =========================
-        // 5. Save attendance
+        // 6. Save attendance
         // =========================
         EventAttendance attendance = eventAttendanceMapper.toEventAttendanceEntity(
                 event,
@@ -142,7 +158,7 @@ public class EventAttendanceServiceImpl implements EventAttendanceService {
             throw new AccessDeniedException("Not allowed");
         }
 
-        validateAttendanceStartWindow(event);
+//        validateAttendanceStartWindow(event);
 
         // Already active
         if (event.isAttendanceActive()) {
@@ -311,7 +327,7 @@ public class EventAttendanceServiceImpl implements EventAttendanceService {
             throw new AccessDeniedException("You can't access this event QR");
         }
 
-        validateAttendanceStartWindow(event);
+//        validateAttendanceStartWindow(event);
 
         // =========================
         // 1. Session validation
@@ -364,7 +380,7 @@ public class EventAttendanceServiceImpl implements EventAttendanceService {
             throw new AccessDeniedException("Not allowed");
         }
 
-        validateAttendanceStartWindow(event);
+//        validateAttendanceStartWindow(event);
 
         // If not active
         if (!event.isAttendanceActive()) {
@@ -397,7 +413,7 @@ public class EventAttendanceServiceImpl implements EventAttendanceService {
             throw new AccessDeniedException("Not allowed");
         }
 
-        validateAttendanceStartWindow(event);
+//        validateAttendanceStartWindow(event);
 
         return EventAttendanceStatusResponse.builder()
                 .active(event.isAttendanceActive())
