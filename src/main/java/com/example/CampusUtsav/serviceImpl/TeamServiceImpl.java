@@ -1,17 +1,12 @@
 package com.example.CampusUtsav.serviceImpl;
 
-import com.example.CampusUtsav.entity.Event;
-import com.example.CampusUtsav.entity.Student;
-import com.example.CampusUtsav.entity.Team;
-import com.example.CampusUtsav.entity.TeamMember;
+import com.example.CampusUtsav.dtos.TeamMemberResponse;
+import com.example.CampusUtsav.entity.*;
 import com.example.CampusUtsav.entity.enums.Role;
 import com.example.CampusUtsav.entity.enums.TeamMemberStatus;
 import com.example.CampusUtsav.entity.enums.TeamStatus;
 import com.example.CampusUtsav.mapper.TeamMemberMapper;
-import com.example.CampusUtsav.repository.EventRegistrationRepository;
-import com.example.CampusUtsav.repository.StudentRepository;
-import com.example.CampusUtsav.repository.TeamMemberRepository;
-import com.example.CampusUtsav.repository.TeamRepository;
+import com.example.CampusUtsav.repository.*;
 import com.example.CampusUtsav.security.model.CustomUserDetails;
 import com.example.CampusUtsav.service.TeamService;
 import jakarta.persistence.EntityNotFoundException;
@@ -20,6 +15,7 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.Objects;
 
 @Service
@@ -31,6 +27,7 @@ public class TeamServiceImpl implements TeamService {
     private final TeamMemberRepository teamMemberRepository;
     private final EventRegistrationRepository eventRegistrationRepository;
     private final TeamMemberMapper teamMemberMapper;
+    private final StaffRepository staffRepository;
 
     @Override
     @Transactional
@@ -151,5 +148,104 @@ public class TeamServiceImpl implements TeamService {
         }
 
         return "Member added successfully";
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<TeamMemberResponse> getTeamMembers(Integer teamId,
+                                                   CustomUserDetails currentUser
+    ) throws AccessDeniedException {
+
+        Role userRole = currentUser.getUser().getRole();
+        Integer profileId = currentUser.getProfileId();
+        Integer collegeId = currentUser.getCollegeId();
+
+        // =========================
+        // Fetch Team + Event
+        // =========================
+        Team team = teamRepository.findById(teamId)
+                .orElseThrow(() -> new EntityNotFoundException("Team not found"));
+
+        Event event = team.getEvent();
+
+        // =========================
+        // ROLE-BASED ACCESS CONTROL
+        // =========================
+
+        // -------- PRINCIPAL --------
+        if (userRole == Role.ROLE_PRINCIPAL &&
+                !Objects.equals(event.getClub().getCollege().getId(), collegeId)) {
+
+            throw new AccessDeniedException(
+                    "You are not allowed to see registrations of other college's event!"
+            );
+        }
+
+        // -------- HOD --------
+        if (userRole == Role.ROLE_HOD) {
+
+            Staff hod = staffRepository.findById(profileId)
+                    .orElseThrow(() -> new RuntimeException("HOD profile not found!"));
+
+            if (!hod.isHod()) {
+                throw new AccessDeniedException("You are not Head Of Department!");
+            }
+
+            if (!Objects.equals(hod.getBranch().getId(), event.getClub().getBranch().getId())) {
+                throw new AccessDeniedException(
+                        "You can't view teams of events from other branches!"
+                );
+            }
+        }
+
+        // -------- FACULTY --------
+        if (userRole == Role.ROLE_FACULTY) {
+
+            Staff faculty = staffRepository.findById(profileId)
+                    .orElseThrow(() -> new RuntimeException("Faculty profile not found!"));
+
+            if (!faculty.isClubCoordinator()) {
+                throw new AccessDeniedException("You are not a Club Coordinator!");
+            }
+
+            if (!Objects.equals(faculty.getManagedClub().getId(), event.getClub().getId())) {
+                throw new AccessDeniedException(
+                        "You can't view teams of clubs you don't manage!"
+                );
+            }
+        }
+
+        // -------- CLUB ADMIN --------
+        if (userRole == Role.ROLE_CLUB &&
+                !Objects.equals(profileId, event.getClub().getId())) {
+
+            throw new AccessDeniedException(
+                    "You can't view teams of events not managed by your club!"
+            );
+        }
+
+        // -------- STUDENT --------
+        if (userRole == Role.ROLE_STUDENT) {
+
+            boolean isLeader = Objects.equals(team.getLeader().getId(), profileId);
+
+            boolean isMember = team.getMembers().stream()
+                    .anyMatch(m ->
+                            m.getStudent().getId().equals(profileId) &&
+                                    m.getStatus() == TeamMemberStatus.ACTIVE
+                    );
+
+            if (!isLeader && !isMember) {
+                throw new AccessDeniedException("You are not part of this team!");
+            }
+        }
+
+        // =========================
+        // BUILD RESPONSE (ACTIVE ONLY)
+        // =========================
+        return team.getMembers().stream()
+                .filter(m -> m.getStatus() == TeamMemberStatus.ACTIVE)
+                .map(teamMemberMapper::toResponse)
+                .toList();
     }
 }

@@ -1,5 +1,6 @@
 package com.example.CampusUtsav.mapper;
 
+import com.example.CampusUtsav.dtos.TeamMemberResponse;
 import com.example.CampusUtsav.entity.Event;
 import com.example.CampusUtsav.entity.Student;
 import com.example.CampusUtsav.entity.Team;
@@ -18,6 +19,24 @@ public class TeamMemberMapper {
                 .event(event)
                 .student(student)
                 .status(status)
+                .build();
+    }
+
+    public TeamMemberResponse toResponse(TeamMember member) {
+
+        Student student = member.getStudent();
+
+        return TeamMemberResponse.builder()
+                .teamMemberId(member.getId())
+                .studentId(student.getId())
+                .name(student.getName())
+                .branchShortForm(student.getBranch().getShortForm())
+                .year(student.getYear())
+                .division(student.getDivision())
+                .rollNo(student.getRollNo())
+                .isLeader(
+                        student.getId().equals(member.getTeam().getLeader().getId())
+                )
                 .build();
     }
 }

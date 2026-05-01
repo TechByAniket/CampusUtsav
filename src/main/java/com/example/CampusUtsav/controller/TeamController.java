@@ -1,15 +1,16 @@
 package com.example.CampusUtsav.controller;
 
+import com.example.CampusUtsav.dtos.TeamMemberResponse;
 import com.example.CampusUtsav.security.model.CustomUserDetails;
 import com.example.CampusUtsav.service.TeamService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.web.bind.annotation.PatchMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api")
@@ -26,5 +27,14 @@ public class TeamController {
 
         String response = teamService.addMember(teamId, studentId, currentUser);
         return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/teams/{teamId}/members")
+    public ResponseEntity<List<TeamMemberResponse>> getTeamMembers(@PathVariable Integer teamId,
+                                                                   @AuthenticationPrincipal CustomUserDetails currentUser
+    ) throws AccessDeniedException {
+
+        List<TeamMemberResponse> response = teamService.getTeamMembers(teamId, currentUser);
+        return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 }
