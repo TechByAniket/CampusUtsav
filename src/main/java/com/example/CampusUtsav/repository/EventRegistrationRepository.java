@@ -36,4 +36,9 @@ public interface EventRegistrationRepository extends JpaRepository<EventRegistra
     List<EventRegistration> fetchFullEventGraph(@Param("eventId") Integer eventId);
 
     List<EventRegistration> findByEvent_IdAndStudentIsNotNull(Integer eventId);
+
+    // =========================
+    // Fetch INDIVIDUAL registrations of a student
+    // =========================
+    List<EventRegistration> findByStudent_Id(Integer studentId);
 }

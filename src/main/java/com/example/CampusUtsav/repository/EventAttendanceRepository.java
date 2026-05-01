@@ -23,4 +23,9 @@ public interface EventAttendanceRepository extends JpaRepository<EventAttendance
     // Attendance count of event
     // ===========================================
     Integer countByEvent_Id(Integer eventId);
+
+    // ===========================================
+    // Attendance record of student of all registered events
+    // ===========================================
+    List<EventAttendance> findByStudent_IdAndEvent_IdIn(Integer studentId, List<Integer> eventIds);
 }

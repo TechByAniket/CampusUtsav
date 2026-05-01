@@ -23,13 +23,12 @@ public class EventAttendanceController {
 
     private final EventAttendanceService eventAttendanceService;
 
-    @PostMapping("/events/{eventId}/attendance/scan")
-    public ResponseEntity<String> markAttendance(@PathVariable Integer eventId,
-                                                 @RequestBody Map<String, String> body,
+    @PostMapping("/events/attendance/scan")
+    public ResponseEntity<String> markAttendance(@RequestBody Map<String, String> body,
                                                  @AuthenticationPrincipal CustomUserDetails currentUser ){
 
         String attendanceToken = body.get("attendanceToken");
-        String response = eventAttendanceService.markAttendance(eventId, attendanceToken, currentUser);
+        String response = eventAttendanceService.markAttendance(attendanceToken, currentUser);
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 

@@ -1,18 +1,14 @@
 package com.example.CampusUtsav.serviceImpl;
 
 import com.example.CampusUtsav.dtos.StudentRegistrationRequest;
+import com.example.CampusUtsav.dtos.StudentRegistrationsResponse;
 import com.example.CampusUtsav.dtos.StudentResponse;
 import com.example.CampusUtsav.dtos.miniDtos.StudentSummary;
-import com.example.CampusUtsav.entity.Branch;
-import com.example.CampusUtsav.entity.College;
-import com.example.CampusUtsav.entity.Student;
-import com.example.CampusUtsav.entity.User;
+import com.example.CampusUtsav.entity.*;
 import com.example.CampusUtsav.entity.enums.Role;
 import com.example.CampusUtsav.mapper.StudentMapper;
-import com.example.CampusUtsav.repository.BranchRepository;
-import com.example.CampusUtsav.repository.CollegeRepository;
-import com.example.CampusUtsav.repository.StudentRepository;
-import com.example.CampusUtsav.repository.UserRepository;
+import com.example.CampusUtsav.mapper.StudentRegistrationsMapper;
+import com.example.CampusUtsav.repository.*;
 import com.example.CampusUtsav.security.model.CustomUserDetails;
 import com.example.CampusUtsav.service.StudentService;
 import com.example.CampusUtsav.utils.StudentUtils;
@@ -24,8 +20,7 @@ import org.springframework.stereotype.Service;
 
 import java.io.ObjectStreamClass;
 import java.nio.file.AccessDeniedException;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 
 @Service
 @AllArgsConstructor
@@ -39,6 +34,10 @@ public class StudentServiceImpl implements StudentService {
     private final PasswordEncoder passwordEncoder;
 //    private final Role role;
     private final UserRepository userRepository;
+    private final EventRegistrationRepository eventRegistrationRepository;
+    private final TeamMemberRepository teamMemberRepository;
+    private final EventAttendanceRepository eventAttendanceRepository;
+    private final StudentRegistrationsMapper studentRegistrationsMapper;
 
 
     @Override
@@ -121,4 +120,108 @@ public class StudentServiceImpl implements StudentService {
         }
         throw new RuntimeException("Access Denied: Logged in user is not a STUDENT!");
     }
+
+    @Override
+    public List<StudentRegistrationsResponse> getStudentRegistrations(CustomUserDetails currentUser) {
+
+        Integer studentId = currentUser.getProfileId();
+
+        // =========================
+        // Result list (final response container)
+        // =========================
+        List<StudentRegistrationsResponse> result = new ArrayList<>();
+
+        // =========================
+        // Fetch INDIVIDUAL registrations
+        // =========================
+        List<EventRegistration> individualRegs =
+                eventRegistrationRepository.findByStudent_Id(studentId);
+
+        // Convert each individual registration into DTO
+        for (EventRegistration reg : individualRegs) {
+
+            result.add(
+                    studentRegistrationsMapper.toStudentRegistrationsResponse(
+                            reg.getEvent(),      // event details
+                            "INDIVIDUAL",        // type
+                            null                 // no team
+                    )
+            );
+        }
+
+        // =========================
+        // Fetch TEAM registrations
+        // =========================
+        List<TeamMember> teamRegs =
+                teamMemberRepository.findByStudent_Id(studentId);
+
+        for (TeamMember teamMember : teamRegs) {
+
+            Event event = teamMember.getEvent();
+
+            // =========================
+            // Avoid duplicate events
+            // =========================
+            boolean alreadyAdded = result.stream()
+                    .anyMatch(r -> r.getEventId().equals(event.getId()));
+
+            if (!alreadyAdded) {
+
+                result.add(
+                        studentRegistrationsMapper.toStudentRegistrationsResponse(
+                                event,              // event details
+                                "TEAM",             // type
+                                teamMember          // team info
+                        )
+                );
+            }
+        }
+
+        // =========================
+        // Extract all event IDs
+        // (For batch attendance query)
+        // =========================
+        List<Integer> eventIds = result.stream()
+                .map(StudentRegistrationsResponse::getEventId)
+                .toList();
+
+
+        // =========================
+        // Fetch attendance in ONE query
+        // =========================
+        if (!eventIds.isEmpty()) {
+
+            List<EventAttendance> attendanceList =
+                    eventAttendanceRepository.findByStudent_IdAndEvent_IdIn(studentId, eventIds);
+
+            // =========================
+            // Build map for fast lookup
+            // eventId -> attendance record
+            // =========================
+            Map<Integer, EventAttendance> attendanceMap = new HashMap<>();
+
+            for (EventAttendance att : attendanceList) {
+                attendanceMap.put(att.getEvent().getId(), att);
+            }
+
+
+            // =========================
+            // Apply attendance to each DTO
+            // =========================
+            for (StudentRegistrationsResponse dto : result) {
+
+                EventAttendance att = attendanceMap.get(dto.getEventId());
+
+                // If attendance exists -> mark present
+                // Otherwise it's already marked absent above
+                if (att != null) {
+                    dto.setAttendanceMarked(true);
+                    dto.setMarkedAt(att.getMarkedAt());
+                }
+            }
+        }
+        return result;
+    }
+
+
 }
