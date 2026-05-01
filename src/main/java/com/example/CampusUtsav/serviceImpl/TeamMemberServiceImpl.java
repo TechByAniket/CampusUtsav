@@ -76,7 +76,7 @@ public class TeamMemberServiceImpl implements TeamMemberService {
         // Leader restriction
         // =========================
         if (Objects.equals(team.getLeader().getId(), currentUser.getProfileId())) {
-            throw new RuntimeException("Leader cannot leave team. Delete team instead or transfer leadership before leaving.");
+            throw new RuntimeException("Leader cannot leave team. Delete team instead.");
         }
 
         // =========================
