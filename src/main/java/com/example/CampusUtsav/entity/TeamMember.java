@@ -1,5 +1,6 @@
 package com.example.CampusUtsav.entity;
 
+import com.example.CampusUtsav.entity.enums.TeamMemberStatus;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -34,4 +35,7 @@ public class TeamMember {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "event_id", nullable = false)
     private Event event;
+
+    @Enumerated(EnumType.STRING)
+    private TeamMemberStatus status;
 }

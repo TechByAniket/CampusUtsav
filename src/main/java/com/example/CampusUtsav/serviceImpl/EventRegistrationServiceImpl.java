@@ -6,7 +6,10 @@ import com.example.CampusUtsav.dtos.EventRegistrationResponse;
 import com.example.CampusUtsav.dtos.miniDtos.StudentSummary;
 import com.example.CampusUtsav.dtos.miniDtos.TeamParticipant;
 import com.example.CampusUtsav.entity.*;
+import com.example.CampusUtsav.entity.enums.RegistrationStatus;
 import com.example.CampusUtsav.entity.enums.Role;
+import com.example.CampusUtsav.entity.enums.TeamMemberStatus;
+import com.example.CampusUtsav.entity.enums.TeamStatus;
 import com.example.CampusUtsav.mapper.EventRegistrationMapper;
 import com.example.CampusUtsav.mapper.StudentMapper;
 import com.example.CampusUtsav.mapper.TeamMapper;
@@ -21,7 +24,7 @@ import org.springframework.transaction.annotation.Transactional;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.nio.file.AccessDeniedException;
+import org.springframework.security.access.AccessDeniedException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.*;
@@ -60,9 +63,9 @@ public class EventRegistrationServiceImpl implements EventRegistrationService {
             throw new RuntimeException("Not allowed for other college events");
         }
 
-        if (LocalDate.now().isAfter(event.getRegistrationDeadline())){
-            throw new RuntimeException("Registration unsuccessful: Registration deadline passed!");
-        }
+//        if (LocalDate.now().isAfter(event.getRegistrationDeadline())) {
+//            throw new RuntimeException("Registration unsuccessful: Registration deadline passed!");
+//        }
 
         String type = request.getRegistrationType().toUpperCase();
 
@@ -73,6 +76,10 @@ public class EventRegistrationServiceImpl implements EventRegistrationService {
 
             Student student = studentRepository.findById(request.getStudentId())
                     .orElseThrow(() -> new EntityNotFoundException("Student not found"));
+
+            if(!Objects.equals(request.getStudentId(), currentUser.getProfileId())){
+                throw new RuntimeException("StudentID mismatched!");
+            }
 
             if (eventRegistrationRepository.existsByEvent_IdAndStudent_Id(eventId, student.getId())) {
                 throw new RuntimeException("Student already registered for this event");
@@ -88,6 +95,8 @@ public class EventRegistrationServiceImpl implements EventRegistrationService {
                     null
             );
 
+            registration.setStatus(RegistrationStatus.REGISTERED);
+
             registration = eventRegistrationRepository.save(registration);
 
             return eventRegistrationMapper.toIndividualResponse(registration);
@@ -101,6 +110,10 @@ public class EventRegistrationServiceImpl implements EventRegistrationService {
             // leader
             Student leader = studentRepository.findById(request.getLeaderId())
                     .orElseThrow(() -> new EntityNotFoundException("Leader not found"));
+
+            if(!Objects.equals(request.getStudentId(), currentUser.getProfileId())){
+                throw new RuntimeException("StudentID mismatched!");
+            }
 
             // members (NULL SAFE + DISTINCT FIX)
             List<Student> members = Optional.ofNullable(request.getTeamMemberIds())
@@ -119,7 +132,7 @@ public class EventRegistrationServiceImpl implements EventRegistrationService {
             }
 
             // =========================
-            // Team size validation (ADDED)
+            // Team size validation
             // =========================
             int teamSize = members.size();
 
@@ -147,12 +160,21 @@ public class EventRegistrationServiceImpl implements EventRegistrationService {
 
             // create team
             Team team = teamMapper.toEntity(request.getTeamName(), event, leader);
+
+            team.setStatus(TeamStatus.VALID);
+
             team = teamRepository.save(team);
 
             // create team members
             Team finalTeam = team;
             List<TeamMember> teamMembers = members.stream()
-                    .map(s -> teamMemberMapper.toEntity(finalTeam, s, event))
+                    .map(s -> {
+                        TeamMember tm = teamMemberMapper.toEntity(finalTeam, s, event);
+
+                        tm.setStatus(TeamMemberStatus.ACTIVE);
+
+                        return tm;
+                    })
                     .toList();
 
             teamMemberRepository.saveAll(teamMembers);
@@ -165,6 +187,8 @@ public class EventRegistrationServiceImpl implements EventRegistrationService {
                     team
             );
 
+            registration.setStatus(RegistrationStatus.REGISTERED);
+
             registration = eventRegistrationRepository.save(registration);
 
             return eventRegistrationMapper.toTeamResponse(registration);
@@ -175,43 +199,24 @@ public class EventRegistrationServiceImpl implements EventRegistrationService {
 
     @Override
     @Transactional
-    public String deleteEventRegistration(
-            Integer eventId,
+    public String cancelEventRegistration(
             Integer registrationId,
             CustomUserDetails currentUser
-    ) throws AccessDeniedException, BadRequestException {
+    ) throws AccessDeniedException {
 
         // =========================
-        // Getting Roles
+        // Roles
         // =========================
-        boolean isClubAdmin = currentUser.getUser().getRole() == Role.ROLE_CLUB;
-        boolean isPrincipal = currentUser.getUser().getRole() == Role.ROLE_PRINCIPAL;
-        boolean isStudent = currentUser.getUser().getRole() == Role.ROLE_STUDENT;
+        Role role = currentUser.getUser().getRole();
 
-        // block for disallowed roles
-        if (currentUser.getUser().getRole() == Role.ROLE_FACULTY ||
-                currentUser.getUser().getRole() == Role.ROLE_HOD) {
+        boolean isStudent = role == Role.ROLE_STUDENT;
+        boolean isClubAdmin = role == Role.ROLE_CLUB;
+        boolean isPrincipal = role == Role.ROLE_PRINCIPAL;
 
+        // Block disallowed roles
+        if (role == Role.ROLE_FACULTY || role == Role.ROLE_HOD) {
             throw new AccessDeniedException("You cannot perform this action!");
         }
-
-        // =========================
-        // Fetch Event
-        // =========================
-        Event event = eventRepository.findById(eventId)
-                .orElseThrow(() -> new EntityNotFoundException("Event not found!"));
-
-        // =========================
-        // Ownership checks
-        // =========================
-
-        // Club must own event
-        boolean isEventOwnerClub = isClubAdmin &&
-                Objects.equals(currentUser.getProfileId(), event.getClub().getId());
-
-        // Principal must belong to same college
-        boolean isSameCollegePrincipal = isPrincipal &&
-                Objects.equals(currentUser.getCollegeId(), event.getClub().getCollege().getId());
 
         // =========================
         // Fetch Registration
@@ -220,161 +225,86 @@ public class EventRegistrationServiceImpl implements EventRegistrationService {
                 .findById(registrationId)
                 .orElseThrow(() -> new EntityNotFoundException("Registration not found"));
 
-        // =========================
-        // Check if registration belongs to claimed event
-        // =========================
-        if (!Objects.equals(registration.getEvent().getId(), eventId)) {
-            throw new BadRequestException("Registration does not belong to this event");
+        if (registration.getStatus() != RegistrationStatus.REGISTERED) {
+            throw new RuntimeException("Registration already cancelled");
         }
 
+        Event event = registration.getEvent();
+
         // =========================
-        // DELETE INDIVIDUAL REGISTRATION
+        // Ownership checks
+        // =========================
+
+        boolean isEventOwnerClub = isClubAdmin &&
+                Objects.equals(currentUser.getProfileId(), event.getClub().getId());
+
+        boolean isSameCollegePrincipal = isPrincipal &&
+                Objects.equals(currentUser.getCollegeId(), event.getClub().getCollege().getId());
+
+        // =========================
+        // INDIVIDUAL REGISTRATION
         // =========================
         if (registration.getStudent() != null) {
 
-            // ❗ FIX: allow Student OR Club OR Principal
             boolean isStudentOwner = isStudent &&
-                            Objects.equals(registration.getStudent().getId(), currentUser.getProfileId());
+                    Objects.equals(registration.getStudent().getId(), currentUser.getProfileId());
 
             boolean isAllowed = isStudentOwner || isEventOwnerClub || isSameCollegePrincipal;
 
             if (!isAllowed) {
-                throw new AccessDeniedException("Not allowed to delete this registration");
+                throw new AccessDeniedException("Not allowed to cancel this registration");
             }
 
-            eventRegistrationRepository.delete(registration);
-            return "Individual registration deleted successfully";
+            // Soft DELETE
+            if (isStudentOwner) {
+                registration.setStatus(RegistrationStatus.CANCELLED_BY_STUDENT);
+            } else if (isEventOwnerClub) {
+                registration.setStatus(RegistrationStatus.CANCELLED_BY_CLUB);
+            } else {
+                registration.setStatus(RegistrationStatus.CANCELLED_BY_PRINCIPAL);
+            }
+
+            return "Individual registration cancelled successfully";
         }
 
         // =========================
-        // DELETE TEAM REGISTRATION
+        // TEAM REGISTRATION
         // =========================
         if (registration.getTeam() != null) {
 
             Team team = registration.getTeam();
 
-            // ❗ FIX: allow Leader OR Club OR Principal
             boolean isLeader = isStudent &&
-                            Objects.equals(team.getLeader().getId(), currentUser.getProfileId());
+                    Objects.equals(team.getLeader().getId(), currentUser.getProfileId());
 
             boolean isAllowed = isLeader || isEventOwnerClub || isSameCollegePrincipal;
 
             if (!isAllowed) {
-                throw new AccessDeniedException("Not allowed to delete this team");
+                throw new AccessDeniedException("Not allowed to cancel this team");
             }
 
-            eventRegistrationRepository.delete(registration);
-            teamRepository.delete(team);
+            // Cancel team
+            team.setStatus(TeamStatus.CANCELLED);
 
-            return "Team registration deleted successfully";
+            // Set member's status as LEFT
+            team.getMembers().forEach(m -> m.setStatus(TeamMemberStatus.LEFT));
+
+            // Set registration status
+            if (isLeader) {
+                registration.setStatus(RegistrationStatus.CANCELLED_BY_LEADER);
+            } else if (isEventOwnerClub) {
+                registration.setStatus(RegistrationStatus.CANCELLED_BY_CLUB);
+            } else {
+                registration.setStatus(RegistrationStatus.CANCELLED_BY_PRINCIPAL);
+            }
+
+            return "Team registration cancelled successfully";
         }
+
         // =========================
         // FALLBACK
         // =========================
         throw new RuntimeException("Invalid registration");
     }
 
-
-
-//    @Override
-//    @Transactional
-//    public EventRegistrationResponse joinTeamByInviteLink(String inviteCode, Integer studentId) throws BadRequestException {
-//        // find registration by invite code, its just the registered event details of one team( made by the first person)
-//        EventRegistration linkedEventRegistration = eventRegistrationRepository.findByInviteCode(inviteCode)
-//                .orElseThrow(()-> new EntityNotFoundException("Invalid Invite Code or Invite Code doesn't exist"));
-//
-//        Integer eventId = linkedEventRegistration.getEvent().getId();
-//        // ensure this registration was created for a team
-//        if(!"team".equalsIgnoreCase(linkedEventRegistration.getRegistrationType())){
-//            throw new BadRequestException("The event is not a team event");
-//        }
-//// ====================CHECK IF EVENT ALLOWS CROSS BRANCH TEAM OR BRANCH SPECIFIC TEAMS ==============================
-//        if(linkedEventRegistration.getInviteExpiresAt().isBefore(LocalDateTime.now())){
-//            throw new BadRequestException("Invite has expired!");
-//        }
-//
-//        Student teamMember = studentRepository.findById(studentId)
-//                .orElseThrow(()-> new EntityNotFoundException("Student not found!"));
-//
-//        // this will just check if the teamMember already in the team or not
-//        // it will just pass the eventRegistration details that was registered by first person of team (leader)
-////        boolean isAlreadyRegistered = eventMemberRegistrationRepository.existsByLinkedEventAndStudent(linkedEventRegistration, teamMember);
-//
-//        // this will pass the event for which the team is registering,
-//        // so by getting that event, we can scan all the teams for that received event
-//        // and check if teamMember matches the same event or not in any other team
-////        boolean isInAnotherTeam = eventMemberRegistrationRepository.existsByStudentInOtherTeam(linkedEventRegistration.getEvent(),teamMember);
-//
-//        // 1. check: student already member of THIS team
-//        if (eventMemberRegistrationRepository.existsByLinkedEventAndStudent(linkedEventRegistration, teamMember)) {
-//            throw new BadRequestException("Student already in this team");
-//        }
-//
-//        // 2. check: student is member in another team for same event
-//        if (eventMemberRegistrationRepository.existsByStudent_IdAndLinkedEvent_Event_Id(studentId, eventId)) {
-//            throw new BadRequestException("Student already part of another team for this event");
-//        }
-//
-//        // 3. check: student is already registered (event_registration) for this event
-//        if (eventRegistrationRepository.existsByEvent_IdAndStudent_Id(eventId, studentId)) {
-//            throw new BadRequestException("Student already registered for this event");
-//        }
-//
-//        // checking if the team is exceeding the team size
-//        Integer maxTeamSize = linkedEventRegistration.getEvent().getTeamSize();
-//        if(maxTeamSize != null){
-//            // _Id tells Spring Data JPA: “Look inside the related entity’s primary key field.”
-//            // It’s more efficient if you already have the ID, because no need to load the full related entity.
-//            int currentTeamSize = eventMemberRegistrationRepository.countByLinkedEvent_Id(linkedEventRegistration.getId());
-//            if(currentTeamSize >= maxTeamSize){
-//                throw new BadRequestException("Team is already full!");
-//            }
-//        }
-//
-//        EventMemberRegistration member = eventMemberRegistrationMapper.convertToMember(linkedEventRegistration, teamMember);
-//
-//        try{
-//            member = eventMemberRegistrationRepository.save(member);
-//        } catch(DataIntegrityViolationException exception){
-//            throw new BadRequestException("Error joining the team, Please try again!");
-//        }
-//
-//         // your current linkedEventRegistration object (the one fetched earlier) may not yet have that updated member list in memory,
-//        // because JPA’s persistence context doesn’t automatically refresh collections after related inserts unless you re-query.
-//        EventRegistration updated = eventRegistrationRepository.findById(linkedEventRegistration.getId())
-//                .orElseThrow(()-> new EntityNotFoundException("Registration disappeared"));
-//
-//        return eventRegistrationMapper.toMemberResponse(updated);
-//    }
-
-//    @Override
-//    public List<EventRegistrationResponse> getAllRegistrationsOfEvent(Integer collegeId, Integer eventId) throws BadRequestException {
-//
-//        Event linkedEvent = eventRepository.findById(eventId)
-//                .orElseThrow(()-> new EntityNotFoundException("Event not Found!"));
-//
-//        if (linkedEvent.getClub() == null || linkedEvent.getClub().getCollege() == null) {
-//            throw new BadRequestException("Event does not have a valid club/college association.");
-//        }
-//
-//        if(!Objects.equals(linkedEvent.getClub().getCollege().getId(),collegeId)){
-//            throw new BadRequestException("The Event does not belongs to specified college!");
-//        }
-//
-//        //Go into the event field of the current entity (EventRegistration),
-//        //then look inside that Event entity for its id field,
-//        //and filter by that.
-//        List<EventRegistration> allRegistrationsOfEvent = eventRegistrationRepository.findAllByEvent_Id(eventId);
-//
-//        if (linkedEvent.isTeamEvent()){
-//
-//            return allRegistrationsOfEvent.stream()
-//                    .map(eventRegistrationMapper :: toListTeamParticipantsResponse)
-//                    .collect(Collectors.toList());
-//        }
-//
-//        return allRegistrationsOfEvent.stream()
-//                .map(eventRegistrationMapper :: toListIndividualParticipantsResponse)
-//                .collect(Collectors.toList());
-//    }
 }
