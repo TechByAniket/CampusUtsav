@@ -69,6 +69,10 @@ public class EventRegistrationServiceImpl implements EventRegistrationService {
 
         String type = request.getRegistrationType().toUpperCase();
 
+        if (type.equalsIgnoreCase("TEAM") && !event.isTeamEvent()){
+            throw new RuntimeException("Selected event is not a team event!");
+        }
+
         // ==================================================
         // INDIVIDUAL REGISTRATION
         // ==================================================

@@ -29,4 +29,16 @@ public class TeamMemberController {
         String response = teamMemberService.leaveTeam(teamMemberId, currentUser);
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
+
+    // ===============================
+    // LEADER REMOVING TEAM MEMBER
+    // ===============================
+    @PatchMapping("/team-members/{teamMemberId}/remove")
+    public ResponseEntity<String> removeMember(@PathVariable Integer teamMemberId,
+                                               @AuthenticationPrincipal CustomUserDetails currentUser
+    ) throws AccessDeniedException {
+
+        String response = teamMemberService.removeMember(teamMemberId, currentUser);
+        return ResponseEntity.status(HttpStatus.OK).body(response);
+    }
 }

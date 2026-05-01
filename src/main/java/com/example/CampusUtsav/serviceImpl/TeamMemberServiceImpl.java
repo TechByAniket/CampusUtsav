@@ -103,4 +103,77 @@ public class TeamMemberServiceImpl implements TeamMemberService {
 
         return "You have successfully left the team";
     }
+
+    @Override
+    @Transactional
+    public String removeMember(Integer teamMemberId,
+                               CustomUserDetails currentUser
+    ) throws AccessDeniedException {
+
+        // =========================
+        // Role check
+        // =========================
+        if (currentUser.getUser().getRole() != Role.ROLE_STUDENT) {
+            throw new AccessDeniedException("Only leader can remove members");
+        }
+
+        // =========================
+        // Fetch TeamMember
+        // =========================
+        TeamMember member = teamMemberRepository.findById(teamMemberId)
+                .orElseThrow(() -> new EntityNotFoundException("Team member not found"));
+
+        Team team = member.getTeam();
+        Event event = team.getEvent();
+
+        // =========================
+        // Leader check
+        // =========================
+        if (!Objects.equals(team.getLeader().getId(), currentUser.getProfileId())) {
+            throw new AccessDeniedException("Only leader can remove members");
+        }
+
+        // =========================
+        // Cannot remove leader
+        // =========================
+        if (Objects.equals(member.getStudent().getId(), team.getLeader().getId())) {
+            throw new RuntimeException("Leader cannot remove themselves");
+        }
+
+        // =========================
+        // Already inactive check
+        // =========================
+        if (member.getStatus() != TeamMemberStatus.ACTIVE) {
+            throw new RuntimeException("Member already removed or left");
+        }
+
+        // =========================
+        // Same college check
+        // =========================
+        if (!Objects.equals(currentUser.getCollegeId(),
+                event.getClub().getCollege().getId())) {
+
+            throw new AccessDeniedException("Not allowed for other college events");
+        }
+
+        // =========================
+        // Remove member
+        // =========================
+        member.setStatus(TeamMemberStatus.REMOVED_BY_LEADER);
+
+        // =========================
+        // Recalculate team size
+        // =========================
+        long activeMembers = team.getMembers().stream()
+                .filter(m -> m.getStatus() == TeamMemberStatus.ACTIVE)
+                .count();
+
+        if (event.getMinTeamSize() != null &&
+                activeMembers < event.getMinTeamSize()) {
+
+            team.setStatus(TeamStatus.INCOMPLETE);
+        }
+
+        return "Member removed successfully";
+    }
 }

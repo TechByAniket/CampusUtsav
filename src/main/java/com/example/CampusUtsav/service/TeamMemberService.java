@@ -8,5 +8,15 @@ public interface TeamMemberService {
     // ===============================
     // TEAM MEMBER LEAVING TEAM
     // ===============================
-    String leaveTeam(Integer teamMemberId, CustomUserDetails currentUser) throws AccessDeniedException;
+    String leaveTeam(Integer teamMemberId,
+                     CustomUserDetails currentUser
+    ) throws AccessDeniedException;
+
+
+    // ===============================
+    // LEADER REMOVING TEAM MEMBER
+    // ===============================
+    String removeMember(Integer teamMemberId,
+                        CustomUserDetails currentUser
+    ) throws AccessDeniedException;
 }
