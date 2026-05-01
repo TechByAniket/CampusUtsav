@@ -83,7 +83,11 @@ public class Event {
     private LocalDate registrationDeadline;
 
     private boolean teamEvent = false;
-    private Integer teamSize;
+    @Column(name = "max_team_size")
+    private Integer maxTeamSize;
+
+    @Column(name = "min_team_size")
+    private Integer minTeamSize;
 //    @Min(value = 1, message = "Max participants must be at least 1")
     private int maxParticipants;
 

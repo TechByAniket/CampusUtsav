@@ -57,7 +57,8 @@ public class EventRequest {
 
     private boolean teamEvent;
 
-    private int teamSize;
+    private int maxTeamSize;
+    private int minTeamSize;
 
 //    @Min(value = 1, message = "Max participants must be at least 1")
     private int maxParticipants; // have to add a check for max partcipants in eventregistratioon

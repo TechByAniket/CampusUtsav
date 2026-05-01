@@ -38,7 +38,8 @@ public class EventMapper {
                 .startTime(req.getStartTime())
                 .endTime(req.getEndTime())
                 .teamEvent(req.isTeamEvent())
-                .teamSize(req.getTeamSize())
+                .maxTeamSize(req.getMaxTeamSize())
+                .minTeamSize(req.getMinTeamSize())
                 .maxParticipants(req.getMaxParticipants())
                 .privateAttachments(req.getPrivateAttachments())
                 .publicAttachments(req.getPublicAttachments())
@@ -69,7 +70,8 @@ public class EventMapper {
         existingEvent.setStartTime(req.getStartTime());
         existingEvent.setEndTime(req.getEndTime());
         existingEvent.setTeamEvent(req.isTeamEvent());
-        existingEvent.setTeamSize(req.getTeamSize());
+        existingEvent.setMinTeamSize(req.getMinTeamSize());
+        existingEvent.setMaxTeamSize(req.getMaxTeamSize());
         existingEvent.setMaxParticipants(req.getMaxParticipants());
         existingEvent.setPrivateAttachments(req.getPrivateAttachments());
         existingEvent.setPublicAttachments(req.getPublicAttachments());
@@ -95,7 +97,8 @@ public class EventMapper {
                 .startTime(event.getStartTime())
                 .endTime(event.getEndTime())
                 .teamEvent(event.isTeamEvent())
-                .teamSize(event.getTeamSize())
+                .minTeamSize(event.getMinTeamSize())
+                .maxTeamSize(event.getMaxTeamSize())
                 .maxParticipants(event.getMaxParticipants())
                 .publicAttachments(event.getPublicAttachments())
                 .privateAttachments(event.getPrivateAttachments())

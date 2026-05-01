@@ -112,6 +112,21 @@ public class EventRegistrationServiceImpl implements EventRegistrationService {
                 members = updated;
             }
 
+            // =========================
+            // Team size validation (ADDED)
+            // =========================
+            int teamSize = members.size();
+
+            if (event.getMinTeamSize() != null && teamSize < event.getMinTeamSize()) {
+                throw new RuntimeException("Team size is less than minimum allowed ("
+                        + event.getMinTeamSize() + ")");
+            }
+
+            if (event.getMaxTeamSize() != null && teamSize > event.getMaxTeamSize()) {
+                throw new RuntimeException("Team size exceeds maximum allowed ("
+                        + event.getMaxTeamSize() + ")");
+            }
+
             // validate conflicts
             for (Student s : members) {
 
