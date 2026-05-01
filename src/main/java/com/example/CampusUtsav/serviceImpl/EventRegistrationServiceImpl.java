@@ -169,7 +169,7 @@ public class EventRegistrationServiceImpl implements EventRegistrationService {
             Team finalTeam = team;
             List<TeamMember> teamMembers = members.stream()
                     .map(s -> {
-                        TeamMember tm = teamMemberMapper.toEntity(finalTeam, s, event);
+                        TeamMember tm = teamMemberMapper.toEntity(finalTeam, s, event, TeamMemberStatus.ACTIVE);
 
                         tm.setStatus(TeamMemberStatus.ACTIVE);
 

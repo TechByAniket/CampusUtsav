@@ -12,12 +12,6 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-@Table(
-        uniqueConstraints = {
-                @UniqueConstraint(columnNames = {"team_id", "student_id"}),
-                @UniqueConstraint(columnNames = {"event_id", "student_id"})
-        }
-)
 public class TeamMember {
 
     @Id

@@ -1,6 +1,7 @@
 package com.example.CampusUtsav.repository;
 
 import com.example.CampusUtsav.entity.TeamMember;
+import com.example.CampusUtsav.entity.enums.TeamMemberStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
@@ -16,4 +17,9 @@ public interface TeamMemberRepository extends JpaRepository<TeamMember, Integer>
     // Fetch TEAM registrations of a student
     // =========================
     List<TeamMember> findByStudent_Id(Integer studentId);
+
+    boolean existsByEvent_IdAndStudent_IdAndStatus(Integer eventId,
+                                                   Integer studentId,
+                                                   TeamMemberStatus status
+    );
 }
