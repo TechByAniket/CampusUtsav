@@ -100,7 +100,8 @@ public class StudentServiceImpl implements StudentService {
     // ************* GET SUMMARY DETAILS OF A STUDENT ************* //
     @Override
     public StudentSummary getStudentSummary(String identificationNumber){
-        Student curStudent = studentRepository.findByIdentificationNumber(identificationNumber)
+
+        Student curStudent = studentRepository.findByIdentificationNumber(identificationNumber.trim().toUpperCase())
                 .orElseThrow(() -> new EntityNotFoundException("Student details not found!"));
 
         return studentMapper.convertToStudentSummary(curStudent);

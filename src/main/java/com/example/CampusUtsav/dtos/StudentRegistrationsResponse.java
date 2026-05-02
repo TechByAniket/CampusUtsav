@@ -33,6 +33,7 @@ public class StudentRegistrationsResponse {
     private LocalDateTime markedAt;
 
     private String registrationType;
+    private Integer teamId;
     private String teamName;
     private boolean isLeader;
     private Integer teamMemberId;

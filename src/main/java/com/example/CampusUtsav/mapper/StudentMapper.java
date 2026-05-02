@@ -15,7 +15,7 @@ public class StudentMapper {
         return Student.builder()
                 .name(req.getName())
                 .gender(req.getGender())
-                .identificationNumber(req.getIdentificationNumber())
+                .identificationNumber(req.getIdentificationNumber().trim().toUpperCase())
                 .email(req.getEmail())
                 .phone(req.getPhone())
                 .passwordHash(req.getPassword())

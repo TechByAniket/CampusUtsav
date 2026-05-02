@@ -31,6 +31,7 @@ public class StudentRegistrationsMapper {
                 .clubShortForm(event.getClub().getShortForm())
                 .attendanceActive(event.isAttendanceActive())
                 .registrationType(registrationType)
+                .teamId(teamMember.getTeam().getId())
                 .isLeader(
                         "TEAM".equals(registrationType)
                                 && teamMember != null
