@@ -3,6 +3,7 @@ package com.example.CampusUtsav.repository;
 import com.example.CampusUtsav.entity.Event;
 import com.example.CampusUtsav.entity.EventRegistration;
 import com.example.CampusUtsav.entity.Student;
+import com.example.CampusUtsav.entity.enums.RegistrationStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -41,4 +42,9 @@ public interface EventRegistrationRepository extends JpaRepository<EventRegistra
     // Fetch INDIVIDUAL registrations of a student
     // =========================
     List<EventRegistration> findByStudent_Id(Integer studentId);
+
+    List<EventRegistration> findByStudent_IdAndStatus(
+                    Integer studentId,
+                    RegistrationStatus status
+            );
 }
