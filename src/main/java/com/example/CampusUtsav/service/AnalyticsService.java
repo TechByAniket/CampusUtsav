@@ -1,5 +1,6 @@
 package com.example.CampusUtsav.service;
 
+import com.example.CampusUtsav.dtos.ClubAnalyticsResponse;
 import com.example.CampusUtsav.security.model.CustomUserDetails;
 
 import java.util.HashMap;
@@ -12,4 +13,7 @@ public interface AnalyticsService {
 
     // ---- Events count by each category ---- //
     Map<String, Integer> getEventsCountByCategory(CustomUserDetails currentUser);
+
+    ClubAnalyticsResponse getAnalytics(CustomUserDetails currentUser);
+
 }

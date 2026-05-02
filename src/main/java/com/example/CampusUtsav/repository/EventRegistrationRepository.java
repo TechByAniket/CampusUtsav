@@ -47,4 +47,13 @@ public interface EventRegistrationRepository extends JpaRepository<EventRegistra
                     Integer studentId,
                     RegistrationStatus status
             );
+
+    @Query("""
+    SELECT COUNT(er)
+    FROM EventRegistration er
+    WHERE er.event.id IN :eventIds
+    AND er.team IS NULL
+    AND er.status = 'REGISTERED'
+""")
+    int countIndividualRegistrations(@Param("eventIds") List<Integer> eventIds);
 }

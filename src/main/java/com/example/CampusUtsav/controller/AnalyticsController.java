@@ -1,5 +1,6 @@
 package com.example.CampusUtsav.controller;
 
+import com.example.CampusUtsav.dtos.ClubAnalyticsResponse;
 import com.example.CampusUtsav.security.model.CustomUserDetails;
 import com.example.CampusUtsav.service.AnalyticsService;
 import lombok.RequiredArgsConstructor;
@@ -31,5 +32,11 @@ public class AnalyticsController {
     public ResponseEntity<Map<String, Integer>> getEventsCountByCategory(@AuthenticationPrincipal CustomUserDetails currentUser){
         Map<String, Integer> response = analyticsService.getEventsCountByCategory(currentUser);
         return ResponseEntity.status(HttpStatus.OK).body(response);
+    }
+
+    @GetMapping("/club/overview")
+    public ResponseEntity<ClubAnalyticsResponse> getAnalytics(@AuthenticationPrincipal CustomUserDetails currentUser
+    ) {
+        return ResponseEntity.status(HttpStatus.OK).body(analyticsService.getAnalytics(currentUser));
     }
 }

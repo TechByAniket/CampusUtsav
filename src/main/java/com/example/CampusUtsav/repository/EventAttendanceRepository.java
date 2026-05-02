@@ -2,6 +2,8 @@ package com.example.CampusUtsav.repository;
 
 import com.example.CampusUtsav.entity.EventAttendance;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -28,4 +30,12 @@ public interface EventAttendanceRepository extends JpaRepository<EventAttendance
     // Attendance record of student of all registered events
     // ===========================================
     List<EventAttendance> findByStudent_IdAndEvent_IdIn(Integer studentId, List<Integer> eventIds);
+
+    @Query("""
+    SELECT COUNT(a)
+    FROM EventAttendance a
+    WHERE a.event.id IN :eventIds
+    AND a.present = true
+""")
+    int countPresentByEventIds(@Param("eventIds") List<Integer> eventIds);
 }

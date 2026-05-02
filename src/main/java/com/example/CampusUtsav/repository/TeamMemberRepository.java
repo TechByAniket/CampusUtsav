@@ -3,6 +3,8 @@ package com.example.CampusUtsav.repository;
 import com.example.CampusUtsav.entity.TeamMember;
 import com.example.CampusUtsav.entity.enums.TeamMemberStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -27,4 +29,12 @@ public interface TeamMemberRepository extends JpaRepository<TeamMember, Integer>
                                                    Integer studentId,
                                                    TeamMemberStatus status
     );
+
+    @Query("""
+    SELECT COUNT(tm)
+    FROM TeamMember tm
+    WHERE tm.team.event.id IN :eventIds
+    AND tm.status = 'ACTIVE'
+""")
+    int countActiveMembers(@Param("eventIds") List<Integer> eventIds);
 }

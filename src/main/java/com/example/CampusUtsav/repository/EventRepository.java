@@ -12,6 +12,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Repository
@@ -91,4 +92,68 @@ public interface EventRepository extends JpaRepository<Event, Integer> {
             "GROUP BY e.eventCategory")
     List<Object[]> countEventsByCategoryForCoordinator(@Param("collegeId") Integer collegeId,
                                                        @Param("staffId") Integer staffId);
+
+    @Query("SELECT e.id FROM Event e WHERE e.club.id = :clubId")
+    List<Integer> findEventIdsByClubId(Integer clubId);
+
+    @Query("SELECT e.id FROM Event e WHERE e.club.branch.id = :branchId")
+    List<Integer> findEventIdsByBranchId(Integer branchId);
+
+    @Query("SELECT e.id FROM Event e WHERE e.club.college.id = :collegeId")
+    List<Integer> findEventIdsByCollegeId(Integer collegeId);
+
+    @Query("""
+    SELECT COUNT(e)
+    FROM Event e
+    WHERE e.id IN :eventIds
+    AND e.status = 'APPROVED'
+    AND e.startDate > :today
+""")
+    int countUpcomingEvents(@Param("eventIds") List<Integer> eventIds,
+                            @Param("today") LocalDate today);
+
+    @Query("""
+    SELECT COUNT(e)
+    FROM Event e
+    WHERE e.id IN :eventIds
+    AND e.status = 'APPROVED'
+    AND e.endDate < :today
+""")
+    int countCompletedEvents(@Param("eventIds") List<Integer> eventIds,
+                             @Param("today") LocalDate today);
+
+    @Query("""
+    SELECT COUNT(e)
+    FROM Event e
+    WHERE e.id IN :eventIds
+    AND e.status = 'APPROVED'
+    AND e.startDate <= :today
+    AND e.endDate >= :today
+""")
+    int countOngoingEvents(@Param("eventIds") List<Integer> eventIds,
+                           @Param("today") LocalDate today);
+
+    @Query("""
+    SELECT COUNT(e)
+    FROM Event e
+    WHERE e.id IN :eventIds
+    AND e.status = 'APPROVED'
+""")
+    int countApprovedEvents(@Param("eventIds") List<Integer> eventIds);
+
+    @Query("""
+    SELECT COUNT(e)
+    FROM Event e
+    WHERE e.id IN :eventIds
+    AND e.status IN (
+        'PENDING',
+        'SUBMITTED',
+        'FACULTY1_APPROVED',
+        'FACULTY2_APPROVED',
+        'HOD_APPROVED',
+        'DEAN_APPROVED',
+        'REVERTED'
+    )
+""")
+    int countEventsUnderApproval(@Param("eventIds") List<Integer> eventIds);
 }
