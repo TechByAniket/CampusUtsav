@@ -5,6 +5,7 @@ import com.example.CampusUtsav.dtos.miniDtos.*;
 import com.example.CampusUtsav.entity.*;
 import com.example.CampusUtsav.entity.enums.EventStatus;
 import com.example.CampusUtsav.entity.enums.EventType;
+import com.example.CampusUtsav.entity.enums.RegistrationStatus;
 import com.example.CampusUtsav.entity.enums.Role;
 import com.example.CampusUtsav.mapper.EventLogMapper;
 import com.example.CampusUtsav.mapper.EventMapper;
@@ -362,7 +363,10 @@ public class EventServiceImpl implements EventService {
         // 👤 INDIVIDUAL REGISTRATIONS
         // =========================
         List<IndividualRegistration> individuals = registrations.stream()
-                .filter(r -> r.getStudent() != null)
+                .filter(r ->
+                        r.getStudent() != null
+                                && r.getStatus() == RegistrationStatus.REGISTERED
+                )
                 .map(eventRegistrationMapper::toIndividualDTO)
                 .toList();
 
