@@ -43,6 +43,8 @@ public class TeamServiceImpl implements TeamService {
             throw new AccessDeniedException("Only students can add members");
         }
 
+
+
         // =========================
         // Fetch Team
         // =========================
@@ -79,6 +81,21 @@ public class TeamServiceImpl implements TeamService {
         // =========================
         Student student = studentRepository.findById(studentId)
                 .orElseThrow(() -> new EntityNotFoundException("Student not found"));
+
+        if(!Objects.equals(student.getCollege().getId(),currentUser.getCollegeId())){
+            throw new RuntimeException("Cross college teams are not allowed!");
+        }
+
+        List<Integer> allowedBranches = event.getAllowedBranches();
+        List<Integer> allowedYears = event.getAllowedYears();
+
+        if (!allowedBranches.contains(student.getBranch().getId())) {
+            throw new RuntimeException("Student from " + student.getBranch().getShortForm() + "branch are not allowed for this event!");
+        }
+
+        if (!allowedYears.contains(student.getYear())) {
+            throw new RuntimeException("Student pursuing "+ student.getYear() +"year are not allowed for this event!");
+        }
 
         // =========================
         // Prevent adding self again
@@ -243,9 +260,12 @@ public class TeamServiceImpl implements TeamService {
         // =========================
         // BUILD RESPONSE (ACTIVE ONLY)
         // =========================
-        return team.getMembers().stream()
-                .filter(m -> m.getStatus() == TeamMemberStatus.ACTIVE)
-                .map(teamMemberMapper::toResponse)
-                .toList();
+        return List.of(
+                teamMemberMapper.toResponse(
+                        team.getMembers().stream()
+                                .filter(m -> m.getStatus() == TeamMemberStatus.ACTIVE)
+                                .toList()
+                )
+        );
     }
 }

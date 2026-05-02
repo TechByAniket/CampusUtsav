@@ -1,5 +1,6 @@
 package com.example.CampusUtsav.dtos.miniDtos;
 
+import com.example.CampusUtsav.entity.enums.TeamStatus;
 import jakarta.annotation.security.DenyAll;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -16,6 +17,7 @@ import java.util.List;
 public class TeamRegistration {
 
     private Integer registrationId;
+    private TeamStatus status;
 
     private Integer teamId;
     private String teamName;

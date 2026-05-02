@@ -5,7 +5,9 @@ import com.example.CampusUtsav.dtos.StudentRegistrationsResponse;
 import com.example.CampusUtsav.dtos.StudentResponse;
 import com.example.CampusUtsav.dtos.miniDtos.StudentSummary;
 import com.example.CampusUtsav.entity.*;
+import com.example.CampusUtsav.entity.enums.RegistrationStatus;
 import com.example.CampusUtsav.entity.enums.Role;
+import com.example.CampusUtsav.entity.enums.TeamMemberStatus;
 import com.example.CampusUtsav.mapper.StudentMapper;
 import com.example.CampusUtsav.mapper.StudentRegistrationsMapper;
 import com.example.CampusUtsav.repository.*;
@@ -98,7 +100,8 @@ public class StudentServiceImpl implements StudentService {
     // ************* GET SUMMARY DETAILS OF A STUDENT ************* //
     @Override
     public StudentSummary getStudentSummary(String identificationNumber){
-        Student curStudent = studentRepository.findByIdentificationNumber(identificationNumber)
+
+        Student curStudent = studentRepository.findByIdentificationNumber(identificationNumber.trim().toUpperCase())
                 .orElseThrow(() -> new EntityNotFoundException("Student details not found!"));
 
         return studentMapper.convertToStudentSummary(curStudent);
@@ -135,7 +138,10 @@ public class StudentServiceImpl implements StudentService {
         // Fetch INDIVIDUAL registrations
         // =========================
         List<EventRegistration> individualRegs =
-                eventRegistrationRepository.findByStudent_Id(studentId);
+                eventRegistrationRepository.findByStudent_IdAndStatus(
+                        studentId,
+                        RegistrationStatus.REGISTERED
+                );
 
         // Convert each individual registration into DTO
         for (EventRegistration reg : individualRegs) {
@@ -153,7 +159,10 @@ public class StudentServiceImpl implements StudentService {
         // Fetch TEAM registrations
         // =========================
         List<TeamMember> teamRegs =
-                teamMemberRepository.findByStudent_Id(studentId);
+                teamMemberRepository.findByStudent_IdAndStatus(
+                        studentId,
+                        TeamMemberStatus.ACTIVE
+                );
 
         for (TeamMember teamMember : teamRegs) {
 

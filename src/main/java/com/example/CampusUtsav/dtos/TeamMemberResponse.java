@@ -1,9 +1,12 @@
 package com.example.CampusUtsav.dtos;
 
+import com.example.CampusUtsav.dtos.miniDtos.TeamMemberSummary;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+
+import java.util.List;
 
 @Data
 @Builder
@@ -11,12 +14,8 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class TeamMemberResponse {
 
-    private Integer teamMemberId;
-    private Integer studentId;
-    private String name;
-    private String branchShortForm;
-    private Integer year;
-    private String division;
-    private Integer rollNo;
-    private boolean isLeader;
+    private Integer minTeamSize;
+    private Integer maxTeamSize;
+    private List<TeamMemberSummary> members;
+
 }

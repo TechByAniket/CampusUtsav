@@ -8,6 +8,8 @@ import com.example.CampusUtsav.entity.enums.TeamStatus;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
 
+import java.util.Objects;
+
 @Component
 @AllArgsConstructor
 public class StudentRegistrationsMapper {
@@ -29,6 +31,14 @@ public class StudentRegistrationsMapper {
                 .clubShortForm(event.getClub().getShortForm())
                 .attendanceActive(event.isAttendanceActive())
                 .registrationType(registrationType)
+                .teamId(teamMember.getTeam().getId())
+                .isLeader(
+                        "TEAM".equals(registrationType)
+                                && teamMember != null
+                                && teamMember.getStatus() == TeamMemberStatus.ACTIVE
+                                && teamMember.getTeam().getStatus() != TeamStatus.CANCELLED
+                                && Objects.equals(teamMember.getTeam().getLeader().getId(), teamMember.getStudent().getId())
+                )
                 .teamMemberId(
                         "TEAM".equals(registrationType)
                                 && teamMember != null

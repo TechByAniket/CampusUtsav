@@ -8,6 +8,7 @@ import com.example.CampusUtsav.entity.Event;
 import com.example.CampusUtsav.entity.EventRegistration;
 import com.example.CampusUtsav.entity.Student;
 import com.example.CampusUtsav.entity.Team;
+import com.example.CampusUtsav.entity.enums.TeamMemberStatus;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -64,6 +65,7 @@ public class EventRegistrationMapper {
 
         return IndividualRegistration.builder()
                 .registrationId(r.getId())
+                .status(r.getStatus())
                 .student(studentMapper.convertToStudentSummary(r.getStudent()))
                 .paymentDone(r.isPaymentDone())
                 .registeredAt(r.getRegisteredAt())
@@ -81,9 +83,11 @@ public class EventRegistrationMapper {
                 .registrationId(r.getId())
                 .teamId(team.getId())
                 .teamName(team.getName())
+                .status(team.getStatus())
                 .leader(studentMapper.convertToStudentSummary(team.getLeader()))
                 .members(
                         team.getMembers().stream()
+                                .filter(m -> m.getStatus() == TeamMemberStatus.ACTIVE)
                                 .map(m -> studentMapper.convertToStudentSummary(m.getStudent()))
                                 .toList()
                 )

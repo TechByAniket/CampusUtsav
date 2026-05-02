@@ -1,5 +1,6 @@
 package com.example.CampusUtsav.dtos.miniDtos;
 
+import com.example.CampusUtsav.entity.enums.RegistrationStatus;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -15,6 +16,7 @@ public class IndividualRegistration {
 
     private Integer registrationId;
     private StudentSummary student;
+    private RegistrationStatus status;
 
     private boolean paymentDone;
     private LocalDateTime registeredAt;
