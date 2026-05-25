@@ -9,8 +9,8 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDate;
 import java.util.List;
-import java.util.Optional;
 
 @Repository
 public interface EventRegistrationRepository extends JpaRepository<EventRegistration, Integer> {
@@ -56,4 +56,13 @@ public interface EventRegistrationRepository extends JpaRepository<EventRegistra
     AND er.status = 'REGISTERED'
 """)
     int countIndividualRegistrations(@Param("eventIds") List<Integer> eventIds);
+
+    @Query("""
+    SELECT COUNT(er)
+    FROM EventRegistration er
+    WHERE er.event.id = :eventId
+    AND er.team IS NULL
+    AND er.status = 'REGISTERED'
+""")
+    int countIndividualByEvent(@Param("eventId") Integer eventId);
 }

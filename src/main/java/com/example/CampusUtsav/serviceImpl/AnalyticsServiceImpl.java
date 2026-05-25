@@ -1,22 +1,21 @@
 package com.example.CampusUtsav.serviceImpl;
 
 import com.example.CampusUtsav.dtos.ClubAnalyticsResponse;
-import com.example.CampusUtsav.entity.College;
+import com.example.CampusUtsav.dtos.EventAnalyticsResponse;
+import com.example.CampusUtsav.entity.Event;
 import com.example.CampusUtsav.entity.Staff;
+import com.example.CampusUtsav.entity.enums.EventStatus;
 import com.example.CampusUtsav.entity.enums.Role;
 import com.example.CampusUtsav.repository.*;
 import com.example.CampusUtsav.security.model.CustomUserDetails;
 import com.example.CampusUtsav.service.AnalyticsService;
+import jakarta.persistence.EntityNotFoundException;
 import lombok.AllArgsConstructor;
-import lombok.NoArgsConstructor;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Service
 @AllArgsConstructor
@@ -163,6 +162,7 @@ public class AnalyticsServiceImpl implements AnalyticsService {
             Integer collegeId = currentUser.getCollegeId();
 
             boolean exists = clubRepository.existsByCollegeId(collegeId);
+
             if (!exists) {
                 throw new AccessDeniedException("Invalid college access!");
             }
@@ -192,37 +192,28 @@ public class AnalyticsServiceImpl implements AnalyticsService {
         int eventsUnderApproval =
                 eventRepository.countEventsUnderApproval(eventIds);
 
-// Individual registrations
+        // Individual registrations
         int individualRegs =
                 eventRegistrationRepository.countIndividualRegistrations(eventIds);
 
-// Team registrations (ONLY VALID teams)
+        // Team registrations (ONLY VALID teams)
         int teamRegs =
                 teamRepository.countValidTeams(eventIds);
 
-// registrations = individual + teams
+        // registrations = individual + teams
         int totalRegistrations = individualRegs + teamRegs;
 
-
-// team members (ACTIVE only)
+        // team members (ACTIVE only)
         int teamMembers =
                 teamMemberRepository.countActiveMembers(eventIds);
 
-// participants = individuals + team members
+        // participants = individuals + team members
         int totalParticipants = individualRegs + teamMembers;
 
+        // =========================
+        // DATE BASED COUNTS
+        // =========================
 
-// attendance (per person)
-        int totalAttendance =
-                eventAttendanceRepository.countPresentByEventIds(eventIds);
-
-
-// attendance rate (based on participants, NOT registrations)
-        double attendanceRate = totalParticipants == 0 ? 0 :
-                (totalAttendance * 100.0) / totalParticipants;
-
-
-// DATE BASED COUNTS
         LocalDate today = LocalDate.now();
 
         int upcomingEvents =
@@ -231,22 +222,48 @@ public class AnalyticsServiceImpl implements AnalyticsService {
         int completedEvents =
                 eventRepository.countCompletedEvents(eventIds, today);
 
-// ongoing events
         int ongoingEvents =
                 eventRepository.countOngoingEvents(eventIds, today);
+
+        // =========================
+        // COMPLETED EVENTS ONLY
+        // FOR ATTENDANCE ANALYTICS
+        // =========================
+
+        List<Integer> completedEventIds =
+                eventRepository.findCompletedApprovedEventIds(eventIds, today);
+
+        int totalAttendance =
+                completedEventIds.isEmpty()
+                        ? 0
+                        : eventAttendanceRepository.countPresentByEventIds(completedEventIds);
+
+        int completedParticipants =
+                completedEventIds.isEmpty()
+                        ? 0
+                        : (
+                        eventRegistrationRepository.countIndividualRegistrations(completedEventIds)
+                                +
+                                teamMemberRepository.countActiveMembers(completedEventIds)
+                );
+
+        // attendance rate based ONLY on completed events
+        double attendanceRate = completedParticipants == 0
+                ? 0
+                : (totalAttendance * 100.0) / completedParticipants;
 
         return ClubAnalyticsResponse.builder()
                 .totalEvents(totalEvents)
                 .eventsUnderApproval(eventsUnderApproval)
                 .totalRegistrations(totalRegistrations)
-                .totalParticipants(totalParticipants) // 🔥 ADD THIS
+                .totalParticipants(totalParticipants)
                 .totalAttendance(totalAttendance)
                 .attendanceRate(attendanceRate)
                 .individualRegistrations(individualRegs)
                 .teamRegistrations(teamRegs)
                 .upcomingEvents(upcomingEvents)
                 .completedEvents(completedEvents)
-                .ongoingEvents(ongoingEvents) // 🔥 ADD THIS
+                .ongoingEvents(ongoingEvents)
                 .build();
     }
 
@@ -266,7 +283,95 @@ public class AnalyticsServiceImpl implements AnalyticsService {
                 .build();
     }
 
+    @Override
+    public EventAnalyticsResponse getEventAnalytics(Integer eventId, CustomUserDetails currentUser) {
 
+        Event event = eventRepository.findById(eventId)
+                .orElseThrow(() -> new EntityNotFoundException("Event not found"));
+
+        Role role = currentUser.getUser().getRole();
+
+        if (role == Role.ROLE_CLUB) {
+            if (!Objects.equals(event.getClub().getId(), currentUser.getProfileId())) {
+                throw new AccessDeniedException("Not your club event");
+            }
+        }
+
+        else if (role == Role.ROLE_FACULTY) {
+            Staff faculty = staffRepository.findById(currentUser.getProfileId())
+                    .orElseThrow(() -> new RuntimeException("Faculty not found"));
+
+            if (!faculty.isClubCoordinator() ||
+                    !Objects.equals(faculty.getManagedClub().getId(), event.getClub().getId())) {
+                throw new AccessDeniedException("Not your club event");
+            }
+        }
+
+        else if (role == Role.ROLE_HOD) {
+            Staff hod = staffRepository.findById(currentUser.getProfileId())
+                    .orElseThrow(() -> new RuntimeException("HOD not found"));
+
+            if (!hod.isHod() ||
+                    !Objects.equals(hod.getBranch().getId(), event.getClub().getBranch().getId())) {
+                throw new AccessDeniedException("Not your branch event");
+            }
+        }
+
+        else if (role == Role.ROLE_PRINCIPAL) {
+            if (!Objects.equals(event.getClub().getCollege().getId(), currentUser.getCollegeId())) {
+                throw new AccessDeniedException("Not your college event");
+            }
+        }
+
+        if (event.getStatus() != EventStatus.APPROVED
+                || !event.getEndDate().isBefore(LocalDate.now())) {
+
+            throw new AccessDeniedException(
+                    "Analytics only available for completed events"
+            );
+        }
+
+        // =========================
+        // ANALYTICS
+        // =========================
+
+        int individualRegs =
+                eventRegistrationRepository.countIndividualByEvent(eventId);
+
+        int teamRegs =
+                teamRepository.countValidTeamsByEvent(eventId);
+
+        int totalRegistrations = individualRegs + teamRegs;
+
+
+        int teamMembers =
+                teamMemberRepository.countActiveMembersByEvent(eventId);
+
+        int totalParticipants = individualRegs + teamMembers;
+
+
+        int totalAttendance =
+                eventAttendanceRepository.countPresentByEvent(eventId);
+
+
+        double attendanceRate = totalParticipants == 0 ? 0 :
+                (totalAttendance * 100.0) / totalParticipants;
+
+
+        double dropOffRate = totalParticipants == 0 ? 0 :
+                ((totalParticipants - totalAttendance) * 100.0) / totalParticipants;
+
+
+        return EventAnalyticsResponse.builder()
+                .totalRegistrations(totalRegistrations)
+                .totalParticipants(totalParticipants)
+                .totalAttendance(totalAttendance)
+                .attendanceRate(attendanceRate)
+                .dropOffRate(dropOffRate)
+                .individualRegistrations(individualRegs)
+                .teamRegistrations(teamRegs)
+                .build();
+    }
 
     private void validateCollege(Integer collegeId) {
         if (!collegeRepository.existsById(collegeId)) {

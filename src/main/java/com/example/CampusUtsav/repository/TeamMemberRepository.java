@@ -37,4 +37,12 @@ public interface TeamMemberRepository extends JpaRepository<TeamMember, Integer>
     AND tm.status = 'ACTIVE'
 """)
     int countActiveMembers(@Param("eventIds") List<Integer> eventIds);
+
+    @Query("""
+    SELECT COUNT(tm)
+    FROM TeamMember tm
+    WHERE tm.team.event.id = :eventId
+    AND tm.status = 'ACTIVE'
+""")
+    int countActiveMembersByEvent(@Param("eventId") Integer eventId);
 }

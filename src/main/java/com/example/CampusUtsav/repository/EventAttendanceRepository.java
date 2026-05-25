@@ -38,4 +38,12 @@ public interface EventAttendanceRepository extends JpaRepository<EventAttendance
     AND a.present = true
 """)
     int countPresentByEventIds(@Param("eventIds") List<Integer> eventIds);
+
+    @Query("""
+    SELECT COUNT(a)
+    FROM EventAttendance a
+    WHERE a.event.id = :eventId
+    AND a.present = true
+""")
+    int countPresentByEvent(@Param("eventId") Integer eventId);
 }

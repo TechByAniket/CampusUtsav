@@ -19,4 +19,12 @@ public interface TeamRepository extends JpaRepository<Team, Integer> {
 """)
     int countValidTeams(@Param("eventIds") List<Integer> eventIds);
 
+    @Query("""
+    SELECT COUNT(t)
+    FROM Team t
+    WHERE t.event.id = :eventId
+    AND t.status = 'VALID'
+""")
+    int countValidTeamsByEvent(@Param("eventId") Integer eventId);
+
 }

@@ -1,6 +1,7 @@
 package com.example.CampusUtsav.controller;
 
 import com.example.CampusUtsav.dtos.ClubAnalyticsResponse;
+import com.example.CampusUtsav.dtos.EventAnalyticsResponse;
 import com.example.CampusUtsav.security.model.CustomUserDetails;
 import com.example.CampusUtsav.service.AnalyticsService;
 import lombok.RequiredArgsConstructor;
@@ -8,10 +9,10 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.HashMap;
 import java.util.Map;
 
 @RestController
@@ -39,4 +40,15 @@ public class AnalyticsController {
     ) {
         return ResponseEntity.status(HttpStatus.OK).body(analyticsService.getAnalytics(currentUser));
     }
+
+    // ----- EVENT-SPECIFIC ANALYTICS ---- //
+    @GetMapping("/event/{eventId}")
+    public ResponseEntity<EventAnalyticsResponse> getEventAnalytics(
+            @PathVariable Integer eventId,
+            @AuthenticationPrincipal CustomUserDetails currentUser
+    ) {
+        EventAnalyticsResponse response = analyticsService.getEventAnalytics(eventId, currentUser);
+        return ResponseEntity.status(HttpStatus.OK).body(response);
+    }
+
 }

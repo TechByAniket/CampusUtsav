@@ -156,4 +156,16 @@ public interface EventRepository extends JpaRepository<Event, Integer> {
     )
 """)
     int countEventsUnderApproval(@Param("eventIds") List<Integer> eventIds);
+
+    @Query("""
+    SELECT e.id
+    FROM Event e
+    WHERE e.id IN :eventIds
+    AND e.status = 'APPROVED'
+    AND e.endDate < :today
+""")
+    List<Integer> findCompletedApprovedEventIds(
+            @Param("eventIds") List<Integer> eventIds,
+            @Param("today") LocalDate today
+    );
 }
