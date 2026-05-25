@@ -2,6 +2,7 @@ package com.example.CampusUtsav.service;
 
 import com.example.CampusUtsav.dtos.ClubAnalyticsResponse;
 import com.example.CampusUtsav.dtos.EventAnalyticsResponse;
+import com.example.CampusUtsav.dtos.EventTrendResponse;
 import com.example.CampusUtsav.dtos.TopPerformingEventResponse;
 import com.example.CampusUtsav.security.model.CustomUserDetails;
 
@@ -31,6 +32,16 @@ public interface AnalyticsService {
     // =================================
     List<TopPerformingEventResponse> getTopPerformingEvents(Integer limit,
                                                             CustomUserDetails currentUser
+    );
+
+    // =================================
+    // Event trends over the months for a given year and club
+    // OUTPUT = [{"month": "January", "count": 5}, {"month": "February", "count": 8}, ...]
+    // =================================
+    List<EventTrendResponse> getEventTrends(
+            Integer year,
+            Integer clubId,
+            CustomUserDetails currentUser
     );
 
 }

@@ -2,11 +2,13 @@ package com.example.CampusUtsav.serviceImpl;
 
 import com.example.CampusUtsav.dtos.ClubAnalyticsResponse;
 import com.example.CampusUtsav.dtos.EventAnalyticsResponse;
+import com.example.CampusUtsav.dtos.EventTrendResponse;
 import com.example.CampusUtsav.dtos.TopPerformingEventResponse;
 import com.example.CampusUtsav.entity.Event;
 import com.example.CampusUtsav.entity.Staff;
 import com.example.CampusUtsav.entity.enums.EventStatus;
 import com.example.CampusUtsav.entity.enums.Role;
+import com.example.CampusUtsav.mapper.AnalyticsMapper;
 import com.example.CampusUtsav.repository.*;
 import com.example.CampusUtsav.security.model.CustomUserDetails;
 import com.example.CampusUtsav.service.AnalyticsService;
@@ -30,6 +32,7 @@ public class AnalyticsServiceImpl implements AnalyticsService {
     private final EventAttendanceRepository eventAttendanceRepository;
     private final ClubRepository clubRepository;
     private final TeamRepository teamRepository;
+    private final AnalyticsMapper analyticsMapper;
 
     @Override
     public Map<String, Integer> getEventsCountByClub(CustomUserDetails currentUser) {
@@ -539,6 +542,180 @@ public class AnalyticsServiceImpl implements AnalyticsService {
         return response.stream()
                 .limit(limit)
                 .toList();
+    }
+
+    @Override
+    public List<EventTrendResponse> getEventTrends(
+            Integer year,
+            Integer clubId,
+            CustomUserDetails currentUser
+    ) {
+
+        if (year == null || year < 2000) {
+            throw new RuntimeException("Invalid year");
+        }
+
+        Role role = currentUser.getUser().getRole();
+
+        List<Integer> eventIds;
+
+        // =========================
+        // ROLE BASED ACCESS
+        // =========================
+
+        if (role == Role.ROLE_CLUB) {
+
+            Integer currentClubId = currentUser.getProfileId();
+
+            // club users cannot access other clubs
+            if (clubId != null && !Objects.equals(clubId, currentClubId)) {
+                throw new AccessDeniedException("Access denied");
+            }
+
+            eventIds = eventRepository.findApprovedEventIdsByClubAndYear(
+                    currentClubId,
+                    year
+            );
+        }
+
+        else if (role == Role.ROLE_FACULTY) {
+
+            Staff faculty = staffRepository.findById(currentUser.getProfileId())
+                    .orElseThrow(() -> new RuntimeException("Faculty not found"));
+
+            if (!faculty.isClubCoordinator()) {
+                throw new AccessDeniedException("You are not a Club Coordinator!");
+            }
+
+            Integer managedClubId =
+                    faculty.getManagedClub().getId();
+
+            if (clubId != null && !Objects.equals(clubId, managedClubId)) {
+                throw new AccessDeniedException("Access denied");
+            }
+
+            eventIds = eventRepository.findApprovedEventIdsByClubAndYear(
+                    managedClubId,
+                    year
+            );
+        }
+
+        else if (role == Role.ROLE_HOD) {
+
+            Staff hod = staffRepository.findById(currentUser.getProfileId())
+                    .orElseThrow(() -> new RuntimeException("HOD not found"));
+
+            if (!hod.isHod()) {
+                throw new AccessDeniedException("You are not HOD!");
+            }
+
+            Integer branchId =
+                    hod.getBranch().getId();
+
+            // optional club filter
+            if (clubId != null) {
+
+                boolean validClub =
+                        clubRepository.existsByIdAndBranchId(clubId, branchId);
+
+                if (!validClub) {
+                    throw new AccessDeniedException(
+                            "Club does not belong to your branch"
+                    );
+                }
+
+                eventIds = eventRepository.findApprovedEventIdsByClubAndYear(clubId, year);
+            }
+
+            else {
+                eventIds = eventRepository.findApprovedEventIdsByBranchAndYear(branchId, year);
+            }
+        }
+
+        else if (role == Role.ROLE_PRINCIPAL) {
+
+            Integer collegeId = currentUser.getCollegeId();
+
+            boolean exists =
+                    clubRepository.existsByCollegeId(collegeId);
+
+            if (!exists) {
+                throw new AccessDeniedException("Invalid college access!");
+            }
+
+            // optional club filter
+            if (clubId != null) {
+
+                boolean validClub = clubRepository.existsByIdAndCollegeId(clubId, collegeId);
+
+                if (!validClub) {
+                    throw new AccessDeniedException(
+                            "Club does not belong to your college"
+                    );
+                }
+
+                eventIds = eventRepository.findApprovedEventIdsByClubAndYear(clubId, year);
+            }
+
+            else {
+                eventIds = eventRepository.findApprovedEventIdsByCollegeAndYear(collegeId, year);
+            }
+        }
+
+        else {
+            throw new AccessDeniedException("Unauthorized");
+        }
+
+        // =========================
+        // NO EVENTS CASE
+        // =========================
+
+        if (eventIds.isEmpty()) {
+            return analyticsMapper.buildEmptyTrendResponse();
+        }
+
+        // =========================
+        // FETCH MONTHLY COUNTS
+        // =========================
+
+        List<Object[]> rawData = eventRepository.countEventsMonthWise(eventIds);
+        // Object[] = [monthNumber, count]
+
+        Map<Integer, Integer> monthCountMap = new HashMap<>();
+
+        for (Object[] row : rawData) {
+
+            Integer month = ((Number) row[0]).intValue();
+
+            Integer count = ((Number) row[1]).intValue();
+
+            monthCountMap.put(month, count);
+        }
+
+        // =========================
+        // ENSURE ALL 12 MONTHS
+        // =========================
+
+        List<String> months = List.of(
+                "JAN", "FEB", "MAR", "APR",
+                "MAY", "JUN", "JUL", "AUG",
+                "SEP", "OCT", "NOV", "DEC"
+        );
+
+        List<EventTrendResponse> response =
+                new ArrayList<>();
+
+        for (int i = 1; i <= 12; i++) {
+
+            response.add(
+                    EventTrendResponse.builder()
+                            .month(months.get(i - 1))
+                            .count(monthCountMap.getOrDefault(i, 0))
+                            .build()
+            );
+        }
+
+        return response;
     }
 
     private void validateCollege(Integer collegeId) {

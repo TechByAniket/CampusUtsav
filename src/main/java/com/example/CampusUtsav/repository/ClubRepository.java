@@ -25,4 +25,14 @@ public interface ClubRepository extends JpaRepository<Club, Integer> {
     Optional<String> findShortFormById(@Param("clubId") Long clubId);
 
     boolean existsByCollegeId(Integer collegeId);
+
+    boolean existsByIdAndCollegeId(
+            Integer clubId,
+            Integer collegeId
+    );
+
+    boolean existsByIdAndBranchId(
+            Integer clubId,
+            Integer branchId
+    );
 }

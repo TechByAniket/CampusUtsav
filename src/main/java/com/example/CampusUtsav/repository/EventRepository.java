@@ -168,4 +168,52 @@ public interface EventRepository extends JpaRepository<Event, Integer> {
             @Param("eventIds") List<Integer> eventIds,
             @Param("today") LocalDate today
     );
+
+    @Query("""
+    SELECT MONTH(e.startDate), COUNT(e)
+    FROM Event e
+    WHERE e.id IN :eventIds
+    AND e.status = 'APPROVED'
+    GROUP BY MONTH(e.startDate)
+    ORDER BY MONTH(e.startDate)
+""")
+    List<Object[]> countEventsMonthWise(
+            @Param("eventIds") List<Integer> eventIds
+    );
+
+    @Query("""
+    SELECT e.id
+    FROM Event e
+    WHERE e.club.id = :clubId
+    AND e.status = 'APPROVED'
+    AND YEAR(e.startDate) = :year
+""")
+    List<Integer> findApprovedEventIdsByClubAndYear(
+            @Param("clubId") Integer clubId,
+            @Param("year") Integer year
+    );
+
+    @Query("""
+    SELECT e.id
+    FROM Event e
+    WHERE e.club.branch.id = :branchId
+    AND e.status = 'APPROVED'
+    AND YEAR(e.startDate) = :year
+""")
+    List<Integer> findApprovedEventIdsByBranchAndYear(
+            @Param("branchId") Integer branchId,
+            @Param("year") Integer year
+    );
+
+    @Query("""
+    SELECT e.id
+    FROM Event e
+    WHERE e.club.college.id = :collegeId
+    AND e.status = 'APPROVED'
+    AND YEAR(e.startDate) = :year
+""")
+    List<Integer> findApprovedEventIdsByCollegeAndYear(
+            @Param("collegeId") Integer collegeId,
+            @Param("year") Integer year
+    );
 }

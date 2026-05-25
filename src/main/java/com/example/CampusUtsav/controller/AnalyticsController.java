@@ -2,6 +2,7 @@ package com.example.CampusUtsav.controller;
 
 import com.example.CampusUtsav.dtos.ClubAnalyticsResponse;
 import com.example.CampusUtsav.dtos.EventAnalyticsResponse;
+import com.example.CampusUtsav.dtos.EventTrendResponse;
 import com.example.CampusUtsav.dtos.TopPerformingEventResponse;
 import com.example.CampusUtsav.security.model.CustomUserDetails;
 import com.example.CampusUtsav.service.AnalyticsService;
@@ -11,6 +12,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 
@@ -55,6 +58,21 @@ public class AnalyticsController {
                                                                                    @AuthenticationPrincipal CustomUserDetails currentUser
     ){
         List<TopPerformingEventResponse> response = analyticsService.getTopPerformingEvents(limit, currentUser);
+        return ResponseEntity.status(HttpStatus.OK).body(response);
+    }
+
+    @GetMapping("/events/event-trends")
+    public ResponseEntity<List<EventTrendResponse>> getEventTrends(
+            @RequestParam(required = false) Integer year,
+            @RequestParam(required = false) Integer clubId,
+            @AuthenticationPrincipal CustomUserDetails currentUser
+    ) {
+
+        if (year == null) {
+            year = LocalDate.now().getYear();
+        }
+
+        List<EventTrendResponse> response = analyticsService.getEventTrends(year, clubId, currentUser);
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
