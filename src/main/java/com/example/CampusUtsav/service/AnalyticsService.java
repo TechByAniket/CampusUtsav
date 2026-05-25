@@ -2,8 +2,10 @@ package com.example.CampusUtsav.service;
 
 import com.example.CampusUtsav.dtos.ClubAnalyticsResponse;
 import com.example.CampusUtsav.dtos.EventAnalyticsResponse;
+import com.example.CampusUtsav.dtos.TopPerformingEventResponse;
 import com.example.CampusUtsav.security.model.CustomUserDetails;
 
+import java.util.List;
 import java.util.Map;
 
 public interface AnalyticsService {
@@ -23,5 +25,12 @@ public interface AnalyticsService {
     // Event specific analytics
     // =================================
     EventAnalyticsResponse getEventAnalytics(Integer eventId, CustomUserDetails currentUser);
+
+    // =================================
+    // Top performing events based on attendance rate
+    // =================================
+    List<TopPerformingEventResponse> getTopPerformingEvents(Integer limit,
+                                                            CustomUserDetails currentUser
+    );
 
 }

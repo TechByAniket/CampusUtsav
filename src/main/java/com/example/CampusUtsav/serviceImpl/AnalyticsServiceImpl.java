@@ -2,6 +2,7 @@ package com.example.CampusUtsav.serviceImpl;
 
 import com.example.CampusUtsav.dtos.ClubAnalyticsResponse;
 import com.example.CampusUtsav.dtos.EventAnalyticsResponse;
+import com.example.CampusUtsav.dtos.TopPerformingEventResponse;
 import com.example.CampusUtsav.entity.Event;
 import com.example.CampusUtsav.entity.Staff;
 import com.example.CampusUtsav.entity.enums.EventStatus;
@@ -371,6 +372,173 @@ public class AnalyticsServiceImpl implements AnalyticsService {
                 .individualRegistrations(individualRegs)
                 .teamRegistrations(teamRegs)
                 .build();
+    }
+
+    @Override
+    public List<TopPerformingEventResponse> getTopPerformingEvents(Integer limit,
+                                                                   CustomUserDetails currentUser
+    ) {
+
+        Role role = currentUser.getUser().getRole();
+
+        List<Integer> eventIds;
+
+        // =========================
+        // LIMIT VALIDATION
+        // =========================
+
+        if (limit == null || limit <= 0) {
+            limit = 5;
+        }
+
+        // optional protection
+        if (limit > 20) {
+            limit = 20;
+        }
+
+        // =========================
+        // ROLE BASED SCOPING
+        // =========================
+
+        if (role == Role.ROLE_CLUB) {
+
+            Integer clubId = currentUser.getProfileId();
+
+            eventIds = eventRepository.findEventIdsByClubId(clubId);
+        }
+
+        else if (role == Role.ROLE_FACULTY) {
+
+            Staff faculty = staffRepository.findById(currentUser.getProfileId())
+                    .orElseThrow(() -> new RuntimeException("Faculty not found"));
+
+            if (!faculty.isClubCoordinator()) {
+                throw new AccessDeniedException("You are not a Club Coordinator!");
+            }
+
+            Integer clubId = faculty.getManagedClub().getId();
+
+            eventIds = eventRepository.findEventIdsByClubId(clubId);
+        }
+
+        else if (role == Role.ROLE_HOD) {
+
+            Staff hod = staffRepository.findById(currentUser.getProfileId())
+                    .orElseThrow(() -> new RuntimeException("HOD not found"));
+
+            if (!hod.isHod()) {
+                throw new AccessDeniedException("You are not Head Of Department!");
+            }
+
+            Integer branchId = hod.getBranch().getId();
+
+            eventIds = eventRepository.findEventIdsByBranchId(branchId);
+        }
+
+        else if (role == Role.ROLE_PRINCIPAL) {
+
+            Integer collegeId = currentUser.getCollegeId();
+
+            boolean exists = clubRepository.existsByCollegeId(collegeId);
+
+            if (!exists) {
+                throw new AccessDeniedException("Invalid college access!");
+            }
+
+            eventIds = eventRepository.findEventIdsByCollegeId(collegeId);
+        }
+
+        else {
+            throw new AccessDeniedException("Unauthorized");
+        }
+
+        // =========================
+        // EMPTY CASE
+        // =========================
+
+        if (eventIds.isEmpty()) {
+            return List.of();
+        }
+
+        // =========================
+        // ONLY COMPLETED EVENTS
+        // =========================
+
+        List<Integer> completedEventIds =
+                eventRepository.findCompletedApprovedEventIds(
+                        eventIds,
+                        LocalDate.now()
+                );
+
+        if (completedEventIds.isEmpty()) {
+            return List.of();
+        }
+
+        // =========================
+        // FETCH EVENTS
+        // =========================
+
+        List<Event> events =
+                eventRepository.findAllById(completedEventIds);
+
+        List<TopPerformingEventResponse> response =
+                new ArrayList<>();
+
+        // =========================
+        // BUILD ANALYTICS
+        // =========================
+
+        for (Event event : events) {
+
+            Integer eventId = event.getId();
+
+            int individualRegs =
+                    eventRegistrationRepository.countIndividualByEvent(eventId);
+
+            int teamMembers =
+                    teamMemberRepository.countActiveMembersByEvent(eventId);
+
+            int totalParticipants =
+                    individualRegs + teamMembers;
+
+            int totalAttendance =
+                    eventAttendanceRepository.countPresentByEvent(eventId);
+
+            double attendanceRate =
+                    totalParticipants == 0
+                            ? 0
+                            : (totalAttendance * 100.0) / totalParticipants;
+
+            response.add(
+                    TopPerformingEventResponse.builder()
+                            .eventId(event.getId())
+                            .eventName(event.getTitle())
+                            .clubShortForm(event.getClub().getShortForm())
+                            .totalParticipants(totalParticipants)
+                            .totalAttendance(totalAttendance)
+                            .attendanceRate(attendanceRate)
+                            .build()
+            );
+        }
+
+        // =========================
+        // SORT DESCENDING
+        // =========================
+
+        response.sort((a, b) ->
+                Double.compare(
+                        b.getAttendanceRate(),
+                        a.getAttendanceRate()
+                )
+        );
+
+        // =========================
+        // APPLY LIMIT
+        // =========================
+
+        return response.stream()
+                .limit(limit)
+                .toList();
     }
 
     private void validateCollege(Integer collegeId) {
