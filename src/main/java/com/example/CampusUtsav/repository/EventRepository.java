@@ -61,13 +61,16 @@ public interface EventRepository extends JpaRepository<Event, Integer> {
     @Query("SELECT c.shortForm, COUNT(e) FROM Event e " +
             "JOIN e.club c " +
             "WHERE c.college.id = :collegeId " +
+            "AND e.status = 'APPROVED' " +
             "GROUP BY c.shortForm")
     List<Object[]> countEventsByClubShortFormForCollege(@Param("collegeId") Integer collegeId);
 
     // ---- For HOD -> Events counts of Clubs under given branch ---- //
     @Query("SELECT c.shortForm, COUNT(e) FROM Event e " +
             "JOIN e.club c " +
-            "WHERE c.college.id = :collegeId AND c.branch.id = :branchId " +
+            "WHERE c.college.id = :collegeId " +
+            "AND c.branch.id = :branchId " +
+            "AND e.status = 'APPROVED' " +
             "GROUP BY c.shortForm")
     List<Object[]> countEventsByClubShortFormAndBranchForCollege(
             @Param("collegeId") Integer collegeId,
@@ -76,19 +79,24 @@ public interface EventRepository extends JpaRepository<Event, Integer> {
     // ---- For PRINCIPAL -> Events count by category ---- //
     @Query("SELECT e.eventCategory, COUNT(e) FROM Event e " +
             "WHERE e.club.college.id = :collegeId " +
+            "AND e.status = 'APPROVED' " +
             "GROUP BY e.eventCategory")
     List<Object[]> countEventsByCategoryForCollege(@Param("collegeId") Integer collegeId);
 
     // ---- For HOD -> Events count by category of their branch's clubs ---- //
     @Query("SELECT e.eventCategory, COUNT(e) FROM Event e " +
-            "WHERE e.club.college.id = :collegeId AND e.club.branch.id = :branchId " +
+            "WHERE e.club.college.id = :collegeId " +
+            "AND e.club.branch.id = :branchId " +
+            "AND e.status = 'APPROVED' " +
             "GROUP BY e.eventCategory")
     List<Object[]> countEventsByCategoryForBranch(@Param("collegeId") Integer collegeId,
                                                   @Param("branchId") Integer branchId);
 
     // ---- For FACULTY -> Events count by category of their managed club ---- //
     @Query("SELECT e.eventCategory, COUNT(e) FROM Event e " +
-            "WHERE e.club.college.id = :collegeId AND e.club.coordinator.id = :staffId " +
+            "WHERE e.club.college.id = :collegeId " +
+            "AND e.club.coordinator.id = :staffId " +
+            "AND e.status = 'APPROVED' " +
             "GROUP BY e.eventCategory")
     List<Object[]> countEventsByCategoryForCoordinator(@Param("collegeId") Integer collegeId,
                                                        @Param("staffId") Integer staffId);
