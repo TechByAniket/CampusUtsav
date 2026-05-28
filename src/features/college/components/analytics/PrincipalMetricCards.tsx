@@ -40,9 +40,15 @@ export const PrincipalMetricCards: React.FC<PrincipalMetricCardsProps> = ({
                 <div className="w-7 h-7 rounded-xl bg-slate-800/80 text-slate-300 border border-slate-700/50 flex items-center justify-center shrink-0">
                   <ClipboardList size={13} />
                 </div>
-                <span className="text-xs font-black text-slate-300 uppercase tracking-wider leading-none">Activity Pulse</span>
+                <span className="text-xs font-black text-slate-300 uppercase tracking-wider leading-none">Activity Monitor</span>
               </div>
-              <span className="text-[10px] font-black text-slate-400 bg-slate-800/80 border border-slate-700/60 px-2.5 py-0.5 rounded uppercase tracking-widest">Principal Scope</span>
+              <div className="flex items-center gap-1.5 bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-2.5 py-1 rounded-full text-[9px] font-black uppercase tracking-wider shadow-inner">
+                <span className="relative flex h-2 w-2">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                </span>
+                Live
+              </div>
             </div>
             
             {/* Two-Column Internal Layout for Total Events and Status Stack */}
@@ -53,7 +59,7 @@ export const PrincipalMetricCards: React.FC<PrincipalMetricCardsProps> = ({
                   {kpiData?.totalEvents ?? 0}
                 </span>
                 <span className="text-xs font-extrabold text-slate-400 uppercase tracking-wider block mt-3 leading-snug">
-                  Scheduled Institutional Events
+                  Total Approved Events
                 </span>
               </div>
               
@@ -81,7 +87,7 @@ export const PrincipalMetricCards: React.FC<PrincipalMetricCardsProps> = ({
                   <div className="flex justify-between items-center text-xs font-black uppercase tracking-wider text-slate-400">
                     <span className="flex items-center gap-2">
                       <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse shrink-0" />
-                      Live Feed
+                      Live
                     </span>
                     <span className="text-emerald-400 text-xs font-black">{kpiData?.ongoingEvents ?? 0}</span>
                   </div>

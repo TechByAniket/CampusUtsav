@@ -21,6 +21,7 @@ interface EventTrendsChartProps {
   setSelectedYear: (year: number) => void;
   yearOptions: number[];
   trendChartData: TrendData[];
+  fullWidth?: boolean;
 }
 
 export const EventTrendsChart: React.FC<EventTrendsChartProps> = ({
@@ -28,6 +29,7 @@ export const EventTrendsChart: React.FC<EventTrendsChartProps> = ({
   setSelectedYear,
   yearOptions,
   trendChartData,
+  fullWidth = false,
 }) => {
   const renderCustomizedTrendTooltip = ({ active, payload }: any) => {
     if (active && payload && payload.length) {
@@ -45,7 +47,7 @@ export const EventTrendsChart: React.FC<EventTrendsChartProps> = ({
   const isDataEmpty = trendChartData.length === 0 || trendChartData.every(x => x.count === 0);
 
   return (
-    <div className="col-span-12 lg:col-span-8 bg-white rounded-[2rem] p-8 border border-slate-100 shadow-sm transition-all hover:border-slate-200 hover:shadow-lg hover:shadow-slate-100/50 flex flex-col justify-between h-[450px]">
+    <div className={`col-span-12 ${fullWidth ? '' : 'lg:col-span-8'} bg-white rounded-[2rem] p-8 border border-slate-100 shadow-sm transition-all hover:border-slate-200 hover:shadow-lg hover:shadow-slate-100/50 flex flex-col justify-between h-[450px]`}>
       <div>
         <div className="flex items-center justify-between mb-1">
           <div className="flex items-center gap-2">

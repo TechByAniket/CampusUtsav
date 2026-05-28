@@ -17,7 +17,7 @@ export const PrincipalOverviewHeader: React.FC<PrincipalOverviewHeaderProps> = (
       <div>
         <div className="flex items-center gap-2 mb-1.5">
           <span className="bg-orange-500/10 text-orange-700 text-[9px] font-black uppercase tracking-[0.2em] px-3 py-1 rounded-full">
-            Principal Analytics Overview
+            Analytics Overview
           </span>
           {isRefreshing && (
             <span className="flex items-center gap-1.5 text-slate-400 text-[10px] font-bold">
@@ -27,7 +27,7 @@ export const PrincipalOverviewHeader: React.FC<PrincipalOverviewHeaderProps> = (
         </div>
         <div className="flex flex-col sm:flex-row sm:items-center gap-3">
           <h2 className="text-2xl font-black text-slate-900 tracking-tight leading-none">
-            Institutional Intelligence
+            Executive Overview & Analytics
           </h2>
         </div>
       </div>
