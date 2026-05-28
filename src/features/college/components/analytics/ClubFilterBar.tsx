@@ -44,7 +44,7 @@ export const ClubFilterBar: React.FC<ClubFilterBarProps> = ({
             >
               <option value="ALL">All Clubs / Councils</option>
               {clubsList.map(club => (
-                <option key={club.id} value={club.shortForm}>{club.name} ({club.shortForm})</option>
+                <option key={club.id} value={club.id}>{club.name} ({club.shortForm})</option>
               ))}
             </select>
             <div className="absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400 text-[10px]">▼</div>
