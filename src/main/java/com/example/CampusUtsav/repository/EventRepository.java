@@ -12,6 +12,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Repository
@@ -60,13 +61,16 @@ public interface EventRepository extends JpaRepository<Event, Integer> {
     @Query("SELECT c.shortForm, COUNT(e) FROM Event e " +
             "JOIN e.club c " +
             "WHERE c.college.id = :collegeId " +
+            "AND e.status = 'APPROVED' " +
             "GROUP BY c.shortForm")
     List<Object[]> countEventsByClubShortFormForCollege(@Param("collegeId") Integer collegeId);
 
     // ---- For HOD -> Events counts of Clubs under given branch ---- //
     @Query("SELECT c.shortForm, COUNT(e) FROM Event e " +
             "JOIN e.club c " +
-            "WHERE c.college.id = :collegeId AND c.branch.id = :branchId " +
+            "WHERE c.college.id = :collegeId " +
+            "AND c.branch.id = :branchId " +
+            "AND e.status = 'APPROVED' " +
             "GROUP BY c.shortForm")
     List<Object[]> countEventsByClubShortFormAndBranchForCollege(
             @Param("collegeId") Integer collegeId,
@@ -75,20 +79,149 @@ public interface EventRepository extends JpaRepository<Event, Integer> {
     // ---- For PRINCIPAL -> Events count by category ---- //
     @Query("SELECT e.eventCategory, COUNT(e) FROM Event e " +
             "WHERE e.club.college.id = :collegeId " +
+            "AND e.status = 'APPROVED' " +
             "GROUP BY e.eventCategory")
     List<Object[]> countEventsByCategoryForCollege(@Param("collegeId") Integer collegeId);
 
     // ---- For HOD -> Events count by category of their branch's clubs ---- //
     @Query("SELECT e.eventCategory, COUNT(e) FROM Event e " +
-            "WHERE e.club.college.id = :collegeId AND e.club.branch.id = :branchId " +
+            "WHERE e.club.college.id = :collegeId " +
+            "AND e.club.branch.id = :branchId " +
+            "AND e.status = 'APPROVED' " +
             "GROUP BY e.eventCategory")
     List<Object[]> countEventsByCategoryForBranch(@Param("collegeId") Integer collegeId,
                                                   @Param("branchId") Integer branchId);
 
     // ---- For FACULTY -> Events count by category of their managed club ---- //
     @Query("SELECT e.eventCategory, COUNT(e) FROM Event e " +
-            "WHERE e.club.college.id = :collegeId AND e.club.coordinator.id = :staffId " +
+            "WHERE e.club.college.id = :collegeId " +
+            "AND e.club.coordinator.id = :staffId " +
+            "AND e.status = 'APPROVED' " +
             "GROUP BY e.eventCategory")
     List<Object[]> countEventsByCategoryForCoordinator(@Param("collegeId") Integer collegeId,
                                                        @Param("staffId") Integer staffId);
+
+    @Query("SELECT e.id FROM Event e WHERE e.club.id = :clubId")
+    List<Integer> findEventIdsByClubId(Integer clubId);
+
+    @Query("SELECT e.id FROM Event e WHERE e.club.branch.id = :branchId")
+    List<Integer> findEventIdsByBranchId(Integer branchId);
+
+    @Query("SELECT e.id FROM Event e WHERE e.club.college.id = :collegeId")
+    List<Integer> findEventIdsByCollegeId(Integer collegeId);
+
+    @Query("""
+    SELECT COUNT(e)
+    FROM Event e
+    WHERE e.id IN :eventIds
+    AND e.status = 'APPROVED'
+    AND e.startDate > :today
+""")
+    int countUpcomingEvents(@Param("eventIds") List<Integer> eventIds,
+                            @Param("today") LocalDate today);
+
+    @Query("""
+    SELECT COUNT(e)
+    FROM Event e
+    WHERE e.id IN :eventIds
+    AND e.status = 'APPROVED'
+    AND e.endDate < :today
+""")
+    int countCompletedEvents(@Param("eventIds") List<Integer> eventIds,
+                             @Param("today") LocalDate today);
+
+    @Query("""
+    SELECT COUNT(e)
+    FROM Event e
+    WHERE e.id IN :eventIds
+    AND e.status = 'APPROVED'
+    AND e.startDate <= :today
+    AND e.endDate >= :today
+""")
+    int countOngoingEvents(@Param("eventIds") List<Integer> eventIds,
+                           @Param("today") LocalDate today);
+
+    @Query("""
+    SELECT COUNT(e)
+    FROM Event e
+    WHERE e.id IN :eventIds
+    AND e.status = 'APPROVED'
+""")
+    int countApprovedEvents(@Param("eventIds") List<Integer> eventIds);
+
+    @Query("""
+    SELECT COUNT(e)
+    FROM Event e
+    WHERE e.id IN :eventIds
+    AND e.status IN (
+        'PENDING',
+        'SUBMITTED',
+        'FACULTY1_APPROVED',
+        'FACULTY2_APPROVED',
+        'HOD_APPROVED',
+        'DEAN_APPROVED',
+        'REVERTED'
+    )
+""")
+    int countEventsUnderApproval(@Param("eventIds") List<Integer> eventIds);
+
+    @Query("""
+    SELECT e.id
+    FROM Event e
+    WHERE e.id IN :eventIds
+    AND e.status = 'APPROVED'
+    AND e.endDate < :today
+""")
+    List<Integer> findCompletedApprovedEventIds(
+            @Param("eventIds") List<Integer> eventIds,
+            @Param("today") LocalDate today
+    );
+
+    @Query("""
+    SELECT MONTH(e.startDate), COUNT(e)
+    FROM Event e
+    WHERE e.id IN :eventIds
+    AND e.status = 'APPROVED'
+    GROUP BY MONTH(e.startDate)
+    ORDER BY MONTH(e.startDate)
+""")
+    List<Object[]> countEventsMonthWise(
+            @Param("eventIds") List<Integer> eventIds
+    );
+
+    @Query("""
+    SELECT e.id
+    FROM Event e
+    WHERE e.club.id = :clubId
+    AND e.status = 'APPROVED'
+    AND YEAR(e.startDate) = :year
+""")
+    List<Integer> findApprovedEventIdsByClubAndYear(
+            @Param("clubId") Integer clubId,
+            @Param("year") Integer year
+    );
+
+    @Query("""
+    SELECT e.id
+    FROM Event e
+    WHERE e.club.branch.id = :branchId
+    AND e.status = 'APPROVED'
+    AND YEAR(e.startDate) = :year
+""")
+    List<Integer> findApprovedEventIdsByBranchAndYear(
+            @Param("branchId") Integer branchId,
+            @Param("year") Integer year
+    );
+
+    @Query("""
+    SELECT e.id
+    FROM Event e
+    WHERE e.club.college.id = :collegeId
+    AND e.status = 'APPROVED'
+    AND YEAR(e.startDate) = :year
+""")
+    List<Integer> findApprovedEventIdsByCollegeAndYear(
+            @Param("collegeId") Integer collegeId,
+            @Param("year") Integer year
+    );
 }

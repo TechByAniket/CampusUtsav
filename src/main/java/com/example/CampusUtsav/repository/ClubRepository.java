@@ -23,4 +23,16 @@ public interface ClubRepository extends JpaRepository<Club, Integer> {
 
     @Query("SELECT c.shortForm FROM Club c WHERE c.id = :clubId")
     Optional<String> findShortFormById(@Param("clubId") Long clubId);
+
+    boolean existsByCollegeId(Integer collegeId);
+
+    boolean existsByIdAndCollegeId(
+            Integer clubId,
+            Integer collegeId
+    );
+
+    boolean existsByIdAndBranchId(
+            Integer clubId,
+            Integer branchId
+    );
 }
