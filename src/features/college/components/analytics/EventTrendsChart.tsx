@@ -9,11 +9,19 @@ import {
   Tooltip 
 } from 'recharts';
 import { TrendingUp } from 'lucide-react';
+import { useSelector } from 'react-redux';
+import type { RootState } from '@/store/store';
 import { EmptyState } from './EmptyState';
 
 interface TrendData {
   month: string;
   count: number;
+}
+
+interface ClubOption {
+  id: number;
+  name: string;
+  shortForm: string;
 }
 
 interface EventTrendsChartProps {
@@ -22,6 +30,9 @@ interface EventTrendsChartProps {
   yearOptions: number[];
   trendChartData: TrendData[];
   fullWidth?: boolean;
+  selectedClub?: string;
+  onClubChange?: (club: string) => void;
+  clubsList?: ClubOption[];
 }
 
 export const EventTrendsChart: React.FC<EventTrendsChartProps> = ({
@@ -30,7 +41,13 @@ export const EventTrendsChart: React.FC<EventTrendsChartProps> = ({
   yearOptions,
   trendChartData,
   fullWidth = false,
+  selectedClub = 'ALL',
+  onClubChange,
+  clubsList = [],
 }) => {
+  const { role } = useSelector((state: RootState) => state.auth);
+  const showClubFilter = role === 'ROLE_COLLEGE' || role === 'ROLE_PRINCIPAL';
+
   const renderCustomizedTrendTooltip = ({ active, payload }: any) => {
     if (active && payload && payload.length) {
       const data = payload[0].payload;
@@ -59,6 +76,23 @@ export const EventTrendsChart: React.FC<EventTrendsChartProps> = ({
               <TrendingUp size={10} />
               Volume Distribution
             </div>
+            {showClubFilter && onClubChange && (
+              <div className="relative">
+                <select
+                  value={selectedClub}
+                  onChange={(e) => onClubChange(e.target.value)}
+                  className="appearance-none bg-slate-50 border border-slate-200 text-slate-700 rounded-full pl-4 pr-9 py-2 text-xs font-black uppercase tracking-wider outline-none hover:bg-slate-100 hover:border-slate-300 focus:border-orange-500 focus:bg-white transition-all cursor-pointer select-none shadow-sm max-w-[200px] truncate"
+                >
+                  <option value="ALL">All Clubs</option>
+                  {clubsList.map((club) => (
+                    <option key={club.id} value={club.id.toString()}>
+                      {club.shortForm || club.name}
+                    </option>
+                  ))}
+                </select>
+                <div className="absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400 text-[10px]">▼</div>
+              </div>
+            )}
             <div className="relative">
               <select
                 value={selectedYear}

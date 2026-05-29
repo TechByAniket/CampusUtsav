@@ -18,7 +18,6 @@ import { getAllClubsForPrincipal } from '@/services/clubService';
 // Subcomponents Import
 import {
   PrincipalOverviewHeader,
-  ClubFilterBar,
   PrincipalMetricCards,
   EventTrendsChart,
   CategoryDistributionChart,
@@ -57,7 +56,7 @@ export const StaffOverview: React.FC = () => {
 
   // Filters State
   const [selectedYear, setSelectedYear] = useState<number>(new Date().getFullYear());
-  const [selectedClub, setSelectedClub] = useState<string>('ALL'); // 'ALL' or club ID/shortForm
+  const [selectedClub] = useState<string>('ALL'); // 'ALL' or club ID/shortForm
   const [clubsList, setClubsList] = useState<ClubOption[]>([]);
   const [leaderboardLimit, setLeaderboardLimit] = useState<number>(5);
 
@@ -303,13 +302,6 @@ export const StaffOverview: React.FC = () => {
           isRefreshing={isRefreshing}
           isLoading={isLoading}
           onRefresh={() => loadDashboardData(true)}
-        />
-
-        {/* 2. Top-level Elegant Filters Bar */}
-        <ClubFilterBar 
-          selectedClub={selectedClub}
-          onClubChange={setSelectedClub}
-          clubsList={clubsList}
         />
 
         {/* 3. Error Sync */}

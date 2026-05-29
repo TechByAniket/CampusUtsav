@@ -18,7 +18,6 @@ import { getAllClubsForPrincipal } from '@/services/clubService';
 // Subcomponents Import
 import {
   PrincipalOverviewHeader,
-  ClubFilterBar,
   PrincipalMetricCards,
   EventTrendsChart,
   CategoryDistributionChart,
@@ -293,13 +292,6 @@ export const PrincipalOverview: React.FC = () => {
         onRefresh={() => loadDashboardData(true)}
       />
 
-      {/* 2. Top-level Elegant Filters Bar */}
-      <ClubFilterBar 
-        selectedClub={selectedClub}
-        onClubChange={setSelectedClub}
-        clubsList={clubsList}
-      />
-
       {/* 3. Error Sync */}
       {isError && (
         <div className="bg-red-50 border border-red-100 rounded-[1.5rem] p-6 flex items-center gap-4 shadow-sm animate-in fade-in">
@@ -338,6 +330,9 @@ export const PrincipalOverview: React.FC = () => {
               setSelectedYear={setSelectedYear}
               yearOptions={yearOptions}
               trendChartData={trendChartData}
+              selectedClub={selectedClub}
+              onClubChange={setSelectedClub}
+              clubsList={clubsList}
             />
 
             <CategoryDistributionChart 
