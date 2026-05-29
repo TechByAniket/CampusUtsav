@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useSelector } from 'react-redux';
-import { AlertCircle } from 'lucide-react';
+import { 
+  AlertCircle
+} from 'lucide-react';
 import { toast } from 'sonner';
-import type { RootState } from '@/store/store';
 
 // Service Imports
 import { 
@@ -48,15 +48,11 @@ interface TrendData {
   count: number;
 }
 
-export const StaffOverview: React.FC = () => {
+export const PrincipalOverview: React.FC = () => {
   const navigate = useNavigate();
-  
-  // Extract user's role from Redux
-  const { role } = useSelector((state: RootState) => state.auth);
-
   // Filters State
   const [selectedYear, setSelectedYear] = useState<number>(new Date().getFullYear());
-  const [selectedClub] = useState<string>('ALL'); // 'ALL' or club ID/shortForm
+  const [selectedClub, setSelectedClub] = useState<string>('ALL'); // 'ALL' or club ID/shortForm
   const [clubsList, setClubsList] = useState<ClubOption[]>([]);
   const [leaderboardLimit, setLeaderboardLimit] = useState<number>(5);
 
@@ -114,13 +110,7 @@ export const StaffOverview: React.FC = () => {
 
     try {
       const analyticsRes = await getAnalytics();
-      
-      // Conditionally call getEventsCountByClub only if ROLE_HOD
-      let clubCountRes = null;
-      if (role === 'ROLE_HOD') {
-        clubCountRes = await getEventsCountByClub();
-      }
-      
+      const clubCountRes = await getEventsCountByClub();
       const categoryCountRes = await getEventsCountByCategory();
       const trendsRes = await getEventTrends(selectedYear, clubFilterVal);
       const topEventsRes = await getTopPerformingEvents(leaderboardLimit);
@@ -128,8 +118,8 @@ export const StaffOverview: React.FC = () => {
       // 1. KPI Data mapping
       setKpiData(analyticsRes || {});
 
-      // 2. Club Count mapping (HOD only)
-      if (role === 'ROLE_HOD' && clubCountRes && typeof clubCountRes === 'object') {
+      // 2. Club Count mapping
+      if (clubCountRes && typeof clubCountRes === 'object') {
         const formattedClubs = Object.entries(clubCountRes).map(([name, val]) => ({
           name,
           value: Number(val)
@@ -166,6 +156,7 @@ export const StaffOverview: React.FC = () => {
     }
   };
 
+  // Reload only trends when year changes
   const loadTrendsData = async () => {
     const clubFilterVal = selectedClub === 'ALL' ? undefined : selectedClub;
     try {
@@ -181,12 +172,10 @@ export const StaffOverview: React.FC = () => {
     loadClubs();
   }, []);
 
-  // Reload all stats on club/leaderboard filter change or role resolving
+  // Reload all stats on club/leaderboard filter change
   useEffect(() => {
-    if (role) {
-      loadDashboardData();
-    }
-  }, [selectedClub, leaderboardLimit, role]);
+    loadDashboardData();
+  }, [selectedClub, leaderboardLimit]);
 
   // Reload only trends on year change
   useEffect(() => {
@@ -294,80 +283,79 @@ export const StaffOverview: React.FC = () => {
   );
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC] pb-20 px-4 sm:px-6 lg:px-8">
-      <main className="max-w-7xl mx-auto space-y-12 relative z-10">
-        
-        {/* 1. Header Hero section */}
-        <PrincipalOverviewHeader 
-          isRefreshing={isRefreshing}
-          isLoading={isLoading}
-          onRefresh={() => loadDashboardData(true)}
-        />
+    <div className="space-y-12">
+      
+      {/* 1. Header Hero section */}
+      <PrincipalOverviewHeader 
+        isRefreshing={isRefreshing}
+        isLoading={isLoading}
+        onRefresh={() => loadDashboardData(true)}
+      />
 
-        {/* 3. Error Sync */}
-        {isError && (
-          <div className="bg-red-50 border border-red-100 rounded-[1.5rem] p-6 flex items-center gap-4 shadow-sm animate-in fade-in">
-            <div className="w-10 h-10 bg-red-100 text-red-600 rounded-xl flex items-center justify-center shrink-0">
-              <AlertCircle size={20} />
-            </div>
-            <div className="flex-1">
-              <h4 className="text-xs font-black uppercase tracking-wider text-red-800">Sync Failure</h4>
-              <p className="text-red-600/80 text-[11px] mt-0.5">{errorMessage || 'Unable to sync analytics with server.'}</p>
-            </div>
-            <button
-              onClick={() => loadDashboardData()}
-              className="bg-red-600 hover:bg-red-700 text-white font-black text-[9px] uppercase tracking-wider px-4 py-2 rounded-lg shadow-sm transition-all"
-            >
-              Retry
-            </button>
+      {/* 3. Error Sync */}
+      {isError && (
+        <div className="bg-red-50 border border-red-100 rounded-[1.5rem] p-6 flex items-center gap-4 shadow-sm animate-in fade-in">
+          <div className="w-10 h-10 bg-red-100 text-red-600 rounded-xl flex items-center justify-center shrink-0">
+            <AlertCircle size={20} />
           </div>
-        )}
+          <div className="flex-1">
+            <h4 className="text-xs font-black uppercase tracking-wider text-red-800">Sync Failure</h4>
+            <p className="text-red-600/80 text-[11px] mt-0.5">{errorMessage || 'Unable to sync analytics with server.'}</p>
+          </div>
+          <button
+            onClick={() => loadDashboardData()}
+            className="bg-red-600 hover:bg-red-700 text-white font-black text-[9px] uppercase tracking-wider px-4 py-2 rounded-lg shadow-sm transition-all"
+          >
+            Retry
+          </button>
+        </div>
+      )}
 
-        {/* 4. Loader or Dashboard Grid */}
-        {isLoading ? (
-          <DashboardSkeleton />
-        ) : (
-          <div className="space-y-12">
-            {/* Bento metric grid */}
-            <PrincipalMetricCards 
-              kpiData={kpiData}
+      {/* 4. Loader or Dashboard Grid */}
+      {isLoading ? (
+        <DashboardSkeleton />
+      ) : (
+        <div className="space-y-12">
+          {/* Bento metric grid */}
+          <PrincipalMetricCards 
+            kpiData={kpiData}
+            clubsList={clubsList}
+            onNavigateToInbox={() => navigate('/college-dashboard/inbox')}
+          />
+
+          {/* Charts Layer (Trends + Category) */}
+          <div className="grid grid-cols-12 gap-8">
+            <EventTrendsChart 
+              selectedYear={selectedYear}
+              setSelectedYear={setSelectedYear}
+              yearOptions={yearOptions}
+              trendChartData={trendChartData}
+              selectedClub={selectedClub}
+              onClubChange={setSelectedClub}
               clubsList={clubsList}
-              onNavigateToInbox={() => navigate('/staff-dashboard/inbox')}
             />
 
-            {/* Charts Layer (Trends + Category) */}
-            <div className="grid grid-cols-12 gap-8">
-              <EventTrendsChart 
-                selectedYear={selectedYear}
-                setSelectedYear={setSelectedYear}
-                yearOptions={yearOptions}
-                trendChartData={trendChartData}
-              />
-
-              <CategoryDistributionChart 
-                categoryChartData={categoryChartData}
-                chartColors={COLORS.chartColors}
-              />
-            </div>
-
-            {/* Events by Club Vertical Bar Chart (ROLE_HOD only) */}
-            {role === 'ROLE_HOD' && (
-              <ClubPerformanceChart 
-                clubChartData={clubChartData}
-                chartColors={COLORS.chartColors}
-              />
-            )}
-
-            {/* Leaderboard Table */}
-            <EventLeaderboardTable 
-              leaderboardLimit={leaderboardLimit}
-              setLeaderboardLimit={setLeaderboardLimit}
-              topEventsData={topEventsData}
+            <CategoryDistributionChart 
+              categoryChartData={categoryChartData}
+              chartColors={COLORS.chartColors}
             />
           </div>
-        )}
 
-      </main>
+          {/* Events by Club Vertical Bar Chart */}
+          <ClubPerformanceChart 
+            clubChartData={clubChartData}
+            chartColors={COLORS.chartColors}
+          />
+
+          {/* Leaderboard Table */}
+          <EventLeaderboardTable 
+            leaderboardLimit={leaderboardLimit}
+            setLeaderboardLimit={setLeaderboardLimit}
+            topEventsData={topEventsData}
+          />
+        </div>
+      )}
+
     </div>
   );
 };

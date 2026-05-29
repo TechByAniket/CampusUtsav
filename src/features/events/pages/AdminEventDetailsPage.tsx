@@ -12,6 +12,7 @@ import {
 
 import type { AdminEventDetail } from '@/types/event'
 import { getEventDetailsByEventId } from '@/services/eventService'
+import { getEventAnalytics } from '@/services/analyticsService'
 import type { RootState } from '@/store/store'
 import { Button } from '@/components/ui/button'
 
@@ -23,12 +24,15 @@ import { EventDetailCriteria } from '../components/EventDetailCriteria'
 import { EventDetailAttachments } from '../components/EventDetailAttachments'
 import { EventDetailOrganizer } from '../components/EventDetailOrganizer'
 import { AdminEventActions } from '../components/AdminEventActions'
+import { EventPerformanceAnalytics } from '../components/EventPerformanceAnalytics'
 
 export const AdminEventDetailsPage = () => {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
   const [event, setEvent] = useState<AdminEventDetail | null>(null)
   const [loading, setLoading] = useState(true)
+  const [analytics, setAnalytics] = useState<any>(null)
+  const [showAnalytics, setShowAnalytics] = useState<boolean>(false)
 
   const role = useSelector((state: RootState) => state.auth.role)
 
@@ -48,6 +52,37 @@ export const AdminEventDetailsPage = () => {
 
     fetchEventDetails()
   }, [id])
+
+  useEffect(() => {
+    const fetchEventAnalyticsData = async () => {
+      if (!id || !event) return
+      
+      const today = new Date()
+      const eventEnd = new Date(event.endDate)
+      
+      const todayDateOnly = new Date(today.getFullYear(), today.getMonth(), today.getDate())
+      const endDateOnly = new Date(eventEnd.getFullYear(), eventEnd.getMonth(), eventEnd.getDate())
+      
+      if (endDateOnly > todayDateOnly) {
+        setShowAnalytics(false)
+        return
+      }
+
+      try {
+        const data = await getEventAnalytics(Number(id))
+        if (data) {
+          setAnalytics(data)
+          setShowAnalytics(true)
+        }
+      } catch (err) {
+        setShowAnalytics(false)
+      }
+    }
+
+    if (event) {
+      fetchEventAnalyticsData()
+    }
+  }, [id, event])
 
   if (loading) {
     return (
@@ -135,6 +170,12 @@ export const AdminEventDetailsPage = () => {
               <AdminEventActions status={event.status} />
            </div>
         )}
+
+        {/* --- PERFORMANCE ANALYTICS BANNER --- */}
+        <EventPerformanceAnalytics 
+           analytics={analytics}
+           showAnalytics={showAnalytics}
+        />
 
         {/* --- ROW 4: DETAILED OPERATIONAL MODULES --- */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-start pt-2">

@@ -1,4 +1,6 @@
 import React from 'react';
+import { useSelector } from 'react-redux';
+import type { RootState } from '@/store/store';
 import { DashboardHero } from '../../components/DashboardHero';
 
 // Analytics Components
@@ -10,29 +12,40 @@ import { BranchPerformance } from '../../components/analytics/BranchPerformance'
 import { QuickActions } from '../../components/overview/QuickActions';
 import { OperationsPlanner } from '../../components/overview/OperationsPlanner';
 
+// Principal Specific Analytics Component
+import { PrincipalOverview } from './PrincipalOverview';
+
 export const Overview: React.FC = () => {
+  const role = useSelector((state: RootState) => state.auth.role);
+
   return (
     <div className="min-h-screen bg-[#F8FAFC] font-sans text-slate-900 selection:bg-indigo-100 pb-20">
       <main className="max-w-7xl mx-auto space-y-16 relative z-10">
         
         {/* Hero Section */}
-        <DashboardHero />
+        {role !== 'ROLE_PRINCIPAL' && <DashboardHero />}
 
         <div className="px-4 sm:px-6 lg:px-8 space-y-16">
-            {/* KPI Performance Section */}
-            <KPICards />
+          {role === 'ROLE_PRINCIPAL' ? (
+            <PrincipalOverview />
+          ) : (
+            <>
+              {/* KPI Performance Section */}
+              <KPICards />
 
-            {/* Main Analytics Hub */}
-            <AnalyticsHub />
+              {/* Main Analytics Hub */}
+              <AnalyticsHub />
 
-            {/* Departmental Performance & Actions */}
-            <div className="grid grid-cols-12 gap-8">
-                <BranchPerformance />
-                <QuickActions />
-            </div>
+              {/* Departmental Performance & Actions */}
+              <div className="grid grid-cols-12 gap-8">
+                  <BranchPerformance />
+                  <QuickActions />
+              </div>
 
-            {/* Campus Operations & Scheduling */}
-            <OperationsPlanner />
+              {/* Campus Operations & Scheduling */}
+              <OperationsPlanner />
+            </>
+          )}
         </div>
       </main>
 

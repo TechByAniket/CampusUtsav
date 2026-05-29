@@ -4,7 +4,7 @@ import { X, Loader2, Users } from "lucide-react";
 import { toast } from "sonner";
 import { getTeamMembers, addMember, leaveTeam, removeMember } from "../../../services/teamService";
 import { fetchTeamMembersMetaData } from "../../../services/eventService";
-import { StudentRegistration } from "../../../types/event";
+import type { StudentRegistration } from "../pages/MyRegistrationsPage";
 
 type ViewTeamModalProps = {
   isOpen: boolean;
