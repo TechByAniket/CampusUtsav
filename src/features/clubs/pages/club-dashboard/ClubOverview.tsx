@@ -86,10 +86,14 @@ export const ClubOverview: React.FC = () => {
     setIsError(false);
 
     try {
-      // 1. Fetch remaining allowed analytics sequential APIs
-      const analyticsRes = await getAnalytics();
-      const trendsRes = await getEventTrends(selectedYear, undefined); // Scoped automatically by backend token
-      const topEventsRes = await getTopPerformingEvents(leaderboardLimit);
+      // ==============
+      // Parallel and fast, await is slow and sequential
+      // ==============
+      const [analyticsRes, trendsRes, topEventsRes] = await Promise.all([
+        getAnalytics(),
+        getEventTrends(selectedYear, undefined), // Scoped automatically by backend token
+        getTopPerformingEvents(leaderboardLimit)
+      ]);
 
       // 2. State Mappings
       setKpiData(analyticsRes || {});
