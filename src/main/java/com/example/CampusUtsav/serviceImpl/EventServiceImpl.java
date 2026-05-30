@@ -3,10 +3,7 @@ package com.example.CampusUtsav.serviceImpl;
 import com.example.CampusUtsav.dtos.*;
 import com.example.CampusUtsav.dtos.miniDtos.*;
 import com.example.CampusUtsav.entity.*;
-import com.example.CampusUtsav.entity.enums.EventStatus;
-import com.example.CampusUtsav.entity.enums.EventType;
-import com.example.CampusUtsav.entity.enums.RegistrationStatus;
-import com.example.CampusUtsav.entity.enums.Role;
+import com.example.CampusUtsav.entity.enums.*;
 import com.example.CampusUtsav.mapper.EventLogMapper;
 import com.example.CampusUtsav.mapper.EventMapper;
 import com.example.CampusUtsav.mapper.EventRegistrationMapper;
@@ -15,6 +12,7 @@ import com.example.CampusUtsav.repository.*;
 import com.example.CampusUtsav.security.model.CustomUserDetails;
 import com.example.CampusUtsav.service.EventLogService;
 import com.example.CampusUtsav.service.EventService;
+import com.example.CampusUtsav.service.NotificationService;
 import com.example.CampusUtsav.service.SupabaseService;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.transaction.annotation.Transactional;
@@ -48,6 +46,7 @@ public class EventServiceImpl implements EventService {
     private final StudentMapper studentMapper;
     private final EventRegistrationRepository eventRegistrationRepository;
     private final EventRegistrationMapper eventRegistrationMapper;
+    private final NotificationService notificationService;
 
     @Override
     public List<String> getAllEventTypes() {
@@ -97,13 +96,52 @@ public class EventServiceImpl implements EventService {
         //------ Add this log in the eventlog table ------//
         EventStatus action = EventStatus.SUBMITTED;
         Role actionBy = Role.ROLE_CLUB;
-        Role forwardedTo = Role.ROLE_FACULTY;
+        Role forwardedTo = checkForwardingRole(newEvent);
         EventStatus fromStatus = EventStatus.PENDING;
         EventStatus toStatus = EventStatus.SUBMITTED;
         String remarks = "Event Submitted for approvals";
 
         EventLog eventLog = eventLogMapper.toEventLogEntity(action, actionBy, forwardedTo, fromStatus,toStatus, remarks, newEvent, 1);
         eventLogRepository.save(eventLog);
+
+        // =======================================
+        // NOTIFY NEXT APPROVER ABOUT EVENT SUBMISSION
+        // SEND CONFIRMATION NOTIFICATION TO CLUB
+        // =======================================
+
+        // =======================================
+        // CONFIRMATION NOTIFICATION TO CLUB
+        // =======================================
+
+        notificationService.createNotification(
+                linkedClub.getUser(),
+                "Event Submitted Successfully",
+                "Hello " + linkedClub.getShortForm() + " Team,\n\n"
+                        + "Your event proposal '" + newEvent.getTitle()
+                        + "' has been submitted successfully and is now under review.",
+                NotificationType.EVENT_SUBMITTED,
+                "/events/" + newEvent.getId()
+        );
+
+        // =======================================
+        // NOTIFICATION TO NEXT APPROVER
+        // =======================================
+
+        ApproverInfo info = buildApproverInfo(forwardedTo, newEvent, linkedClub, linkedCollege);
+        User approverUser = info.approverUser();
+        String approverMessage = info.approverMessage();
+
+        // =======================================
+        // CREATE NOTIFICATION FOR APPROVER
+        // =======================================
+
+        notificationService.createNotification(
+                approverUser,
+                "New Event Approval Request",
+                approverMessage,
+                NotificationType.EVENT_SUBMITTED,
+                "/inbox"
+        );
 
         return "Event successfully created and submitted for approvals!";
     }
@@ -148,7 +186,7 @@ public class EventServiceImpl implements EventService {
 
         EventStatus action = EventStatus.SUBMITTED;
         Role actionBy = Role.ROLE_CLUB;
-        Role forwardedTo = Role.ROLE_FACULTY;
+        Role forwardedTo = checkForwardingRole(curEvent);
         EventStatus fromStatus = EventStatus.REVERTED; // Fixed: It was coming FROM reverted
         EventStatus toStatus = EventStatus.SUBMITTED;
         String remarks = "Event Re-Submitted for approvals";
@@ -159,6 +197,40 @@ public class EventServiceImpl implements EventService {
         );
 
         eventLogRepository.save(newLog);
+
+        // =======================================
+        // CONFIRMATION NOTIFICATION TO CLUB
+        // =======================================
+
+        notificationService.createNotification(
+                currentClub.getUser(),
+                "Event Re-Submitted Successfully",
+                "Hello " + curEvent.getClub().getShortForm() + " Team,\n\n"
+                        + "Your event proposal '" + curEvent.getTitle()
+                        + "' has been re-submitted successfully and is now under review.",
+                NotificationType.EVENT_SUBMITTED,
+                "/events/" + curEvent.getId()
+        );
+
+        // =======================================
+        // NOTIFICATION TO NEXT APPROVER
+        // =======================================
+
+        ApproverInfo info = buildApproverInfo(forwardedTo, curEvent, curEvent.getClub(), curEvent.getClub().getCollege());
+        User approverUser = info.approverUser();
+        String approverMessage = info.approverMessage();
+
+        // =======================================
+        // CREATE NOTIFICATION FOR APPROVER
+        // =======================================
+
+        notificationService.createNotification(
+                approverUser,
+                "New Re-Submitted Event Approval Request",
+                approverMessage,
+                NotificationType.EVENT_SUBMITTED,
+                "/inbox"
+        );
 
         return "Event successfully updated and resubmitted for further approvals!";
     }
@@ -383,4 +455,77 @@ public class EventServiceImpl implements EventService {
         // =========================
         return new EventRegistrationsAdminResponse(eventId, individuals, teams);
     }
+
+    // ------------------------------------------------------------------------------------------------
+    // ======================================== HELPER METHODS ========================================
+    // ------------------------------------------------------------------------------------------------
+
+    // ========================================
+    // HELPER METHOD TO CHECK TO WHOM THE EVENT SHOULD BE FORWARDED BASED ON THE CLUB'S ASSOCIATION
+    // ========================================
+    private Role checkForwardingRole(Event newEvent) {
+        if (newEvent.getClub().getCoordinator() != null) {
+            return Role.ROLE_FACULTY;
+        } else if (newEvent.getClub().getBranch() != null) {
+            return Role.ROLE_HOD;
+        } else {
+            return Role.ROLE_PRINCIPAL;
+        }
+    }
+
+    // ========================================
+    // RECORD CLASS TO HOLD APPROVER INFO FOR NOTIFICATIONS
+    // ========================================
+    public record ApproverInfo(User approverUser, String approverMessage) {}
+    private ApproverInfo buildApproverInfo(
+            Role forwardedTo,
+            Event newEvent,
+            Club linkedClub,
+            College linkedCollege
+    ) {
+
+        User approverUser;
+        String approverMessage;
+
+        if (forwardedTo == Role.ROLE_FACULTY) {
+
+            approverUser = newEvent.getClub().getCoordinator().getUser();
+
+            approverMessage = "A new event proposal '"
+                    + newEvent.getTitle()
+                    + "' has been submitted by "
+                    + linkedClub.getShortForm()
+                    + " for faculty review.";
+
+        } else if (forwardedTo == Role.ROLE_HOD) {
+
+            Staff hod = staffRepository
+                    .findByRoleAndCollege_IdAndBranch_Id(
+                            Role.ROLE_HOD,
+                            linkedCollege.getId(),
+                            newEvent.getClub().getBranch().getId()
+                    )
+                    .orElseThrow(() -> new RuntimeException("HOD not found"));
+
+            approverUser = hod.getUser();
+
+            approverMessage = "A new department event proposal '"
+                    + newEvent.getTitle()
+                    + "' has been submitted by "
+                    + linkedClub.getShortForm()
+                    + " for HOD review.";
+
+        } else {
+
+            approverUser = linkedCollege.getUser();
+
+            approverMessage = "A new college-level event proposal '"
+                    + newEvent.getTitle()
+                    + "' has been submitted by "
+                    + linkedClub.getShortForm()
+                    + " for principal review.";
+        }
+        return new ApproverInfo(approverUser, approverMessage);
+    }
+
 }

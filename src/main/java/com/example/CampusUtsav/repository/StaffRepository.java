@@ -2,6 +2,7 @@ package com.example.CampusUtsav.repository;
 
 import com.example.CampusUtsav.entity.College;
 import com.example.CampusUtsav.entity.Staff;
+import com.example.CampusUtsav.entity.enums.Role;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -33,6 +34,12 @@ public interface StaffRepository extends JpaRepository<Staff, Integer> {
     Integer countByManagedClubIdAndCollegeIdAndIdNot(Integer clubId, Integer collegeId, Integer staffId);
 
     Optional<Staff> findByUser_Id(Long userId);
+
+    Optional<Staff> findByRoleAndCollege_IdAndBranch_Id(
+                    Role role,
+                    Integer collegeId,
+                    Integer branchId
+            );
 
     // ---- NO NEED TO USE OPTIONAL here, because by default list handles null, it can be empty ----//
     // ---- You should use Optional only when you are fetching a single object by ID or unique field. ----//
