@@ -13,6 +13,7 @@ import com.example.CampusUtsav.repository.*;
 import com.example.CampusUtsav.security.model.CustomUserDetails;
 import com.example.CampusUtsav.service.EventLogService;
 import com.example.CampusUtsav.service.NotificationService;
+import com.example.CampusUtsav.utils.EventUtils;
 import com.example.CampusUtsav.utils.NotificationUtils;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -37,6 +38,7 @@ public class EventLogServiceImpl implements EventLogService {
     private final EventLogRepository eventLogRepository;
     private final NotificationService notificationService;
     private final NotificationUtils notificationUtils;
+    private final EventUtils eventUtils;
 
 
     @Override
@@ -120,6 +122,7 @@ public class EventLogServiceImpl implements EventLogService {
 
         Role forwardedTo;
         EventStatus fromStatus;
+        String message;
 
         switch(userRole){
             case ROLE_FACULTY:
@@ -159,7 +162,7 @@ public class EventLogServiceImpl implements EventLogService {
                 // NOTIFICATION TO CLUB ADMIN ABOUT FACULTY APPROVAL
                 // =================================
 
-                String message = notificationUtils
+                message = notificationUtils
                         .eventStatusChangeNotificationMessage(
                                 EventStatus.FACULTY1_APPROVED,
                                 currentEvent
@@ -171,6 +174,22 @@ public class EventLogServiceImpl implements EventLogService {
                         message,
                         NotificationType.EVENT_STATUS_CHANGE,
                         "/events/" + currentEvent.getId()
+                );
+
+                // =================================
+                // NOTIFICATION TO HOD/PRINCIPAL ABOUT NEW EVENT PENDING FOR REVIEW
+                // =================================
+
+                EventUtils.ApproverInfo info = eventUtils.buildApproverInfo(forwardedTo, currentEvent, linkedClub, linkedClub.getCollege());
+                User approverUser = info.approverUser();
+                String approverMessage = info.approverMessage();
+
+                notificationService.createNotification(
+                        approverUser,
+                        "New Event Pending for Your Review",
+                        approverMessage,
+                        NotificationType.EVENT_STATUS_CHANGE,
+                        "/inbox"
                 );
 
                 if(forwardedTo == Role.ROLE_PRINCIPAL){
@@ -222,6 +241,22 @@ public class EventLogServiceImpl implements EventLogService {
                         message,
                         NotificationType.EVENT_STATUS_CHANGE,
                         "/events/" + currentEvent.getId()
+                );
+
+                // =================================
+                // NOTIFICATION TO PRINCIPAL ABOUT NEW EVENT PENDING FOR REVIEW
+                // =================================
+
+                info = eventUtils.buildApproverInfo(Role.ROLE_PRINCIPAL, currentEvent, linkedClub, linkedClub.getCollege());
+                approverUser = info.approverUser();
+                approverMessage = info.approverMessage();
+
+                notificationService.createNotification(
+                        approverUser,
+                        "New Event Pending for Your Review",
+                        approverMessage,
+                        NotificationType.EVENT_STATUS_CHANGE,
+                        "/inbox"
                 );
 
                 return "Departmental clearance granted. Forwarded to the Principal for final approval.";
@@ -496,6 +531,11 @@ public class EventLogServiceImpl implements EventLogService {
                 .map(eventLogMapper::toEventLogResponse)
                 .toList();
     }
+
+
+    // -------------------------------------------------------------------------------------------------------
+    // ======================================== HELPER METHODS ===============================================
+    // -------------------------------------------------------------------------------------------------------
 
     // ==================================
     // PRIVATE HELPER METHOD TO SEND NOTIFICATIONS ON EVENT REVERT

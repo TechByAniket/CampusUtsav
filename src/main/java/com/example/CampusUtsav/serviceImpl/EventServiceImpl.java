@@ -14,6 +14,7 @@ import com.example.CampusUtsav.service.EventLogService;
 import com.example.CampusUtsav.service.EventService;
 import com.example.CampusUtsav.service.NotificationService;
 import com.example.CampusUtsav.service.SupabaseService;
+import com.example.CampusUtsav.utils.EventUtils;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.transaction.annotation.Transactional;
 import lombok.AllArgsConstructor;
@@ -47,6 +48,7 @@ public class EventServiceImpl implements EventService {
     private final EventRegistrationRepository eventRegistrationRepository;
     private final EventRegistrationMapper eventRegistrationMapper;
     private final NotificationService notificationService;
+    private final EventUtils eventUtils;
 
     @Override
     public List<String> getAllEventTypes() {
@@ -127,7 +129,7 @@ public class EventServiceImpl implements EventService {
         // NOTIFICATION TO NEXT APPROVER
         // =======================================
 
-        ApproverInfo info = buildApproverInfo(forwardedTo, newEvent, linkedClub, linkedCollege);
+        EventUtils.ApproverInfo info = eventUtils.buildApproverInfo(forwardedTo, newEvent, linkedClub, linkedCollege);
         User approverUser = info.approverUser();
         String approverMessage = info.approverMessage();
 
@@ -216,7 +218,7 @@ public class EventServiceImpl implements EventService {
         // NOTIFICATION TO NEXT APPROVER
         // =======================================
 
-        ApproverInfo info = buildApproverInfo(forwardedTo, curEvent, curEvent.getClub(), curEvent.getClub().getCollege());
+        EventUtils.ApproverInfo info = eventUtils.buildApproverInfo(forwardedTo, curEvent, curEvent.getClub(), curEvent.getClub().getCollege());
         User approverUser = info.approverUser();
         String approverMessage = info.approverMessage();
 
@@ -456,9 +458,9 @@ public class EventServiceImpl implements EventService {
         return new EventRegistrationsAdminResponse(eventId, individuals, teams);
     }
 
-    // ------------------------------------------------------------------------------------------------
-    // ======================================== HELPER METHODS ========================================
-    // ------------------------------------------------------------------------------------------------
+    // -------------------------------------------------------------------------------------------------------
+    // ======================================== HELPER METHODS ===============================================
+    // -------------------------------------------------------------------------------------------------------
 
     // ========================================
     // HELPER METHOD TO CHECK TO WHOM THE EVENT SHOULD BE FORWARDED BASED ON THE CLUB'S ASSOCIATION
@@ -471,61 +473,6 @@ public class EventServiceImpl implements EventService {
         } else {
             return Role.ROLE_PRINCIPAL;
         }
-    }
-
-    // ========================================
-    // RECORD CLASS TO HOLD APPROVER INFO FOR NOTIFICATIONS
-    // ========================================
-    public record ApproverInfo(User approverUser, String approverMessage) {}
-    private ApproverInfo buildApproverInfo(
-            Role forwardedTo,
-            Event newEvent,
-            Club linkedClub,
-            College linkedCollege
-    ) {
-
-        User approverUser;
-        String approverMessage;
-
-        if (forwardedTo == Role.ROLE_FACULTY) {
-
-            approverUser = newEvent.getClub().getCoordinator().getUser();
-
-            approverMessage = "A new event proposal '"
-                    + newEvent.getTitle()
-                    + "' has been submitted by "
-                    + linkedClub.getShortForm()
-                    + " for faculty review.";
-
-        } else if (forwardedTo == Role.ROLE_HOD) {
-
-            Staff hod = staffRepository
-                    .findByRoleAndCollege_IdAndBranch_Id(
-                            Role.ROLE_HOD,
-                            linkedCollege.getId(),
-                            newEvent.getClub().getBranch().getId()
-                    )
-                    .orElseThrow(() -> new RuntimeException("HOD not found"));
-
-            approverUser = hod.getUser();
-
-            approverMessage = "A new department event proposal '"
-                    + newEvent.getTitle()
-                    + "' has been submitted by "
-                    + linkedClub.getShortForm()
-                    + " for HOD review.";
-
-        } else {
-
-            approverUser = linkedCollege.getUser();
-
-            approverMessage = "A new college-level event proposal '"
-                    + newEvent.getTitle()
-                    + "' has been submitted by "
-                    + linkedClub.getShortForm()
-                    + " for principal review.";
-        }
-        return new ApproverInfo(approverUser, approverMessage);
     }
 
 }
