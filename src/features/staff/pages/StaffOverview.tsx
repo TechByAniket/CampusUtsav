@@ -113,17 +113,22 @@ export const StaffOverview: React.FC = () => {
     const clubFilterVal = selectedClub === 'ALL' ? undefined : selectedClub;
 
     try {
-      const analyticsRes = await getAnalytics();
-      
-      // Conditionally call getEventsCountByClub only if ROLE_HOD
-      let clubCountRes = null;
-      if (role === 'ROLE_HOD') {
-        clubCountRes = await getEventsCountByClub();
-      }
-      
-      const categoryCountRes = await getEventsCountByCategory();
-      const trendsRes = await getEventTrends(selectedYear, clubFilterVal);
-      const topEventsRes = await getTopPerformingEvents(leaderboardLimit);
+      // ==============
+      // Parallel and fast, await is slow and sequential
+      // ==============
+      const [
+        analyticsRes,
+        clubCountRes,
+        categoryCountRes,
+        trendsRes,
+        topEventsRes
+      ] = await Promise.all([
+        getAnalytics(),
+        role === 'ROLE_HOD' ? getEventsCountByClub() : Promise.resolve(null),
+        getEventsCountByCategory(),
+        getEventTrends(selectedYear, clubFilterVal),
+        getTopPerformingEvents(leaderboardLimit)
+      ]);
 
       // 1. KPI Data mapping
       setKpiData(analyticsRes || {});
