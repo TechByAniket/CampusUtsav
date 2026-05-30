@@ -13,9 +13,7 @@ public enum NotificationType {
     // EVENT WORKFLOW
     // =========================
     EVENT_SUBMITTED,
-    EVENT_APPROVED,
-    EVENT_REJECTED,
-    EVENT_REVERTED,
+    EVENT_STATUS_CHANGE,
     EVENT_UPDATED,
     EVENT_CANCELLED,
     EVENT_COMPLETED,
@@ -24,17 +22,13 @@ public enum NotificationType {
     // TEAM MANAGEMENT
     // =========================
     TEAM_INVITE,
-    TEAM_MEMBER_JOINED,
-    TEAM_MEMBER_LEFT,
-    TEAM_MEMBER_REMOVED,
+    TEAM_UPDATE,
     TEAM_LEADER_CHANGED,
 
     // =========================
     // EVENT REGISTRATION
     // =========================
-    REGISTRATION_SUCCESS,
-    REGISTRATION_CANCELLED,
-    REGISTRATION_REJECTED,
+    REGISTRATION_STATUS_CHANGE,
 
     // =========================
     // ATTENDANCE

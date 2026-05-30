@@ -5,12 +5,15 @@ import com.example.CampusUtsav.dtos.EventResponse;
 import com.example.CampusUtsav.dtos.miniDtos.EventSummary;
 import com.example.CampusUtsav.entity.*;
 import com.example.CampusUtsav.entity.enums.EventStatus;
+import com.example.CampusUtsav.entity.enums.NotificationType;
 import com.example.CampusUtsav.entity.enums.Role;
 import com.example.CampusUtsav.mapper.EventLogMapper;
 import com.example.CampusUtsav.mapper.EventMapper;
 import com.example.CampusUtsav.repository.*;
 import com.example.CampusUtsav.security.model.CustomUserDetails;
 import com.example.CampusUtsav.service.EventLogService;
+import com.example.CampusUtsav.service.NotificationService;
+import com.example.CampusUtsav.utils.NotificationUtils;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -32,6 +35,8 @@ public class EventLogServiceImpl implements EventLogService {
     private final CollegeRepository collegeRepository;
     private final ClubRepository clubRepository;
     private final EventLogRepository eventLogRepository;
+    private final NotificationService notificationService;
+    private final NotificationUtils notificationUtils;
 
 
     @Override
@@ -150,6 +155,24 @@ public class EventLogServiceImpl implements EventLogService {
 
                 eventLogRepository.save(eventLog);
 
+                // =================================
+                // NOTIFICATION TO CLUB ADMIN ABOUT FACULTY APPROVAL
+                // =================================
+
+                String message = notificationUtils
+                        .eventStatusChangeNotificationMessage(
+                                EventStatus.FACULTY1_APPROVED,
+                                currentEvent
+                        );
+
+                notificationService.createNotification(
+                        linkedClub.getUser(),
+                        "Event Approval Update",
+                        message,
+                        NotificationType.EVENT_STATUS_CHANGE,
+                        "/events/" + currentEvent.getId()
+                );
+
                 if(forwardedTo == Role.ROLE_PRINCIPAL){
                     return "Event approved and successfully forwarded to the Principal for final authorization";
                 }
@@ -183,6 +206,24 @@ public class EventLogServiceImpl implements EventLogService {
 
                 eventLogRepository.save(eventLog);
 
+                // =================================
+                // NOTIFICATION TO CLUB ADMIN ABOUT HOD APPROVAL
+                // =================================
+
+                message = notificationUtils
+                        .eventStatusChangeNotificationMessage(
+                                EventStatus.HOD_APPROVED,
+                                currentEvent
+                        );
+
+                notificationService.createNotification(
+                        linkedClub.getUser(),
+                        "Event Approval Update",
+                        message,
+                        NotificationType.EVENT_STATUS_CHANGE,
+                        "/events/" + currentEvent.getId()
+                );
+
                 return "Departmental clearance granted. Forwarded to the Principal for final approval.";
 
             case ROLE_PRINCIPAL:
@@ -213,6 +254,25 @@ public class EventLogServiceImpl implements EventLogService {
                         existingLog.getVersion());
 
                 eventLogRepository.save(eventLog);
+
+                // =================================
+                // NOTIFICATION TO CLUB ADMIN ABOUT FINAL APPROVAL
+                // =================================
+
+                message = notificationUtils
+                        .eventStatusChangeNotificationMessage(
+                                EventStatus.APPROVED,
+                                currentEvent
+                        );
+
+                notificationService.createNotification(
+                        linkedClub.getUser(),
+                        "Event Approved and Published",
+                        message,
+                        NotificationType.EVENT_STATUS_CHANGE,
+                        "/events/" + currentEvent.getId()
+                );
+
                 return "The event has been officially approved and is now live on the platform.";
 
             default:
@@ -265,6 +325,13 @@ public class EventLogServiceImpl implements EventLogService {
                         );
 
                 eventLogRepository.save(eventLog);
+
+                // =================================
+                // NOTIFICATION TO CLUB ADMIN ABOUT FACULTY REVERT
+                // =================================
+
+                revertEventNotification(currentEvent);
+
                 return "Event successfully reverted back to the " + linkedClub.getName() + " from Faculty Coordinator's desk";
 
             case ROLE_HOD:
@@ -294,6 +361,12 @@ public class EventLogServiceImpl implements EventLogService {
                         existingLog.getVersion());
 
                 eventLogRepository.save(eventLog);
+
+                // =================================
+                // NOTIFICATION TO CLUB ADMIN ABOUT REVERT
+                // =================================
+
+                revertEventNotification(currentEvent);
 
                 return "Event successfully reverted back to the " + linkedClub.getName() + " from Departmental/HOD desk";
 
@@ -326,6 +399,12 @@ public class EventLogServiceImpl implements EventLogService {
                 );
 
                 eventLogRepository.save(eventLog);
+
+                // =================================
+                // NOTIFICATION TO CLUB ADMIN ABOUT REVERT
+                // =================================
+                revertEventNotification(currentEvent);
+
                 return "Event successfully reverted back to the " + linkedClub.getName() + " from Principal's desk";
 
             default:
@@ -416,5 +495,24 @@ public class EventLogServiceImpl implements EventLogService {
         return eventLogs.stream()
                 .map(eventLogMapper::toEventLogResponse)
                 .toList();
+    }
+
+    // ==================================
+    // PRIVATE HELPER METHOD TO SEND NOTIFICATIONS ON EVENT REVERT
+    // ==================================
+    private void revertEventNotification(Event event) {
+        String message = notificationUtils
+                .eventStatusChangeNotificationMessage(
+                        EventStatus.REVERTED,
+                        event
+                );
+
+        notificationService.createNotification(
+                event.getClub().getUser(),
+                "Event Reverted",
+                message,
+                NotificationType.EVENT_STATUS_CHANGE,
+                "/events/" + event.getId()
+        );
     }
 }
