@@ -1,6 +1,14 @@
 package com.example.CampusUtsav.entity.enums;
 
 public enum NotificationType {
+
+    // =========================
+    // ACCOUNT ACTIVATION, STATUS & ROLE
+    // =========================
+    ACCOUNT_ACTIVATION_REQUEST,
+    ACCOUNT_STATUS_CHANGE,
+    ROLE_UPDATE,
+
     // =========================
     // EVENT WORKFLOW
     // =========================
