@@ -8,6 +8,8 @@ public enum NotificationType {
     ACCOUNT_ACTIVATION_REQUEST,
     ACCOUNT_STATUS_CHANGE,
     ROLE_UPDATE,
+    ACCOUNT_CREATION,
+    CLUB_ASSIGNMENT_CHANGE,
 
     // =========================
     // EVENT WORKFLOW

@@ -4,12 +4,15 @@ import com.example.CampusUtsav.dtos.StaffRegistrationRequest;
 import com.example.CampusUtsav.dtos.StaffResponse;
 import com.example.CampusUtsav.entity.*;
 import com.example.CampusUtsav.entity.enums.AccountStatus;
+import com.example.CampusUtsav.entity.enums.NotificationType;
 import com.example.CampusUtsav.entity.enums.Role;
 import com.example.CampusUtsav.exception.DuplicateResourceException;
 import com.example.CampusUtsav.mapper.StaffMapper;
 import com.example.CampusUtsav.repository.*;
 import com.example.CampusUtsav.security.model.CustomUserDetails;
+import com.example.CampusUtsav.service.NotificationService;
 import com.example.CampusUtsav.service.StaffService;
+import com.example.CampusUtsav.utils.NotificationUtils;
 import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
 //import org.springframework.security.crypto.password.PasswordEncoder;
@@ -32,6 +35,8 @@ public class StaffServiceImpl implements StaffService {
     private final CollegeRepository collegeRepository;
     private final UserRepository userRepository;
     private final ClubRepository clubRepository;
+    private final NotificationService notificationService;
+    private final NotificationUtils notificationUtils;
 
     @Override
     @Transactional
@@ -113,8 +118,30 @@ public class StaffServiceImpl implements StaffService {
             }
         }
 
-        staff.setStatus(AccountStatus.valueOf(newStatus.toUpperCase()));
+        AccountStatus status = AccountStatus.valueOf(newStatus.toUpperCase());
+
+        staff.setStatus(status);
         staffRepository.save(staff);
+
+        // ================================================
+        // NOTIFY STAFF ABOUT THEIR ACCOUNT STATUS CHANGE
+        // ================================================
+
+        String message = notificationUtils.
+                accountStatusUpdateNotificationMessage(
+                        staff.getStatus(),
+                        staff
+                );
+
+        notificationService.createNotification(
+                staff.getUser(),
+                "Staff Account Status Updated",
+                message,
+                NotificationType.ACCOUNT_STATUS_CHANGE,
+                status == AccountStatus.ACTIVE
+                        ? "/staff-dashboard"
+                        : "/auth/sign-in"
+        );
     }
 
     @Override
@@ -164,6 +191,24 @@ public class StaffServiceImpl implements StaffService {
 
         staff.setHod("ROLE_HOD".equalsIgnoreCase(newRole));
         staffRepository.save(staff);
+
+        // ==========================================
+        // NOTIFY STAFF ABOUT ROLE CHANGE
+        // ==========================================
+
+        Role updatedRole = Role.valueOf(newRole.toUpperCase());
+
+        String message = "Your role has been updated to "
+                + updatedRole
+                + " by the administration. Please review your updated permissions and responsibilities in the dashboard.";
+
+        notificationService.createNotification(
+                staff.getUser(),
+                "Role Updated",
+                message,
+                NotificationType.ROLE_UPDATE,
+                "/staff-dashboard"
+        );
     }
 
 
@@ -229,6 +274,30 @@ public class StaffServiceImpl implements StaffService {
             staff.setClubCoordinator(false);
         }
         staffRepository.save(staff);
+
+        // ===========================================
+        // NOTIFY STAFF ABOUT THEIR CLUB ASSIGNMENT
+        // ===========================================
+
+        String message;
+
+        if (clubId != null) {
+            message = "You have been assigned as the coordinator for the club '"
+                    + staff.getManagedClub().getShortForm()
+                    + "'. You can now manage club activities and responsibilities through your dashboard.";
+        } else {
+            message = "You have been removed from the club coordinator role. "
+                    + "You no longer have management access to club operations. "
+                    + "Please contact administration for further details.";
+        }
+
+        notificationService.createNotification(
+                staff.getUser(),
+                "Club Assignment Updated",
+                message,
+                NotificationType.CLUB_ASSIGNMENT_CHANGE,
+                "/staff-dashboard"
+        );
     }
 
     // ************* GET PROFILE DETAILS OF A STAFF *********** //
