@@ -39,6 +39,8 @@ import AccessDenied from './components/error_pages/AccessDenied'
 import ProfilePage from './features/auth/pages/ProfilePage'
 import MyRegistrationsPage from './features/student/pages/MyRegistrationsPage'
 // import { De } from 'zod/v4/locales'
+import { DashboardLayoutSelector } from './components/layout/DashboardLayoutSelector'
+import { NotificationsPage } from './features/notifications/pages/NotificationsPage'
 
 
 
@@ -109,6 +111,13 @@ function App() {
           <Route path="events/:id/attendance" element={<AttendancePage />} />
           <Route path="members" element={<StaffMembersTab />} />
           <Route path="club" element={<StaffClub />} />
+        </Route>
+      </Route>
+
+      {/* ================= NOTIFICATIONS ================= */}
+      <Route element={<ProtectedRoute allowedRoles={['ROLE_COLLEGE', 'ROLE_PRINCIPAL', 'ROLE_CLUB', 'ROLE_FACULTY', 'ROLE_HOD']} />}>
+        <Route element={<DashboardLayoutSelector />}>
+          <Route path="notifications" element={<NotificationsPage />} />
         </Route>
       </Route>
 

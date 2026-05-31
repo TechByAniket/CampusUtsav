@@ -1,0 +1,23 @@
+import { useSelector } from "react-redux";
+import { Navigate, Outlet } from "react-router-dom";
+import { type RootState } from "@/store/store";
+import { CollegeDashboardLayout } from "@/layouts/CollegeDashboardLayout";
+import { ClubDashboardLayout } from "@/layouts/ClubDashboardLayout";
+import { StaffDashboardLayout } from "@/layouts/StaffDashboardLayout";
+
+export const DashboardLayoutSelector = () => {
+  const { role } = useSelector((state: RootState) => state.auth);
+
+  if (role === 'ROLE_COLLEGE' || role === 'ROLE_PRINCIPAL') {
+    return <CollegeDashboardLayout />;
+  }
+  if (role === 'ROLE_CLUB') {
+    return <ClubDashboardLayout />;
+  }
+  if (role === 'ROLE_FACULTY' || role === 'ROLE_HOD') {
+    return <StaffDashboardLayout />;
+  }
+
+  // Safe fallback to access-denied for other roles (e.g. ROLE_STUDENT or unauthorized)
+  return <Navigate to="/access-denied" replace />;
+};
