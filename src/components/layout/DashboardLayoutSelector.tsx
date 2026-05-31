@@ -4,6 +4,7 @@ import { type RootState } from "@/store/store";
 import { CollegeDashboardLayout } from "@/layouts/CollegeDashboardLayout";
 import { ClubDashboardLayout } from "@/layouts/ClubDashboardLayout";
 import { StaffDashboardLayout } from "@/layouts/StaffDashboardLayout";
+import { DefaultLayout } from "@/layouts/DefaultLayout";
 
 export const DashboardLayoutSelector = () => {
   const { role } = useSelector((state: RootState) => state.auth);
@@ -17,7 +18,10 @@ export const DashboardLayoutSelector = () => {
   if (role === 'ROLE_FACULTY' || role === 'ROLE_HOD') {
     return <StaffDashboardLayout />;
   }
+  if (role === 'ROLE_STUDENT') {
+    return <DefaultLayout />;
+  }
 
-  // Safe fallback to access-denied for other roles (e.g. ROLE_STUDENT or unauthorized)
+  // Safe fallback to access-denied for other roles (e.g. unauthorized)
   return <Navigate to="/access-denied" replace />;
 };

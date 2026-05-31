@@ -28,12 +28,14 @@ export const checkIfUnread = (n: any): boolean => {
 
 export const useNotifications = () => {
   const queryClient = useQueryClient();
+  const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
 
   // 1. Get My Notifications
   const { data = [], isLoading, error, refetch: refetchNotifications } = useQuery<NotificationResponse[]>({
     queryKey: ["notifications"],
     queryFn: getMyNotifications,
     staleTime: 30000, // 30s cache
+    enabled: !!token,
   });
 
   const notifications = Array.isArray(data) ? data : [];
@@ -43,6 +45,7 @@ export const useNotifications = () => {
     queryKey: ["notifications", "unread-count"],
     queryFn: getUnreadCount,
     staleTime: 30000,
+    enabled: !!token,
   });
 
   // Safe parsing for count, handling both number directly or wrapping objects

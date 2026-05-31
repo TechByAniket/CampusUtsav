@@ -115,7 +115,7 @@ function App() {
       </Route>
 
       {/* ================= NOTIFICATIONS ================= */}
-      <Route element={<ProtectedRoute allowedRoles={['ROLE_COLLEGE', 'ROLE_PRINCIPAL', 'ROLE_CLUB', 'ROLE_FACULTY', 'ROLE_HOD']} />}>
+      <Route element={<ProtectedRoute allowedRoles={['ROLE_COLLEGE', 'ROLE_PRINCIPAL', 'ROLE_CLUB', 'ROLE_FACULTY', 'ROLE_HOD', 'ROLE_STUDENT']} />}>
         <Route element={<DashboardLayoutSelector />}>
           <Route path="notifications" element={<NotificationsPage />} />
         </Route>

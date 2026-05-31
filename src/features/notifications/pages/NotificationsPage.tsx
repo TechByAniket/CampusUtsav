@@ -5,6 +5,8 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Bell, CheckCheck, Loader2, Search, X, ChevronDown, Filter, Calendar } from "lucide-react";
 import { toast } from "sonner";
+import { useSelector } from "react-redux";
+import type { RootState } from "@/store/store";
 
 // Relative time helper
 const getRelativeTime = (dateString: string): string => {
@@ -194,9 +196,10 @@ export const NotificationsPage: React.FC = () => {
     );
   }
 
+  const { role } = useSelector((state: RootState) => state.auth);
   const hasUnread = unreadCount > 0;
 
-  return (
+  const pageContent = (
     <div className="space-y-8 pb-12">
       {/* Header Section */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-slate-100 pb-6">
@@ -439,4 +442,16 @@ export const NotificationsPage: React.FC = () => {
       )}
     </div>
   );
+
+  if (role === 'ROLE_STUDENT') {
+    return (
+      <div className="min-h-screen bg-slate-50/50 px-4 sm:px-6 lg:px-12 py-10 font-sans text-slate-900">
+        <div className="max-w-6xl mx-auto">
+          {pageContent}
+        </div>
+      </div>
+    );
+  }
+
+  return pageContent;
 };
