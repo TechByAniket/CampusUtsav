@@ -90,7 +90,7 @@ public class StudentServiceImpl implements StudentService {
                 "Dear " + newStudent.getName() + ", your CampusUtsav account is ready. "
                         + "Log in to explore events and stay updated with campus activities.",
                 NotificationType.ACCOUNT_CREATION,
-                "/student-dashboard"
+                "/explore-events"
         );
 
         return "Student registration successful!";
