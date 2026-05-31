@@ -5,6 +5,7 @@ import com.example.CampusUtsav.dtos.StudentRegistrationsResponse;
 import com.example.CampusUtsav.dtos.StudentResponse;
 import com.example.CampusUtsav.dtos.miniDtos.StudentSummary;
 import com.example.CampusUtsav.entity.*;
+import com.example.CampusUtsav.entity.enums.NotificationType;
 import com.example.CampusUtsav.entity.enums.RegistrationStatus;
 import com.example.CampusUtsav.entity.enums.Role;
 import com.example.CampusUtsav.entity.enums.TeamMemberStatus;
@@ -12,6 +13,7 @@ import com.example.CampusUtsav.mapper.StudentMapper;
 import com.example.CampusUtsav.mapper.StudentRegistrationsMapper;
 import com.example.CampusUtsav.repository.*;
 import com.example.CampusUtsav.security.model.CustomUserDetails;
+import com.example.CampusUtsav.service.NotificationService;
 import com.example.CampusUtsav.service.StudentService;
 import com.example.CampusUtsav.utils.StudentUtils;
 import jakarta.persistence.EntityNotFoundException;
@@ -40,6 +42,7 @@ public class StudentServiceImpl implements StudentService {
     private final TeamMemberRepository teamMemberRepository;
     private final EventAttendanceRepository eventAttendanceRepository;
     private final StudentRegistrationsMapper studentRegistrationsMapper;
+    private final NotificationService notificationService;
 
 
     @Override
@@ -76,6 +79,19 @@ public class StudentServiceImpl implements StudentService {
         // Link BEFORE save
         newStudent.setUser(user);
         studentRepository.save(newStudent);
+
+        // ==========================================
+        // ACCOUNT CREATION CONFIRMATION NOTIFICATION FOR STUDENT
+        // ==========================================
+
+        notificationService.createNotification(
+                newStudent.getUser(),
+                "Account Created Successfully",
+                "Dear " + newStudent.getName() + ", your CampusUtsav account is ready. "
+                        + "Log in to explore events and stay updated with campus activities.",
+                NotificationType.ACCOUNT_CREATION,
+                "/student-dashboard"
+        );
 
         return "Student registration successful!";
     }
@@ -231,6 +247,5 @@ public class StudentServiceImpl implements StudentService {
         }
         return result;
     }
-
 
 }
