@@ -11,6 +11,7 @@ import org.springframework.stereotype.Repository;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface EventRegistrationRepository extends JpaRepository<EventRegistration, Integer> {
@@ -65,4 +66,6 @@ public interface EventRegistrationRepository extends JpaRepository<EventRegistra
     AND er.status = 'REGISTERED'
 """)
     int countIndividualByEvent(@Param("eventId") Integer eventId);
+
+    Optional<EventRegistration> findByTeam_Id(Integer teamId);
 }

@@ -165,6 +165,7 @@ public class StudentServiceImpl implements StudentService {
             result.add(
                     studentRegistrationsMapper.toStudentRegistrationsResponse(
                             reg.getEvent(),      // event details
+                            reg.getId(),         // registration ID (for cancellation)
                             "INDIVIDUAL",        // type
                             null                 // no team
                     )
@@ -192,11 +193,16 @@ public class StudentServiceImpl implements StudentService {
 
             if (!alreadyAdded) {
 
+                EventRegistration registration = eventRegistrationRepository
+                        .findByTeam_Id(teamMember.getTeam().getId())
+                        .orElseThrow(() -> new RuntimeException("Registration not found"));
+
                 result.add(
                         studentRegistrationsMapper.toStudentRegistrationsResponse(
-                                event,              // event details
-                                "TEAM",             // type
-                                teamMember          // team info
+                                event,
+                                registration.getId(),
+                                "TEAM",
+                                teamMember
                         )
                 );
             }
