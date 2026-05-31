@@ -177,11 +177,11 @@ export const MyRegistrationsList = ({ registrations, onRefresh }: MyRegistration
                         ) : isBeforeDeadline(reg.registrationDeadline, reg.eventStartDate) ? (
                             reg.registrationType === 'INDIVIDUAL' ? (
                                 <button 
-                                    onClick={() => handleCancelRegistration(reg.registrationId || reg.eventId || (reg as any).id, reg.eventTitle)}
-                                    disabled={markingId === (reg.registrationId || reg.eventId || (reg as any).id)}
+                                    onClick={() => handleCancelRegistration(Number(reg.registrationId), reg.eventTitle)}
+                                    disabled={markingId === Number(reg.registrationId)}
                                     className="w-full py-3 bg-rose-50 hover:bg-rose-100 border border-rose-200/60 text-rose-600 rounded-2xl font-black text-[10px] uppercase tracking-widest flex items-center justify-center gap-1.5 transition-all shadow-sm active:scale-95 mt-1"
                                 >
-                                    {markingId === (reg.registrationId || reg.eventId || (reg as any).id) ? <Loader2 size={12} className="animate-spin" /> : "Cancel Registration"}
+                                    {markingId === Number(reg.registrationId) ? <Loader2 size={12} className="animate-spin" /> : "Cancel Registration"}
                                 </button>
                             ) : (
                                 <button 
@@ -309,11 +309,11 @@ export const MyRegistrationsList = ({ registrations, onRefresh }: MyRegistration
                                      ) : isBeforeDeadline(reg.registrationDeadline, reg.eventStartDate) ? (
                                          reg.registrationType === 'INDIVIDUAL' ? (
                                              <button 
-                                                 onClick={() => handleCancelRegistration(reg.registrationId || reg.eventId || (reg as any).id, reg.eventTitle)}
-                                                 disabled={markingId === (reg.registrationId || reg.eventId || (reg as any).id)}
+                                                 onClick={() => handleCancelRegistration(Number(reg.registrationId), reg.eventTitle)}
+                                                 disabled={markingId === Number(reg.registrationId)}
                                                  className="px-4 py-2 bg-rose-50 hover:bg-rose-100 border border-rose-200/60 text-rose-600 rounded-xl text-[9px] font-black uppercase tracking-widest flex items-center justify-center gap-1.5 transition-all shadow-sm active:scale-95 mt-1"
                                              >
-                                                 {markingId === (reg.registrationId || reg.eventId || (reg as any).id) ? <Loader2 size={12} className="animate-spin" /> : "Cancel Registration"}
+                                                 {markingId === Number(reg.registrationId) ? <Loader2 size={12} className="animate-spin" /> : "Cancel Registration"}
                                              </button>
                                          ) : (
                                              <button 

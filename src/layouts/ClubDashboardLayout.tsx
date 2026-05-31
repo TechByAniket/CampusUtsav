@@ -9,18 +9,21 @@ import {
   Menu,
   X,
   ChevronRight as BreadcrumbSeparator,
+  Bell,
 } from "lucide-react";
 import { Profile } from "@/components/layout/Profile";
 import { Link, Outlet, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { useDashboardCounts } from "@/hooks/useDashboardCounts";
+import { useNotifications } from "@/hooks/useNotifications";
 
 export const ClubDashboardLayout = () => {
   const location = useLocation();
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const { inboxCount } = useDashboardCounts();
+  const { unreadCount } = useNotifications();
 
   // Close mobile menu on route change
   useEffect(() => {
@@ -33,6 +36,7 @@ export const ClubDashboardLayout = () => {
     "/club-dashboard/inbox": "Inbox",
     "/club-dashboard/events": "Events",
     "/club-dashboard/profile": "Club Profile",
+    "/notifications": "Notifications",
   };
 
   const getBreadcrumbs = () => {
@@ -40,7 +44,7 @@ export const ClubDashboardLayout = () => {
     const breadcrumbs = paths.map((path, index) => {
       const url = `/${paths.slice(0, index + 1).join("/")}`;
       return {
-        label: pageTitles[url] || path.charAt(0).toUpperCase() + path.slice(1).replace("-", " "),
+         label: pageTitles[url] || path.charAt(0).toUpperCase() + path.slice(1).replace("-", " "),
         path: url,
       };
     });
@@ -70,6 +74,11 @@ export const ClubDashboardLayout = () => {
       label: "Club Profile",
       path: "/club-dashboard/profile",
       icon: BadgeCheck,
+    },
+    {
+      label: "Notifications",
+      path: "/notifications",
+      icon: Bell,
     },
   ];
 
@@ -185,6 +194,16 @@ export const ClubDashboardLayout = () => {
                   </div>
                 )}
 
+                {item.label === 'Notifications' && unreadCount > 0 && (
+                  <div className={`
+                    absolute ${isCollapsed ? 'top-2 right-2' : 'right-3'} 
+                    bg-red-500 text-white text-[9px] font-black 
+                    px-1.5 py-0.5 rounded-full min-w-[18px] text-center shadow-lg shadow-red-200
+                  `}>
+                    {unreadCount > 99 ? '99+' : unreadCount}
+                  </div>
+                )}
+
                 {isActive && (
                   <motion.div
                     layoutId="active-pill"
@@ -251,6 +270,19 @@ export const ClubDashboardLayout = () => {
           </div>
 
           <div className="flex items-center gap-3">
+             {/* Bell Icon */}
+             <Link
+               to="/notifications"
+               className="relative p-2.5 text-slate-500 hover:text-slate-900 bg-slate-50 hover:bg-slate-100 border border-slate-200/60 hover:border-slate-300 rounded-2xl shadow-sm hover:scale-105 active:scale-95 transition-all duration-300 group flex items-center justify-center shrink-0"
+               aria-label="View notifications"
+             >
+               <Bell size={20} className="group-hover:rotate-12 transition-transform" />
+               {unreadCount > 0 && (
+                 <span className="absolute -top-0.5 -right-0.5 bg-red-500 text-white text-[9px] font-bold px-1.5 py-0.5 rounded-full min-w-[18px] text-center border-2 border-white shadow-md">
+                   {unreadCount > 99 ? "99+" : unreadCount}
+                 </span>
+               )}
+             </Link>
              <Profile />
           </div>
         </header>

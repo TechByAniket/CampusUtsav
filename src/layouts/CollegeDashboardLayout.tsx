@@ -12,17 +12,20 @@ import {
   Menu,
   X,
   ChevronRight as BreadcrumbSeparator,
+  Bell,
 } from "lucide-react";
 import { Profile } from "@/components/layout/Profile";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { useDashboardCounts } from "@/hooks/useDashboardCounts";
+import { useNotifications } from "@/hooks/useNotifications";
 
 export const CollegeDashboardLayout = () => {
   const location = useLocation();
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const { pendingClubsCount, pendingStaffCount, inboxCount } = useDashboardCounts();
+  const { unreadCount } = useNotifications();
 
   // Close mobile menu on route change
   useEffect(() => {
@@ -39,6 +42,7 @@ export const CollegeDashboardLayout = () => {
     "/college-dashboard/staff": "Staff",
     "/college-dashboard/events/:id/registrations": "Event Registrations",
     "/college-dashboard/events/:id/attendance": "Event Attendance",
+    "/notifications": "Notifications",
   };
 
   const getPageTitle = (pathname: string): string => {
@@ -102,6 +106,11 @@ export const CollegeDashboardLayout = () => {
       label: "Staff",
       path: "/college-dashboard/staff",
       icon: Users2,
+    },
+    {
+      label: "Notifications",
+      path: "/notifications",
+      icon: Bell,
     },
   ];
 
@@ -209,13 +218,14 @@ export const CollegeDashboardLayout = () => {
                 {/* Notification Badge */}
                 {((item.label === 'Inbox' && inboxCount > 0) || 
                    (item.label === 'Clubs' && pendingClubsCount > 0) || 
-                   (item.label === 'Staff' && pendingStaffCount > 0)) && (
+                   (item.label === 'Staff' && pendingStaffCount > 0) ||
+                   (item.label === 'Notifications' && unreadCount > 0)) && (
                   <div className={`
                     absolute ${isCollapsed ? 'top-2 right-2' : 'right-3'} 
                     bg-red-500 text-white text-[9px] font-black 
                     px-1.5 py-0.5 rounded-full min-w-[18px] text-center shadow-lg shadow-red-200
                   `}>
-                    {item.label === 'Inbox' ? inboxCount : (item.label === 'Clubs' ? pendingClubsCount : pendingStaffCount)}
+                    {item.label === 'Inbox' ? inboxCount : (item.label === 'Clubs' ? pendingClubsCount : (item.label === 'Staff' ? pendingStaffCount : (unreadCount > 99 ? '99+' : unreadCount)))}
                   </div>
                 )}
 
@@ -285,6 +295,19 @@ export const CollegeDashboardLayout = () => {
           </div>
 
           <div className="flex items-center gap-3">
+             {/* Bell Icon */}
+             <Link
+               to="/notifications"
+               className="relative p-2.5 text-slate-500 hover:text-slate-900 bg-slate-50 hover:bg-slate-100 border border-slate-200/60 hover:border-slate-300 rounded-2xl shadow-sm hover:scale-105 active:scale-95 transition-all duration-300 group flex items-center justify-center shrink-0"
+               aria-label="View notifications"
+             >
+               <Bell size={20} className="group-hover:rotate-12 transition-transform" />
+               {unreadCount > 0 && (
+                 <span className="absolute -top-0.5 -right-0.5 bg-red-500 text-white text-[9px] font-bold px-1.5 py-0.5 rounded-full min-w-[18px] text-center border-2 border-white shadow-md">
+                   {unreadCount > 99 ? "99+" : unreadCount}
+                 </span>
+               )}
+             </Link>
              <Profile />
           </div>
         </header>
