@@ -2,12 +2,14 @@ package com.example.CampusUtsav.serviceImpl;
 
 import com.example.CampusUtsav.dtos.TeamMemberResponse;
 import com.example.CampusUtsav.entity.*;
+import com.example.CampusUtsav.entity.enums.NotificationType;
 import com.example.CampusUtsav.entity.enums.Role;
 import com.example.CampusUtsav.entity.enums.TeamMemberStatus;
 import com.example.CampusUtsav.entity.enums.TeamStatus;
 import com.example.CampusUtsav.mapper.TeamMemberMapper;
 import com.example.CampusUtsav.repository.*;
 import com.example.CampusUtsav.security.model.CustomUserDetails;
+import com.example.CampusUtsav.service.NotificationService;
 import com.example.CampusUtsav.service.TeamService;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
@@ -28,6 +30,7 @@ public class TeamServiceImpl implements TeamService {
     private final EventRegistrationRepository eventRegistrationRepository;
     private final TeamMemberMapper teamMemberMapper;
     private final StaffRepository staffRepository;
+    private final NotificationService notificationService;
 
     @Override
     @Transactional
@@ -163,6 +166,23 @@ public class TeamServiceImpl implements TeamService {
 
             team.setStatus(TeamStatus.VALID);
         }
+
+        // ===========================================
+        // NOTIFY THE NEW MEMBER ABOUT ADDITION IN TEAM
+        // ===========================================
+
+        notificationService.createNotification(
+                newMember.getStudent().getUser(),
+                "Team Membership Updated",
+                "Hi " + newMember.getStudent().getName() + ", you have been successfully added to the team '"
+                        + team.getName()
+                        + "' for the event '"
+                        + event.getTitle()
+                        + "'. "
+                        + "Your team access is now active.",
+                NotificationType.TEAM_UPDATE,
+                "/users/registrations"
+        );
 
         return "Member added successfully";
     }

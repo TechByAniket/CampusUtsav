@@ -6,10 +6,7 @@ import com.example.CampusUtsav.dtos.EventRegistrationResponse;
 import com.example.CampusUtsav.dtos.miniDtos.StudentSummary;
 import com.example.CampusUtsav.dtos.miniDtos.TeamParticipant;
 import com.example.CampusUtsav.entity.*;
-import com.example.CampusUtsav.entity.enums.RegistrationStatus;
-import com.example.CampusUtsav.entity.enums.Role;
-import com.example.CampusUtsav.entity.enums.TeamMemberStatus;
-import com.example.CampusUtsav.entity.enums.TeamStatus;
+import com.example.CampusUtsav.entity.enums.*;
 import com.example.CampusUtsav.mapper.EventRegistrationMapper;
 import com.example.CampusUtsav.mapper.StudentMapper;
 import com.example.CampusUtsav.mapper.TeamMapper;
@@ -17,6 +14,7 @@ import com.example.CampusUtsav.mapper.TeamMemberMapper;
 import com.example.CampusUtsav.repository.*;
 import com.example.CampusUtsav.security.model.CustomUserDetails;
 import com.example.CampusUtsav.service.EventRegistrationService;
+import com.example.CampusUtsav.service.NotificationService;
 import jakarta.persistence.EntityNotFoundException;
 //import jakarta.transaction.Transactional;
 import org.apache.coyote.BadRequestException;
@@ -44,6 +42,7 @@ public class EventRegistrationServiceImpl implements EventRegistrationService {
     private final TeamMapper teamMapper;
     private final StudentMapper studentMapper;
     private final StaffRepository staffRepository;
+    private final NotificationService notificationService;
 
     @Override
     @Transactional
@@ -102,6 +101,20 @@ public class EventRegistrationServiceImpl implements EventRegistrationService {
             registration.setStatus(RegistrationStatus.REGISTERED);
 
             registration = eventRegistrationRepository.save(registration);
+
+            // =============================================
+            // CONFIRMATION NOTIFICATION TO STUDENT
+            // =============================================
+
+            notificationService.createNotification(
+                    student.getUser(),
+                    "Event Registration Successful",
+                    "You have successfully registered for '"
+                            + event.getTitle()
+                            + "'. We look forward to your participation.",
+                    NotificationType.REGISTRATION_STATUS_CHANGE,
+                    "/users/registrations"
+            );
 
             return eventRegistrationMapper.toIndividualResponse(registration);
         }
@@ -195,6 +208,24 @@ public class EventRegistrationServiceImpl implements EventRegistrationService {
 
             registration = eventRegistrationRepository.save(registration);
 
+            // =============================================
+            // CONFIRMATION NOTIFICATION TO LEADER & TEAM MEMBERS
+            // =============================================
+
+            for (Student member : members) {
+
+                notificationService.createNotification(
+                        member.getUser(),
+                        "Team Registration Successful",
+                        "Your team '" + team.getName()
+                                + "' has been successfully registered for '"
+                                + event.getTitle()
+                                + "'. We look forward to your participation.",
+                        NotificationType.REGISTRATION_STATUS_CHANGE,
+                        "/users/registrations"
+                );
+            }
+
             return eventRegistrationMapper.toTeamResponse(registration);
         }
 
@@ -260,13 +291,37 @@ public class EventRegistrationServiceImpl implements EventRegistrationService {
             }
 
             // Soft DELETE
+            String message;
+
             if (isStudentOwner) {
                 registration.setStatus(RegistrationStatus.CANCELLED_BY_STUDENT);
+                message = "You have successfully cancelled your registration for '"
+                        + event.getTitle() + "'.";
+
             } else if (isEventOwnerClub) {
                 registration.setStatus(RegistrationStatus.CANCELLED_BY_CLUB);
+                message = "Your registration for '"
+                        + event.getTitle()
+                        + "' was cancelled by the event organizer.";
+
             } else {
                 registration.setStatus(RegistrationStatus.CANCELLED_BY_PRINCIPAL);
+                message = "Your registration for '"
+                        + event.getTitle()
+                        + "' was cancelled by the college administration.";
             }
+
+            // ========================================
+            // INFORMATION NOTIFICATION TO STUDENT
+            // ========================================
+
+            notificationService.createNotification(
+                    registration.getStudent().getUser(),
+                    "Event Registration Cancelled",
+                    message,
+                    NotificationType.REGISTRATION_STATUS_CHANGE,
+                    "/users/registrations"
+            );
 
             return "Individual registration cancelled successfully";
         }
@@ -294,12 +349,47 @@ public class EventRegistrationServiceImpl implements EventRegistrationService {
             team.getMembers().forEach(m -> m.setStatus(TeamMemberStatus.LEFT));
 
             // Set registration status
+            String message;
+
             if (isLeader) {
                 registration.setStatus(RegistrationStatus.CANCELLED_BY_LEADER);
+                message = "Your team registration for '"
+                        + event.getTitle()
+                        + "' was cancelled by the team leader.";
+
             } else if (isEventOwnerClub) {
                 registration.setStatus(RegistrationStatus.CANCELLED_BY_CLUB);
+                message = "Your team registration for '"
+                        + event.getTitle()
+                        + "' was cancelled by the event organizer.";
+
             } else {
                 registration.setStatus(RegistrationStatus.CANCELLED_BY_PRINCIPAL);
+                message = "Your team registration for '"
+                        + event.getTitle()
+                        + "' was cancelled by the college administration.";
+            }
+
+            // ========================================
+            // INFORMATION NOTIFICATION TO TEAM MEMBERS
+            // ========================================
+
+            for (TeamMember member : team.getMembers()) {
+
+                String notificationMessage = message;
+
+                if (isLeader && Objects.equals(member.getStudent().getId(), currentUser.getProfileId())) {
+                    notificationMessage = "You have successfully cancelled your team registration for '"
+                            + event.getTitle() + "'.";
+                }
+
+                notificationService.createNotification(
+                        member.getStudent().getUser(),
+                        "Team Registration Cancelled",
+                        notificationMessage,
+                        NotificationType.REGISTRATION_STATUS_CHANGE,
+                        "/users/registrations"
+                );
             }
 
             return "Team registration cancelled successfully";

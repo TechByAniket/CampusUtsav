@@ -15,6 +15,7 @@ import java.time.LocalTime;
 @Builder
 public class StudentRegistrationsResponse {
 
+    private Integer registrationId;
     private Integer eventId;
 
     private String eventTitle;

@@ -16,10 +16,12 @@ public class StudentRegistrationsMapper {
 
     public StudentRegistrationsResponse toStudentRegistrationsResponse(
             Event event,
+            Integer registrationId,
             String registrationType,
             TeamMember teamMember
     ) {
         return StudentRegistrationsResponse.builder()
+                .registrationId(registrationId)
                 .eventId(event.getId())
                 .eventTitle(event.getTitle())
                 .eventStartDate(event.getStartDate())
@@ -31,7 +33,14 @@ public class StudentRegistrationsMapper {
                 .clubShortForm(event.getClub().getShortForm())
                 .attendanceActive(event.isAttendanceActive())
                 .registrationType(registrationType)
-                .teamId(teamMember.getTeam().getId())
+                .teamId(
+                        "TEAM".equals(registrationType)
+                                && teamMember != null
+                                && teamMember.getStatus() == TeamMemberStatus.ACTIVE
+                                && teamMember.getTeam().getStatus() != TeamStatus.CANCELLED
+                                ? teamMember.getTeam().getId()
+                                : null
+                )
                 .isLeader(
                         "TEAM".equals(registrationType)
                                 && teamMember != null

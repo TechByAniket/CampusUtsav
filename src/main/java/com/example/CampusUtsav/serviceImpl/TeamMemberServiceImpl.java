@@ -3,12 +3,14 @@ package com.example.CampusUtsav.serviceImpl;
 import com.example.CampusUtsav.entity.Event;
 import com.example.CampusUtsav.entity.Team;
 import com.example.CampusUtsav.entity.TeamMember;
+import com.example.CampusUtsav.entity.enums.NotificationType;
 import com.example.CampusUtsav.entity.enums.Role;
 import com.example.CampusUtsav.entity.enums.TeamMemberStatus;
 import com.example.CampusUtsav.entity.enums.TeamStatus;
 import com.example.CampusUtsav.repository.TeamMemberRepository;
 import com.example.CampusUtsav.repository.TeamRepository;
 import com.example.CampusUtsav.security.model.CustomUserDetails;
+import com.example.CampusUtsav.service.NotificationService;
 import com.example.CampusUtsav.service.TeamMemberService;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
@@ -24,6 +26,7 @@ public class TeamMemberServiceImpl implements TeamMemberService {
 
     private final TeamMemberRepository teamMemberRepository;
     private final TeamRepository teamRepository;
+    private final NotificationService notificationService;
 
     @Override
     @Transactional
@@ -101,6 +104,54 @@ public class TeamMemberServiceImpl implements TeamMemberService {
             team.setStatus(TeamStatus.INCOMPLETE);
         }
 
+        // ===============================================
+        // NOTIFY LEADER ABOUT TEAM MEMBER LEFT THE TEAM
+        // ===============================================
+
+        String message = "Hi " + team.getLeader().getName() + ", there has been an update in your team '"
+                + team.getName()
+                + "' for the event '"
+                + event.getTitle()
+                + "'. "
+                + teamMember.getStudent().getName()
+                + " has left the team, and the team composition has been updated accordingly.";
+
+        // =====================================================
+        // CONDITION: TEAM STATUS = INCOMPLETE
+        // =====================================================
+
+        if (team.getStatus() == TeamStatus.INCOMPLETE) {
+            message += " Your team status is currently INCOMPLETE. "
+                    + "Please review your team and fulfill the minimum team size requirement for this event. "
+                    + "The team will remain in INCOMPLETE state until the requirement is satisfied.";
+        }
+
+        notificationService.createNotification(
+                team.getLeader().getUser(),
+                "Team Membership Update",
+                message,
+                NotificationType.TEAM_UPDATE,
+                "/users/registrations"
+        );
+
+        // =================================================
+        // CONFIRMATION NOTIFICATION FOR MEMBER LEAVING THE TEAM
+        // =================================================
+
+        notificationService.createNotification(
+                teamMember.getStudent().getUser(),
+                "Team Exit Confirmed",
+                "Hi " + teamMember.getStudent().getName() + ", your exit from the team '"
+                        + team.getName()
+                        + "' for the event '"
+                        + event.getTitle()
+                        + "' has been successfully processed. "
+                        + "You are no longer part of this team for this event. "
+                        + "You may join another team or register again for the event with a different team.",
+                NotificationType.TEAM_UPDATE,
+                "/explore-events/events/" + event.getId()
+        );
+
         return "You have successfully left the team";
     }
 
@@ -172,6 +223,50 @@ public class TeamMemberServiceImpl implements TeamMemberService {
                 activeMembers < event.getMinTeamSize()) {
 
             team.setStatus(TeamStatus.INCOMPLETE);
+        }
+
+        // ==========================================
+        // NOTIFY REMOVED MEMBER ABOUT THEIR REMOVAL
+        // ==========================================
+
+        notificationService.createNotification(
+                member.getStudent().getUser(),
+                "Removed from Team",
+                "Hi " + member.getStudent().getName() + ", you have been removed from the team '"
+                        + team.getName()
+                        + "' for the event '"
+                        + event.getTitle()
+                        + "'. "
+                        + "You are no longer part of this team. "
+                        + "If needed, you may join another team or participate separately in this event.",
+                NotificationType.TEAM_UPDATE,
+                "/explore-events/events/" + event.getId()
+        );
+
+        // =====================================================
+        // IF: TEAM STATUS = INCOMPLETE
+        // ALERT NOTIFICATION FOR LEADER TO FULFILL TEAM SIZE REQUIREMENT
+        // =====================================================
+        if (team.getStatus() == TeamStatus.INCOMPLETE) {
+            String message = "Hi " + team.getLeader().getName() + ", "
+                    + member.getStudent().getName()
+                    + " has been successfully removed from your team '"
+                    + team.getName()
+                    + "' for the event '"
+                    + event.getTitle()
+                    + "'."
+                    + " Your team status is currently INCOMPLETE. "
+                    + "Please review your team and fulfill the minimum team size requirement for this event. "
+                    + "The team will remain in INCOMPLETE state until the requirement is satisfied.";
+
+
+            notificationService.createNotification(
+                    team.getLeader().getUser(),
+                    "Team Status Update - INCOMPLETE",
+                    message,
+                    NotificationType.TEAM_UPDATE,
+                    "/users/registrations"
+            );
         }
 
         return "Member removed successfully";

@@ -9,6 +9,7 @@ import com.example.CampusUtsav.entity.Club;
 import com.example.CampusUtsav.entity.College;
 import com.example.CampusUtsav.entity.User;
 import com.example.CampusUtsav.entity.enums.AccountStatus;
+import com.example.CampusUtsav.entity.enums.NotificationType;
 import com.example.CampusUtsav.entity.enums.Role;
 import com.example.CampusUtsav.mapper.ClubMapper;
 import com.example.CampusUtsav.repository.BranchRepository;
@@ -17,8 +18,10 @@ import com.example.CampusUtsav.repository.CollegeRepository;
 import com.example.CampusUtsav.repository.UserRepository;
 import com.example.CampusUtsav.security.model.CustomUserDetails;
 import com.example.CampusUtsav.service.ClubService;
+import com.example.CampusUtsav.service.NotificationService;
 import com.example.CampusUtsav.service.SupabaseService;
 import com.example.CampusUtsav.utils.ClubUtils;
+import com.example.CampusUtsav.utils.NotificationUtils;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
@@ -45,6 +48,8 @@ public class ClubServiceImpl implements ClubService {
     private final UserRepository userRepository;
     private final SupabaseService supabaseService;
     private final BranchRepository branchRepository;
+    private final NotificationService notificationService;
+    private final NotificationUtils notificationUtils;
 
     @Override
     @Transactional
@@ -101,6 +106,19 @@ public class ClubServiceImpl implements ClubService {
         newClub.setStatus(AccountStatus.PENDING);
 
         clubRepository.save(newClub);
+
+        // ==================================
+        // NOTIFY PRINCIPAL ABOUT NEW CLUB REGISTRATION REQUEST
+        // ==================================
+        User principalUser = linkedCollege.getUser();
+
+        notificationService.createNotification(
+                principalUser,
+                "New Club Registration Request",
+                "Club " + newClub.getShortForm() + " has requested account activation and verification.",
+                NotificationType.ACCOUNT_ACTIVATION_REQUEST,
+                "/college-dashboard/clubs"
+        );
 
         return "Club Registered Successfully!";
     }
@@ -183,6 +201,22 @@ public class ClubServiceImpl implements ClubService {
         // Update (Dirty checking handles the DB write)
         curClub.setStatus(targetStatus);
         clubRepository.save(curClub); // no need to write if @Transactional
+
+        // ==================================
+        // NOTIFY CLUB ABOUT ACCOUNT STATUS CHANGE
+        // ==================================
+
+        String message = notificationUtils.accountStatusUpdateNotificationMessage(targetStatus, curClub);
+
+        notificationService.createNotification(
+                curClub.getUser(),
+                "Club Account Status Updated",
+                message,
+                NotificationType.ACCOUNT_STATUS_CHANGE,
+                targetStatus == AccountStatus.ACTIVE
+                        ? "/club-dashboard"
+                        : "/auth/sign-in"
+        );
 
         return "Club Status updated to " + targetStatus + " successfully!";
     }
