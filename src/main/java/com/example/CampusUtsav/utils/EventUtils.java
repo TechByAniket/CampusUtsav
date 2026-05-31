@@ -39,7 +39,7 @@ public class EventUtils {
         } else if (forwardedTo == Role.ROLE_HOD) {
 
             Staff hod = staffRepository
-                    .findByRoleAndCollege_IdAndBranch_Id(
+                    .findByUser_RoleAndCollege_IdAndBranch_Id(
                             Role.ROLE_HOD,
                             linkedCollege.getId(),
                             newEvent.getClub().getBranch().getId()

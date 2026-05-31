@@ -35,11 +35,11 @@ public interface StaffRepository extends JpaRepository<Staff, Integer> {
 
     Optional<Staff> findByUser_Id(Long userId);
 
-    Optional<Staff> findByRoleAndCollege_IdAndBranch_Id(
-                    Role role,
-                    Integer collegeId,
-                    Integer branchId
-            );
+    Optional<Staff> findByUser_RoleAndCollege_IdAndBranch_Id(
+            Role role,
+            Integer collegeId,
+            Integer branchId
+    );
 
     // ---- NO NEED TO USE OPTIONAL here, because by default list handles null, it can be empty ----//
     // ---- You should use Optional only when you are fetching a single object by ID or unique field. ----//
