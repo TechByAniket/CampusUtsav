@@ -40,5 +40,6 @@ public enum NotificationType {
     // =========================
     // GENERAL
     // =========================
-    ANNOUNCEMENT
+    ANNOUNCEMENT,
+    ALERT
 }
