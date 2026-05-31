@@ -122,7 +122,7 @@ public class EventServiceImpl implements EventService {
                         + "Your event proposal '" + newEvent.getTitle()
                         + "' has been submitted successfully and is now under review.",
                 NotificationType.EVENT_SUBMITTED,
-                "/events/" + newEvent.getId()
+                "/club-dashboard/events/" + newEvent.getId()
         );
 
         // =======================================
@@ -142,7 +142,9 @@ public class EventServiceImpl implements EventService {
                 "New Event Approval Request",
                 approverMessage,
                 NotificationType.EVENT_SUBMITTED,
-                "/inbox"
+                approverUser.getRole() == Role.ROLE_PRINCIPAL
+                        ? "/college-dashboard/inbox"
+                        : "/staff-dashboard/inbox"
         );
 
         return "Event successfully created and submitted for approvals!";
@@ -211,7 +213,7 @@ public class EventServiceImpl implements EventService {
                         + "Your event proposal '" + curEvent.getTitle()
                         + "' has been re-submitted successfully and is now under review.",
                 NotificationType.EVENT_SUBMITTED,
-                "/events/" + curEvent.getId()
+                "/club-dashboard/events/" + curEvent.getId()
         );
 
         // =======================================
@@ -231,7 +233,9 @@ public class EventServiceImpl implements EventService {
                 "New Re-Submitted Event Approval Request",
                 approverMessage,
                 NotificationType.EVENT_SUBMITTED,
-                "/inbox"
+                approverUser.getRole() == Role.ROLE_PRINCIPAL
+                        ? "/college-dashboard/inbox"
+                        : "/staff-dashboard/inbox"
         );
 
         return "Event successfully updated and resubmitted for further approvals!";

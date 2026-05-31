@@ -173,7 +173,7 @@ public class EventLogServiceImpl implements EventLogService {
                         "Event Approval Update",
                         message,
                         NotificationType.EVENT_STATUS_CHANGE,
-                        "/events/" + currentEvent.getId()
+                        "/club-dashboard/events/" + currentEvent.getId()
                 );
 
                 // =================================
@@ -189,7 +189,9 @@ public class EventLogServiceImpl implements EventLogService {
                         "New Event Pending for Your Review",
                         approverMessage,
                         NotificationType.EVENT_STATUS_CHANGE,
-                        "/inbox"
+                        approverUser.getRole() == Role.ROLE_HOD
+                                ? "/staff-dashboard/inbox"
+                                : "/college-dashboard/inbox"
                 );
 
                 if(forwardedTo == Role.ROLE_PRINCIPAL){
@@ -240,7 +242,7 @@ public class EventLogServiceImpl implements EventLogService {
                         "Event Approval Update",
                         message,
                         NotificationType.EVENT_STATUS_CHANGE,
-                        "/events/" + currentEvent.getId()
+                        "/club-dashboard/events/" + currentEvent.getId()
                 );
 
                 // =================================
@@ -256,7 +258,7 @@ public class EventLogServiceImpl implements EventLogService {
                         "New Event Pending for Your Review",
                         approverMessage,
                         NotificationType.EVENT_STATUS_CHANGE,
-                        "/inbox"
+                        "/college-dashboard/inbox"
                 );
 
                 return "Departmental clearance granted. Forwarded to the Principal for final approval.";
@@ -305,7 +307,7 @@ public class EventLogServiceImpl implements EventLogService {
                         "Event Approved and Published",
                         message,
                         NotificationType.EVENT_STATUS_CHANGE,
-                        "/events/" + currentEvent.getId()
+                        "/club-dashboard/events/" + currentEvent.getId()
                 );
 
                 return "The event has been officially approved and is now live on the platform.";
@@ -552,7 +554,7 @@ public class EventLogServiceImpl implements EventLogService {
                 "Event Reverted",
                 message,
                 NotificationType.EVENT_STATUS_CHANGE,
-                "/events/" + event.getId()
+                "/club-dashboard/inbox"
         );
     }
 }

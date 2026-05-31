@@ -149,7 +149,7 @@ public class TeamMemberServiceImpl implements TeamMemberService {
                         + "You are no longer part of this team for this event. "
                         + "You may join another team or register again for the event with a different team.",
                 NotificationType.TEAM_UPDATE,
-                "/events/" + event.getId()
+                "/explore-events/events/" + event.getId()
         );
 
         return "You have successfully left the team";
@@ -240,7 +240,7 @@ public class TeamMemberServiceImpl implements TeamMemberService {
                         + "You are no longer part of this team. "
                         + "If needed, you may join another team or participate separately in this event.",
                 NotificationType.TEAM_UPDATE,
-                "/events/" + event.getId()
+                "/explore-events/events/" + event.getId()
         );
 
         // =====================================================

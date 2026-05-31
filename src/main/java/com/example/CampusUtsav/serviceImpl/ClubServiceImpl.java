@@ -117,7 +117,7 @@ public class ClubServiceImpl implements ClubService {
                 "New Club Registration Request",
                 "Club " + newClub.getShortForm() + " has requested account activation and verification.",
                 NotificationType.ACCOUNT_ACTIVATION_REQUEST,
-                "/clubs"
+                "/college-dashboard/clubs"
         );
 
         return "Club Registered Successfully!";
