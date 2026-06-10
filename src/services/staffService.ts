@@ -91,3 +91,13 @@ export const getMyStaffProfileDetails = async () => {
     throw new Error(handleServiceError(error, "Failed to fetch staff profile"));
   }
 }
+
+// --- REGISTER STAFF ---
+export const registerStaff = async (data: any) => {
+  try {
+    const res = await axios.post(`${import.meta.env.VITE_BACKEND_URL}/public/staff/register`, data);
+    return res.data;
+  } catch (error: any) {
+    throw new Error(handleServiceError(error, "Staff Registration Failed"));
+  }
+}
