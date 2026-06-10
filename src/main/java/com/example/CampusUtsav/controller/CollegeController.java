@@ -31,7 +31,7 @@ public class CollegeController {
     private final ObjectMapper objectMapper;
 
 //    @PostMapping("/register")
-    @PostMapping(value = "/college/register", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PostMapping(value = "/public/college/register", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<CollegeResponse> registerCollege(@RequestPart("college") String collegeDetails,
                                                            @RequestPart("file")MultipartFile file) {
         try{

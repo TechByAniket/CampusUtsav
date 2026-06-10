@@ -76,10 +76,7 @@ public class CollegeServiceImpl implements CollegeService {
         String generatedUsername = collegeUtils.generateCollegeUsername(newCollege.getShortForm(), newCollege.getCity(), newCollege.getDistrict());
         newCollege.setUsername(generatedUsername);
 
-        List<Branch> branchEntities = req.getBranches().stream()
-                .map(branchName -> branchRepository.findByNameIgnoreCase(branchName)
-                        .orElseGet(() -> branchRepository.save(branchMapper.convertToBranchEntity(branchName))))
-                .collect(Collectors.toList());
+        List<Branch> branchEntities = branchRepository.findAllById(req.getBranchIds());
 
         newCollege.setBranches(branchEntities);
 

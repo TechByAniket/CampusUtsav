@@ -60,13 +60,9 @@ public class CollegeRegistrationRequest {
 //    private String logoUrl;
 
     @ElementCollection
-    @NotEmpty(message = "At least one official domain is required")
-    private Set< @Pattern(
-            regexp = "^[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$",
-            message = "Invalid domain format"
-    ) String> officialDomains;
+    private Set<String> officialDomains;
 
     @ElementCollection
     @NotEmpty(message = "At least one branch is required")
-    private List<String> branches;
+    private List<Integer> branchIds;
 }
