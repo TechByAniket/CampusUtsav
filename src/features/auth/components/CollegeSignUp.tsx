@@ -7,10 +7,12 @@ import { registerCollege } from '@/services/collegeService';
 import { getBranches } from '@/services/metaService';
 import {
   ArrowLeft, ChevronLeft, ChevronRight,
-
-  Eye, EyeOff, Upload, X, CheckCircle2
+  Eye, EyeOff
 } from 'lucide-react';
 import { CollegeBrandingSection } from './college/CollegeBrandingSection';
+import { CollegeInput } from './college/CollegeInput';
+import { CollegeFileUpload } from './college/CollegeFileUpload';
+import { CollegeMultiSelect } from './college/CollegeMultiSelect';
 
 // ════════════════════════════════════════════════════════════
 //  STEP CONFIG — 3 merged steps
@@ -56,173 +58,7 @@ const stepFieldKeys: string[][] = [
   ['websiteUrl', 'instagramUrl', 'linkedInUrl', 'password'],
 ];
 
-// ════════════════════════════════════════════════════════════
-//  REUSABLE INLINE COMPONENTS
-// ════════════════════════════════════════════════════════════
 
-/** Simple themed text input */
-const Input: React.FC<{
-  label: string; name: string; value: string;
-  onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
-  error?: string; placeholder?: string; type?: string;
-  half?: boolean; suffix?: React.ReactNode;
-}> = ({ label, name, value, onChange, error, placeholder, type = 'text', half, suffix }) => (
-  <div className={half ? 'flex-1 min-w-0' : ''}>
-    <label htmlFor={name} className="block text-xs font-semibold text-slate-600 mb-1.5">{label}</label>
-    <div className="relative">
-      <input
-        id={name} name={name} type={type} value={value} onChange={onChange}
-        placeholder={placeholder} autoComplete="off"
-        className={`w-full h-10 px-3 ${suffix ? 'pr-9' : ''} text-sm rounded-lg border ${
-          error ? 'border-red-300 focus:ring-red-200' : 'border-slate-200 focus:ring-orange-200'
-        } focus:outline-none focus:ring-2 transition-all bg-white placeholder:text-slate-300`}
-      />
-      {suffix && (
-        <span className="absolute right-3 top-1/2 -translate-y-1/2">{suffix}</span>
-      )}
-    </div>
-    {error && <p className="text-[11px] text-red-500 mt-1">{error}</p>}
-  </div>
-);
-
-/** Styled file‑upload zone */
-const FileUpload: React.FC<{
-  label: string; name: string; file: File | null;
-  onChange: (file: File | null) => void; error?: string;
-}> = ({ label, name, file, onChange, error }) => (
-  <div className="flex-1 min-w-0">
-    <label className="block text-xs font-semibold text-slate-600 mb-1.5">{label}</label>
-    <label
-      htmlFor={name}
-      className={`flex items-center gap-2.5 h-10 px-3 rounded-lg border border-dashed cursor-pointer transition-all ${
-        error
-          ? 'border-red-300 bg-red-50/40'
-          : file
-            ? 'border-emerald-300 bg-emerald-50/30'
-            : 'border-slate-200 bg-slate-50/40 hover:border-orange-300 hover:bg-orange-50/20'
-      }`}
-    >
-      {file ? (
-        <>
-          <CheckCircle2 size={14} className="text-emerald-500 shrink-0" />
-          <span className="text-sm text-slate-700 truncate flex-1">{file.name}</span>
-          <button
-            type="button"
-            onClick={(e) => { e.preventDefault(); onChange(null); }}
-            className="text-slate-400 hover:text-red-500 transition-colors shrink-0"
-          >
-            <X size={14} />
-          </button>
-        </>
-      ) : (
-        <>
-          <Upload size={14} className="text-slate-400 shrink-0" />
-          <span className="text-sm text-slate-400">Choose file…</span>
-        </>
-      )}
-    </label>
-    <input
-      id={name} type="file" accept="image/png,image/jpeg,image/jpg,image/webp"
-      className="hidden"
-      onChange={(e) => onChange(e.target.files?.[0] ?? null)}
-    />
-    {error && <p className="text-[11px] text-red-500 mt-1">{error}</p>}
-  </div>
-);
-
-/** Beautiful modern multi-select component */
-const MultiSelect: React.FC<{
-  label: string;
-  options: { id: number; name: string; shortForm: string }[];
-  selectedIds: number[];
-  onChange: (ids: number[]) => void;
-  error?: string;
-}> = ({ label, options, selectedIds, onChange, error }) => {
-  const [isOpen, setIsOpen] = useState(false);
-
-  const toggleOption = (id: number) => {
-    if (selectedIds.includes(id)) {
-      onChange(selectedIds.filter(x => x !== id));
-    } else {
-      onChange([...selectedIds, id]);
-    }
-  };
-
-  const removeOption = (e: React.MouseEvent, id: number) => {
-    e.stopPropagation();
-    onChange(selectedIds.filter(x => x !== id));
-  };
-
-  const selectedOptions = options.filter(opt => selectedIds.includes(opt.id));
-
-  return (
-    <div className="relative">
-      <label className="block text-xs font-semibold text-slate-600 mb-1.5">{label}</label>
-      
-      <div
-        onClick={() => setIsOpen(prev => !prev)}
-        className={`w-full min-h-[40px] py-1.5 px-3 flex flex-wrap gap-1.5 rounded-lg border cursor-pointer select-none bg-white transition-all ${
-          error
-            ? 'border-red-300 focus-within:ring-red-200 focus-within:border-red-400'
-            : 'border-slate-200 focus-within:ring-orange-200 focus-within:border-orange-400'
-        }`}
-      >
-        {selectedOptions.length === 0 ? (
-          <span className="text-sm text-slate-300 self-center">Select branches...</span>
-        ) : (
-          selectedOptions.map(opt => (
-            <span
-              key={opt.id}
-              className="inline-flex items-center gap-1 px-2 py-0.5 text-xs font-bold bg-orange-50 text-orange-700 rounded-md border border-orange-100"
-            >
-              {opt.shortForm}
-              <button
-                type="button"
-                onClick={(e) => removeOption(e, opt.id)}
-                className="hover:text-rose-500 text-orange-400 font-bold ml-0.5 focus:outline-none transition-colors"
-              >
-                <X size={12} />
-              </button>
-            </span>
-          ))
-        )}
-      </div>
-
-      {isOpen && (
-        <>
-          {/* Backdrop to close dropdown */}
-          <div className="fixed inset-0 z-[110]" onClick={() => setIsOpen(false)} />
-          
-          <div className="absolute left-0 right-0 mt-1.5 max-h-56 overflow-y-auto z-[120] bg-white border border-slate-200 rounded-xl shadow-xl py-1.5 no-scrollbar">
-            {options.length === 0 ? (
-              <div className="px-4 py-2 text-xs text-slate-400 font-medium">No branches available</div>
-            ) : (
-              options.map(opt => {
-                const isSel = selectedIds.includes(opt.id);
-                return (
-                  <div
-                    key={opt.id}
-                    onClick={() => toggleOption(opt.id)}
-                    className={`px-4 py-2 text-xs font-medium cursor-pointer transition-colors flex items-center justify-between ${
-                      isSel
-                        ? 'bg-orange-50 text-orange-600 hover:bg-orange-100/70'
-                        : 'text-slate-600 hover:bg-slate-50'
-                    }`}
-                  >
-                    <span>{opt.name} ({opt.shortForm})</span>
-                    {isSel && <CheckCircle2 size={12} className="text-orange-500" />}
-                  </div>
-                );
-              })
-            )}
-          </div>
-        </>
-      )}
-      
-      {error && <p className="text-[11px] text-red-500 mt-1">{error}</p>}
-    </div>
-  );
-};
 
 // ════════════════════════════════════════════════════════════
 //  MAIN COMPONENT
@@ -425,111 +261,40 @@ export const CollegeSignUp: React.FC<CollegeSignUpProps> = ({ onClose }) => {
               >
                 {/* ───── STEP 1: College Details ───── */}
                 {currentStep === 0 && (
-                  <>
-                    <Input label="College Name" name="name" value={formData.name}
-                      onChange={handleChange} error={errors.name} placeholder="Enter full college name" />
-
-                    <div className="flex flex-col sm:flex-row gap-3">
-                      <Input label="Short Form" name="shortForm" value={formData.shortForm}
-                        onChange={handleChange} error={errors.shortForm} placeholder="Eg. MIT" half />
-                      <Input label="Affiliation" name="affiliation" value={formData.affiliation}
-                        onChange={handleChange} error={errors.affiliation} placeholder="University / Board" half />
-                    </div>
-
-                    <Input label="Address" name="address" value={formData.address}
-                      onChange={handleChange} error={errors.address} placeholder="Eg. 123 Main St" />
-
-                    <div className="flex flex-col sm:flex-row gap-3">
-                      <Input label="City" name="city" value={formData.city}
-                        onChange={handleChange} error={errors.city} placeholder="Eg. Navi Mumbai" half />
-                      <Input label="District" name="district" value={formData.district}
-                        onChange={handleChange} error={errors.district} placeholder="Eg. Thane" half />
-                    </div>
-
-                    <Input label="State" name="state" value={formData.state}
-                      onChange={handleChange} error={errors.state} placeholder="Eg. Maharashtra" />
-
-                    <MultiSelect
-                      label="Official College Branches"
-                      options={branches}
-                      selectedIds={formData.branchIds}
-                      onChange={(ids) => {
-                        setFormData(prev => ({ ...prev, branchIds: ids }));
-                        if (errors.branchIds) {
-                          setErrors(prev => { const n = { ...prev }; delete n.branchIds; return n; });
-                        }
-                      }}
-                      error={errors.branchIds}
-                    />
-                  </>
+                  <CollegeDetailsStep
+                    formData={formData}
+                    handleChange={handleChange}
+                    errors={errors}
+                    setErrors={setErrors}
+                    setFormData={setFormData}
+                    branches={branches}
+                  />
                 )}
 
                 {/* ───── STEP 2: Admin & Contact ───── */}
                 {currentStep === 1 && (
-                  <>
-                    <Input label="Admin Full Name" name="adminName" value={formData.adminName}
-                      onChange={handleChange} error={errors.adminName} placeholder="Enter full admin name" />
-                    <Input label="Email Address" name="email" value={formData.email} type="email"
-                      onChange={handleChange} error={errors.email} placeholder="admin@college.edu" />
-                    <Input label="Phone Number" name="phone" value={formData.phone}
-                      onChange={handleChange} error={errors.phone} placeholder="9876543210" />
-                    <Input label="Official Email Domains" name="officialDomains" value={formData.officialDomains}
-                      onChange={handleChange} error={errors.officialDomains} placeholder="Eg. @college.edu, @engg.college.edu" />
-                  </>
+                  <AdminContactStep
+                    formData={formData}
+                    handleChange={handleChange}
+                    errors={errors}
+                    setErrors={setErrors}
+                    setFormData={setFormData}
+                  />
                 )}
 
                 {/* ───── STEP 3: Branding & Security ───── */}
                 {currentStep === 2 && (
-                  <>
-                    <div className="flex flex-col sm:flex-row gap-3">
-                      <FileUpload label="College Logo" name="college-logo"
-                        file={files.logo} onChange={(f) => handleFile('logo', f)} error={errors.logo} />
-                      <FileUpload label="College Image" name="college-img"
-                        file={files.collegeImg} onChange={(f) => handleFile('collegeImg', f)} error={errors.collegeImg} />
-                    </div>
-
-                    <Input label="Website URL" name="websiteUrl" value={formData.websiteUrl}
-                      onChange={handleChange} error={errors.websiteUrl} placeholder="https://www.college.edu" />
-
-                    <div className="flex flex-col sm:flex-row gap-3">
-                      <Input label="Instagram URL" name="instagramUrl" value={formData.instagramUrl}
-                        onChange={handleChange} error={errors.instagramUrl} placeholder="https://instagram.com/..." half />
-                      <Input label="LinkedIn URL" name="linkedInUrl" value={formData.linkedInUrl}
-                        onChange={handleChange} error={errors.linkedInUrl} placeholder="https://linkedin.com/..." half />
-                    </div>
-
-                    {/* Password with visibility toggle */}
-                    <div>
-                      <label htmlFor="password" className="block text-xs font-semibold text-slate-600 mb-1.5">
-                        Create Password
-                      </label>
-                      <div className="relative">
-                        <input
-                          id="password" name="password" value={formData.password}
-                          type={showPassword ? 'text' : 'password'}
-                          onChange={handleChange} placeholder="••••••••" autoComplete="new-password"
-                          className={`w-full h-10 px-3 pr-9 text-sm rounded-lg border ${
-                            errors.password ? 'border-red-300 focus:ring-red-200' : 'border-slate-200 focus:ring-orange-200'
-                          } focus:outline-none focus:ring-2 transition-all bg-white placeholder:text-slate-300`}
-                        />
-                        <button
-                          type="button"
-                          onClick={() => setShowPassword(p => !p)}
-                          className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors"
-                        >
-                          {showPassword ? <EyeOff size={15} /> : <Eye size={15} />}
-                        </button>
-                      </div>
-                      {errors.password && <p className="text-[11px] text-red-500 mt-1">{errors.password}</p>}
-
-                      {/* Password requirements */}
-                      <div className="flex flex-col gap-0.5 mt-2 text-[11px] text-slate-400">
-                        <span className={formData.password.length >= 8  ? 'text-emerald-500' : ''}>• At least 8 characters</span>
-                        <span className={/[A-Z]/.test(formData.password) ? 'text-emerald-500' : ''}>• One uppercase letter</span>
-                        <span className={/[0-9]/.test(formData.password) ? 'text-emerald-500' : ''}>• One number</span>
-                      </div>
-                    </div>
-                  </>
+                  <BrandingSecurityStep
+                    formData={formData}
+                    handleChange={handleChange}
+                    errors={errors}
+                    setErrors={setErrors}
+                    setFormData={setFormData}
+                    files={files}
+                    handleFile={handleFile}
+                    showPassword={showPassword}
+                    setShowPassword={setShowPassword}
+                  />
                 )}
               </motion.div>
             </AnimatePresence>
@@ -574,3 +339,154 @@ export const CollegeSignUp: React.FC<CollegeSignUpProps> = ({ onClose }) => {
     </div>
   );
 };
+
+// ════════════════════════════════════════════════════════════
+//  STEP COMPONENTS
+// ════════════════════════════════════════════════════════════
+
+interface StepProps {
+  formData: any;
+  handleChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  errors: Record<string, string>;
+  setErrors: React.Dispatch<React.SetStateAction<Record<string, string>>>;
+  setFormData: React.Dispatch<React.SetStateAction<any>>;
+}
+
+const CollegeDetailsStep: React.FC<StepProps & { branches: any[] }> = ({
+  formData,
+  handleChange,
+  errors,
+  setErrors,
+  setFormData,
+  branches,
+}) => (
+  <>
+    <CollegeInput label="College Name" name="name" value={formData.name}
+      onChange={handleChange} error={errors.name} placeholder="Enter full college name" />
+
+    <div className="flex flex-col sm:flex-row gap-3">
+      <CollegeInput label="Short Form" name="shortForm" value={formData.shortForm}
+        onChange={handleChange} error={errors.shortForm} placeholder="Eg. MIT" half />
+      <CollegeInput label="Affiliation" name="affiliation" value={formData.affiliation}
+        onChange={handleChange} error={errors.affiliation} placeholder="University / Board" half />
+    </div>
+
+    <CollegeInput label="Address" name="address" value={formData.address}
+      onChange={handleChange} error={errors.address} placeholder="Eg. 123 Main St" />
+
+    <div className="flex flex-col sm:flex-row gap-3">
+      <CollegeInput label="City" name="city" value={formData.city}
+        onChange={handleChange} error={errors.city} placeholder="Eg. Navi Mumbai" half />
+      <CollegeInput label="District" name="district" value={formData.district}
+        onChange={handleChange} error={errors.district} placeholder="Eg. Thane" half />
+    </div>
+
+    <CollegeInput label="State" name="state" value={formData.state}
+      onChange={handleChange} error={errors.state} placeholder="Eg. Maharashtra" />
+
+    <CollegeMultiSelect
+      label="Official College Branches"
+      options={branches}
+      selectedIds={formData.branchIds}
+      onChange={(ids) => {
+        setFormData((prev: any) => ({ ...prev, branchIds: ids }));
+        if (errors.branchIds) {
+          setErrors(prev => { const n = { ...prev }; delete n.branchIds; return n; });
+        }
+      }}
+      error={errors.branchIds}
+    />
+  </>
+);
+
+const AdminContactStep: React.FC<StepProps> = ({
+  formData,
+  handleChange,
+  errors,
+}) => (
+  <>
+    <CollegeInput label="Admin Full Name" name="adminName" value={formData.adminName}
+      onChange={handleChange} error={errors.adminName} placeholder="Enter full admin name" />
+    <CollegeInput label="Email Address" name="email" value={formData.email} type="email"
+      onChange={handleChange} error={errors.email} placeholder="admin@college.edu" />
+    <CollegeInput label="Phone Number" name="phone" value={formData.phone}
+      onChange={handleChange} error={errors.phone} placeholder="9876543210" />
+    <CollegeInput label="Official Email Domains" name="officialDomains" value={formData.officialDomains}
+      onChange={handleChange} error={errors.officialDomains} placeholder="Eg. @college.edu, @engg.college.edu" />
+  </>
+);
+
+interface BrandingSecurityStepProps extends StepProps {
+  files: { logo: File | null; collegeImg: File | null };
+  handleFile: (field: 'logo' | 'collegeImg', file: File | null) => void;
+  showPassword: boolean;
+  setShowPassword: React.Dispatch<React.SetStateAction<boolean>>;
+}
+
+const BrandingSecurityStep: React.FC<BrandingSecurityStepProps> = ({
+  formData,
+  handleChange,
+  errors,
+  files,
+  handleFile,
+  showPassword,
+  setShowPassword,
+}) => (
+  <>
+    <div className="flex flex-col sm:flex-row gap-3">
+      <CollegeFileUpload label="College Logo" name="college-logo"
+        file={files.logo} onChange={(f) => handleFile('logo', f)} error={errors.logo} />
+      <CollegeFileUpload label="College Image" name="college-img"
+        file={files.collegeImg} onChange={(f) => handleFile('collegeImg', f)} error={errors.collegeImg} />
+    </div>
+
+    <CollegeInput label="Website URL" name="websiteUrl" value={formData.websiteUrl}
+      onChange={handleChange} error={errors.websiteUrl} placeholder="https://www.college.edu" />
+
+    <div className="flex flex-col sm:flex-row gap-3">
+      <CollegeInput label="Instagram URL" name="instagramUrl" value={formData.instagramUrl}
+        onChange={handleChange} error={errors.instagramUrl} placeholder="https://instagram.com/..." half />
+      <CollegeInput label="LinkedIn URL" name="linkedInUrl" value={formData.linkedInUrl}
+        onChange={handleChange} error={errors.linkedInUrl} placeholder="https://linkedin.com/..." half />
+    </div>
+
+    {/* Password with visibility toggle */}
+    <div>
+      <label htmlFor="password" className="block text-xs font-semibold text-slate-600 mb-1">
+        Create Password
+      </label>
+      <div className="relative">
+        <input
+          id="password" name="password" value={formData.password}
+          type={showPassword ? 'text' : 'password'}
+          onChange={handleChange} placeholder="••••••••" autoComplete="new-password"
+          className={`w-full h-10 px-3 pr-9 text-sm rounded-lg border ${
+            errors.password ? 'border-red-300 focus:ring-red-200' : 'border-slate-200 focus:ring-orange-200'
+          } focus:outline-none focus:ring-2 transition-all bg-white placeholder:text-slate-300`}
+        />
+        <button
+          type="button"
+          onClick={() => setShowPassword(p => !p)}
+          className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors"
+        >
+          {showPassword ? <EyeOff size={15} /> : <Eye size={15} />}
+        </button>
+      </div>
+      
+      <div className="h-4 mt-1.5">
+        {errors.password && (
+          <p className="text-[11px] leading-none text-red-500">
+            {errors.password}
+          </p>
+        )}
+      </div>
+
+      {/* Password requirements */}
+      <div className="flex flex-col gap-0.5 mt-2 text-[11px] text-slate-400">
+        <span className={formData.password.length >= 8  ? 'text-emerald-500' : ''}>• At least 8 characters</span>
+        <span className={/[A-Z]/.test(formData.password) ? 'text-emerald-500' : ''}>• One uppercase letter</span>
+        <span className={/[0-9]/.test(formData.password) ? 'text-emerald-500' : ''}>• One number</span>
+      </div>
+    </div>
+  </>
+);
