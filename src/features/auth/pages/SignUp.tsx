@@ -51,9 +51,7 @@ export const SignUp: React.FC = () => {
         )}
 
         {role === "college" && (
-          <motion.div key="college" {...tabAnimation}>
-            <CollegeSignUp />
-          </motion.div>
+          <CollegeSignUp onClose={() => setRole(null)} />
         )}
 
         {role === "student" && (

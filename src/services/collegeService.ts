@@ -45,6 +45,49 @@ export const getMyCollegeProfileDetails = async () => {
   }
 }
 
+// ********* REGISTER COLLEGE ********** //
+export const registerCollege = async (data: any) => {
+  try {
+    const { logo, collegeImg, ...rest } = data;
+    
+    // Split the comma-separated domains string into an array of trimmed strings
+    const domainsArray = rest.officialDomains
+      ? rest.officialDomains.split(',').map((d: string) => d.trim()).filter(Boolean)
+      : [];
+
+    const payload = {
+      ...rest,
+      officialDomains: domainsArray,
+    };
+
+    const formData = new FormData();
+
+    // 1. Text data under 'college' as stringified JSON
+    formData.append("college", JSON.stringify(payload));
+
+    // 2. Images under 'file' key
+    if (logo) {
+      formData.append("file", logo);
+    }
+    if (collegeImg) {
+      formData.append("file", collegeImg);
+    }
+
+    const response = await axios.post(
+      `${import.meta.env.VITE_BACKEND_URL}/public/college/register`,
+      formData,
+      {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      }
+    );
+    return response.data;
+  } catch (error: any) {
+    throw new Error(handleServiceError(error, "Failed to register college"));
+  }
+}
+
 
 
 
