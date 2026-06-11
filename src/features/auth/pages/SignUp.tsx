@@ -59,9 +59,7 @@ export const SignUp: React.FC = () => {
         )}
 
         {role === "club" && (
-          <motion.div key="club" {...tabAnimation}>
-            <ClubSignUp />
-          </motion.div>
+          <ClubSignUp onClose={() => setRole(null)} />
         )}
 
         {role === "staff" && (
