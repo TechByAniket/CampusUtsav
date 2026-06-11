@@ -12,6 +12,7 @@ import com.example.CampusUtsav.repository.TeamRepository;
 import com.example.CampusUtsav.security.model.CustomUserDetails;
 import com.example.CampusUtsav.service.NotificationService;
 import com.example.CampusUtsav.service.TeamMemberService;
+import com.example.CampusUtsav.serviceImpl.helper.EntityLookupService;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.AccessDeniedException;
@@ -27,6 +28,7 @@ public class TeamMemberServiceImpl implements TeamMemberService {
     private final TeamMemberRepository teamMemberRepository;
     private final TeamRepository teamRepository;
     private final NotificationService notificationService;
+    private final EntityLookupService entityLookupService;
 
     @Override
     @Transactional
@@ -47,8 +49,7 @@ public class TeamMemberServiceImpl implements TeamMemberService {
         // =========================
         // Fetch TeamMember
         // =========================
-        TeamMember teamMember = teamMemberRepository.findById(teamMemberId)
-                .orElseThrow(() -> new EntityNotFoundException("Team member not found"));
+        TeamMember teamMember = entityLookupService.getTeamMember(teamMemberId);
 
         Team team = teamMember.getTeam();
         Event event = team.getEvent();
@@ -171,8 +172,7 @@ public class TeamMemberServiceImpl implements TeamMemberService {
         // =========================
         // Fetch TeamMember
         // =========================
-        TeamMember member = teamMemberRepository.findById(teamMemberId)
-                .orElseThrow(() -> new EntityNotFoundException("Team member not found"));
+        TeamMember member = entityLookupService.getTeamMember(teamMemberId);
 
         Team team = member.getTeam();
         Event event = team.getEvent();

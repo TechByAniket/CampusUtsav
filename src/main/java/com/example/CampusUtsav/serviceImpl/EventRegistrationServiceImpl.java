@@ -15,6 +15,7 @@ import com.example.CampusUtsav.repository.*;
 import com.example.CampusUtsav.security.model.CustomUserDetails;
 import com.example.CampusUtsav.service.EventRegistrationService;
 import com.example.CampusUtsav.service.NotificationService;
+import com.example.CampusUtsav.serviceImpl.helper.EntityLookupService;
 import jakarta.persistence.EntityNotFoundException;
 //import jakarta.transaction.Transactional;
 import org.apache.coyote.BadRequestException;
@@ -43,6 +44,7 @@ public class EventRegistrationServiceImpl implements EventRegistrationService {
     private final StudentMapper studentMapper;
     private final StaffRepository staffRepository;
     private final NotificationService notificationService;
+    private final EntityLookupService entityLookupService;
 
     @Override
     @Transactional
@@ -55,8 +57,7 @@ public class EventRegistrationServiceImpl implements EventRegistrationService {
         // =========================
         // Validate Event
         // =========================
-        Event event = eventRepository.findById(eventId)
-                .orElseThrow(() -> new EntityNotFoundException("Event not found"));
+        Event event = entityLookupService.getEvent(eventId);
 
         if (!Objects.equals(event.getClub().getCollege().getId(), currentUser.getCollegeId())) {
             throw new RuntimeException("Not allowed for other college events");
@@ -77,8 +78,7 @@ public class EventRegistrationServiceImpl implements EventRegistrationService {
         // ==================================================
         if ("INDIVIDUAL".equals(type)) {
 
-            Student student = studentRepository.findById(request.getStudentId())
-                    .orElseThrow(() -> new EntityNotFoundException("Student not found"));
+            Student student = entityLookupService.getStudent(request.getStudentId());
 
             if(!Objects.equals(request.getStudentId(), currentUser.getProfileId())){
                 throw new RuntimeException("StudentID mismatched!");
@@ -125,8 +125,7 @@ public class EventRegistrationServiceImpl implements EventRegistrationService {
         if ("TEAM".equals(type)) {
 
             // leader
-            Student leader = studentRepository.findById(request.getLeaderId())
-                    .orElseThrow(() -> new EntityNotFoundException("Leader not found"));
+            Student leader = entityLookupService.getStudent(request.getLeaderId());;
 
             if(!Objects.equals(request.getStudentId(), currentUser.getProfileId())){
                 throw new RuntimeException("StudentID mismatched!");
@@ -256,9 +255,7 @@ public class EventRegistrationServiceImpl implements EventRegistrationService {
         // =========================
         // Fetch Registration
         // =========================
-        EventRegistration registration = eventRegistrationRepository
-                .findById(registrationId)
-                .orElseThrow(() -> new EntityNotFoundException("Registration not found"));
+        EventRegistration registration = entityLookupService.getEventRegistration(registrationId);
 
         if (registration.getStatus() != RegistrationStatus.REGISTERED) {
             throw new RuntimeException("Registration already cancelled");

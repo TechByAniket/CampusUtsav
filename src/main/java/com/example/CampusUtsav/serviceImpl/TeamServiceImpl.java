@@ -11,6 +11,7 @@ import com.example.CampusUtsav.repository.*;
 import com.example.CampusUtsav.security.model.CustomUserDetails;
 import com.example.CampusUtsav.service.NotificationService;
 import com.example.CampusUtsav.service.TeamService;
+import com.example.CampusUtsav.serviceImpl.helper.EntityLookupService;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.AccessDeniedException;
@@ -31,6 +32,7 @@ public class TeamServiceImpl implements TeamService {
     private final TeamMemberMapper teamMemberMapper;
     private final StaffRepository staffRepository;
     private final NotificationService notificationService;
+    private final EntityLookupService entityLookupService;
 
     @Override
     @Transactional
@@ -51,8 +53,7 @@ public class TeamServiceImpl implements TeamService {
         // =========================
         // Fetch Team
         // =========================
-        Team team = teamRepository.findById(teamId)
-                .orElseThrow(() -> new EntityNotFoundException("Team not found"));
+        Team team = entityLookupService.getTeam(teamId);
 
         Event event = team.getEvent();
 
@@ -82,8 +83,7 @@ public class TeamServiceImpl implements TeamService {
         // =========================
         // Fetch Student to add
         // =========================
-        Student student = studentRepository.findById(studentId)
-                .orElseThrow(() -> new EntityNotFoundException("Student not found"));
+        Student student = entityLookupService.getStudent(studentId);
 
         if(!Objects.equals(student.getCollege().getId(),currentUser.getCollegeId())){
             throw new RuntimeException("Cross college teams are not allowed!");
@@ -200,8 +200,7 @@ public class TeamServiceImpl implements TeamService {
         // =========================
         // Fetch Team + Event
         // =========================
-        Team team = teamRepository.findById(teamId)
-                .orElseThrow(() -> new EntityNotFoundException("Team not found"));
+        Team team = entityLookupService.getTeam(teamId);
 
         Event event = team.getEvent();
 
@@ -221,8 +220,7 @@ public class TeamServiceImpl implements TeamService {
         // -------- HOD --------
         if (userRole == Role.ROLE_HOD) {
 
-            Staff hod = staffRepository.findById(profileId)
-                    .orElseThrow(() -> new RuntimeException("HOD profile not found!"));
+            Staff hod = entityLookupService.getStaff(profileId);
 
             if (!hod.isHod()) {
                 throw new AccessDeniedException("You are not Head Of Department!");
@@ -238,8 +236,7 @@ public class TeamServiceImpl implements TeamService {
         // -------- FACULTY --------
         if (userRole == Role.ROLE_FACULTY) {
 
-            Staff faculty = staffRepository.findById(profileId)
-                    .orElseThrow(() -> new RuntimeException("Faculty profile not found!"));
+            Staff faculty = entityLookupService.getStaff(profileId);
 
             if (!faculty.isClubCoordinator()) {
                 throw new AccessDeniedException("You are not a Club Coordinator!");

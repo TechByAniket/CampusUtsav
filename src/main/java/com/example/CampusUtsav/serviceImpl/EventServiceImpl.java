@@ -14,6 +14,7 @@ import com.example.CampusUtsav.service.EventLogService;
 import com.example.CampusUtsav.service.EventService;
 import com.example.CampusUtsav.service.NotificationService;
 import com.example.CampusUtsav.service.SupabaseService;
+import com.example.CampusUtsav.serviceImpl.helper.EntityLookupService;
 import com.example.CampusUtsav.utils.EventUtils;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.transaction.annotation.Transactional;
@@ -49,6 +50,7 @@ public class EventServiceImpl implements EventService {
     private final EventRegistrationMapper eventRegistrationMapper;
     private final NotificationService notificationService;
     private final EventUtils eventUtils;
+    private final EntityLookupService entityLookupService;
 
     @Override
     public List<String> getAllEventTypes() {
@@ -67,8 +69,7 @@ public class EventServiceImpl implements EventService {
     @Override
     @Transactional
     public String createEvent(EventRequest request, MultipartFile file, Integer clubId) {
-        Club linkedClub = clubRepository.findById(clubId)
-                .orElseThrow(()-> new EntityNotFoundException("Club Not Found"));
+        Club linkedClub = entityLookupService.getClub(clubId);
 
         College linkedCollege = linkedClub.getCollege();
 
@@ -155,8 +156,7 @@ public class EventServiceImpl implements EventService {
     public String resubmitEvent(EventRequest request, MultipartFile file, Integer eventId, CustomUserDetails currentClub) throws AccessDeniedException {
 
         // 1. Fetch the EXISTING event first
-        Event curEvent = eventRepository.findById(eventId)
-                .orElseThrow(() -> new RuntimeException("Event not found with ID: " + eventId));
+        Event curEvent = entityLookupService.getEvent(eventId);
 
         // 2. Validation Checks
         if (curEvent.getStatus() != EventStatus.REVERTED) {
@@ -246,8 +246,7 @@ public class EventServiceImpl implements EventService {
         if (collegeId == null) {
             throw new IllegalArgumentException("Invalid College Id!");
         }
-        College curCollege = collegeRepository.findById(collegeId)
-                .orElseThrow(()-> new RuntimeException("College not found!"));
+        College curCollege = entityLookupService.getCollege(collegeId);
 
         if(!Objects.equals(collegeId, currentUser.getCollegeId())){
             throw new AccessDeniedException("Unauthorised: You cannot view another college's events!");
@@ -275,8 +274,7 @@ public class EventServiceImpl implements EventService {
 
     @Override
     public EventResponse getEventDetailsByEventId(Integer eventId, CustomUserDetails currentUser) throws AccessDeniedException {
-        Event curEvent = eventRepository.findById(eventId)
-                .orElseThrow(()-> new RuntimeException("Event not found!"));
+        Event curEvent = entityLookupService.getEvent(eventId);
 
         if(!Objects.equals(curEvent.getClub().getCollege().getId() , currentUser.getCollegeId())){
             throw new AccessDeniedException("Unauthorised: Access Denied to events from other college!");
@@ -321,16 +319,14 @@ public class EventServiceImpl implements EventService {
         // =========================
         // 1. Validate Event
         // =========================
-        Event event = eventRepository.findById(eventId)
-                .orElseThrow(() -> new EntityNotFoundException("Event not found"));
+        Event event = entityLookupService.getEvent(eventId);
 
         if(!Objects.equals(currentUser.getCollegeId(), event.getClub().getCollege().getId())){
             throw new AccessDeniedException("Unauthorised: You can't view participant details of other college's event!");
         }
 
         if(userRole == Role.ROLE_HOD){
-            Staff curHod = staffRepository.findById(currentUser.getProfileId())
-                    .orElseThrow(()-> new RuntimeException("HOD profile not found!"));
+            Staff curHod = entityLookupService.getStaff(currentUser.getProfileId());
 
             if (!curHod.isHod()) throw new AccessDeniedException("You are not Head Of Department!");
             if(!Objects.equals(curHod.getBranch().getId(), event.getClub().getBranch().getId())){
@@ -339,8 +335,7 @@ public class EventServiceImpl implements EventService {
         }
 
         if(userRole == Role.ROLE_FACULTY){
-            Staff curFaculty = staffRepository.findById(currentUser.getProfileId())
-                    .orElseThrow(()-> new RuntimeException("Faculty profile not found!"));
+            Staff curFaculty = entityLookupService.getStaff(currentUser.getProfileId());
 
             if (!curFaculty.isClubCoordinator()) throw new AccessDeniedException("You are not a Club Coordinator!");
             if(!Objects.equals(curFaculty.getManagedClub().getId(), event.getClub().getId())){
@@ -406,16 +401,14 @@ public class EventServiceImpl implements EventService {
         Integer profileId = currentUser.getProfileId();
         Role userRole =  currentUser.getUser().getRole();
 
-        Event event = eventRepository.findById(eventId)
-                .orElseThrow(()-> new RuntimeException("Event not found!"));
+        Event event = entityLookupService.getEvent(eventId);
 
         if(userRole == Role.ROLE_PRINCIPAL && !Objects.equals(event.getClub().getCollege().getId(), collegeId)){
             throw new AccessDeniedException("You are not allowed to see registrations of other college's event!");
         }
 
         if (userRole == Role.ROLE_HOD) {
-            Staff curHod = staffRepository.findById(currentUser.getProfileId())
-                    .orElseThrow(()-> new RuntimeException("HOD profile not found!"));
+            Staff curHod = entityLookupService.getStaff(currentUser.getProfileId());
 
             if (!curHod.isHod()) throw new AccessDeniedException("You are not Head Of Department!");
             if(!Objects.equals(curHod.getBranch().getId(), event.getClub().getBranch().getId())){
@@ -424,8 +417,7 @@ public class EventServiceImpl implements EventService {
         }
 
         if(userRole == Role.ROLE_FACULTY){
-            Staff curFaculty = staffRepository.findById(currentUser.getProfileId())
-                    .orElseThrow(()-> new RuntimeException("Faculty profile not found!"));
+            Staff curFaculty = entityLookupService.getStaff(currentUser.getProfileId());
 
             if (!curFaculty.isClubCoordinator()) throw new AccessDeniedException("You are not a Club Coordinator!");
             if(!Objects.equals(curFaculty.getManagedClub().getId(), event.getClub().getId())){

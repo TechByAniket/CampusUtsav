@@ -10,6 +10,7 @@ import com.example.CampusUtsav.mapper.EventAttendanceMapper;
 import com.example.CampusUtsav.repository.*;
 import com.example.CampusUtsav.security.model.CustomUserDetails;
 import com.example.CampusUtsav.service.EventAttendanceService;
+import com.example.CampusUtsav.serviceImpl.helper.EntityLookupService;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.AllArgsConstructor;
 import org.springframework.security.access.AccessDeniedException;
@@ -33,6 +34,7 @@ public class EventAttendanceServiceImpl implements EventAttendanceService {
     private final EventAttendanceRepository eventAttendanceRepository;
     private final StaffRepository staffRepository;
     private final EventAttendanceMapper eventAttendanceMapper;
+    private final EntityLookupService entityLookupService;
 
     @Override
     @Transactional
@@ -66,8 +68,7 @@ public class EventAttendanceServiceImpl implements EventAttendanceService {
         // =========================
         // 1. Fetch event
         // =========================
-        Event event = eventRepository.findById(eventId)
-                .orElseThrow(() -> new EntityNotFoundException("Event not found"));
+        Event event = entityLookupService.getEvent(eventId);
 
         // =========================
         // 2. Attendance session check
@@ -121,8 +122,7 @@ public class EventAttendanceServiceImpl implements EventAttendanceService {
             throw new RuntimeException("Attendance already marked");
         }
 
-        Student student = studentRepository.findById(studentId)
-                .orElseThrow(() -> new EntityNotFoundException("Student not found"));
+        Student student = entityLookupService.getStudent(studentId);
 
         // =========================
         // 6. Save attendance
@@ -150,8 +150,7 @@ public class EventAttendanceServiceImpl implements EventAttendanceService {
             throw new AccessDeniedException("Unauthorised");
         }
 
-        Event event = eventRepository.findById(eventId)
-                .orElseThrow(() -> new EntityNotFoundException("Event not found"));
+        Event event = entityLookupService.getEvent(eventId);
 
         // Only owning club
         if (!Objects.equals(event.getClub().getId(), currentUser.getProfileId())) {
@@ -194,8 +193,7 @@ public class EventAttendanceServiceImpl implements EventAttendanceService {
         // =========================
         // 1. Validate event
         // =========================
-        Event event = eventRepository.findById(eventId)
-                .orElseThrow(() -> new EntityNotFoundException("Event not found"));
+        Event event = entityLookupService.getEvent(eventId);
 
         // =========================
         // 2. Role-based access control
@@ -207,8 +205,7 @@ public class EventAttendanceServiceImpl implements EventAttendanceService {
         }
 
         if (userRole == Role.ROLE_HOD) {
-            Staff curHod = staffRepository.findById(currentUser.getProfileId())
-                    .orElseThrow(() -> new RuntimeException("HOD profile not found!"));
+            Staff curHod = entityLookupService.getStaff(currentUser.getProfileId());
 
             if (!curHod.isHod()) {
                 throw new AccessDeniedException("You are not Head Of Department!");
@@ -220,8 +217,7 @@ public class EventAttendanceServiceImpl implements EventAttendanceService {
         }
 
         if (userRole == Role.ROLE_FACULTY) {
-            Staff curFaculty = staffRepository.findById(currentUser.getProfileId())
-                    .orElseThrow(() -> new RuntimeException("Faculty profile not found!"));
+            Staff curFaculty = entityLookupService.getStaff(currentUser.getProfileId());
 
             if (!curFaculty.isClubCoordinator()) {
                 throw new AccessDeniedException("You are not a Club Coordinator!");
@@ -319,8 +315,7 @@ public class EventAttendanceServiceImpl implements EventAttendanceService {
             throw new AccessDeniedException("Not allowed to access attendance QR");
         }
 
-        Event event = eventRepository.findById(eventId)
-                .orElseThrow(() -> new EntityNotFoundException("Event not found"));
+        Event event = entityLookupService.getEvent(eventId);
 
         // Ownership check (IMPORTANT FIX)
         if (!Objects.equals(currentUser.getProfileId(), event.getClub().getId())) {
@@ -372,8 +367,7 @@ public class EventAttendanceServiceImpl implements EventAttendanceService {
             throw new AccessDeniedException("Unauthorised");
         }
 
-        Event event = eventRepository.findById(eventId)
-                .orElseThrow(() -> new EntityNotFoundException("Event not found"));
+        Event event = entityLookupService.getEvent(eventId);
 
         // Ownership check
         if (!Objects.equals(event.getClub().getId(), currentUser.getProfileId())) {
@@ -406,8 +400,7 @@ public class EventAttendanceServiceImpl implements EventAttendanceService {
             throw new AccessDeniedException("Unauthorised!");
         }
 
-        Event event = eventRepository.findById(eventId)
-                .orElseThrow(() -> new EntityNotFoundException("Event not found"));
+        Event event = entityLookupService.getEvent(eventId);
 
         if (!Objects.equals(event.getClub().getId(), currentUser.getProfileId())) {
             throw new AccessDeniedException("Not allowed");

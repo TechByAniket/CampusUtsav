@@ -16,6 +16,7 @@ import com.example.CampusUtsav.repository.UserRepository;
 import com.example.CampusUtsav.security.model.CustomUserDetails;
 import com.example.CampusUtsav.service.CollegeService;
 import com.example.CampusUtsav.service.SupabaseService;
+import com.example.CampusUtsav.serviceImpl.helper.EntityLookupService;
 import com.example.CampusUtsav.utils.CollegeUtils;
 import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
@@ -46,6 +47,7 @@ public class CollegeServiceImpl implements CollegeService {
     private final PasswordEncoder passwordEncoder;
     private final UserRepository userRepository;
     private final SupabaseService supabaseService;
+    private final EntityLookupService entityLookupService;
 
     @Override
     public CollegeResponse registerCollege(CollegeRegistrationRequest req, MultipartFile file) {
@@ -100,8 +102,7 @@ public class CollegeServiceImpl implements CollegeService {
 
     @Override
     public Map<Integer, String> getAllBranchesOfCollege(Integer collegeId){
-        College curCollege = collegeRepository.findById(collegeId)
-                .orElseThrow(()-> new RuntimeException("College not found!"));
+        College curCollege = entityLookupService.getCollege(collegeId);
 
         return curCollege.getBranches().stream()
                 .collect(Collectors.toMap(
@@ -123,8 +124,7 @@ public class CollegeServiceImpl implements CollegeService {
 
     @Override
     public Set<String> getAllOfficialDomainsOfCollege(Integer collegeId){
-        College curCollege = collegeRepository.findById(collegeId)
-                .orElseThrow(()-> new RuntimeException("College not found!"));
+        College curCollege = entityLookupService.getCollege(collegeId);
 
         return curCollege.getOfficialDomains();
     }
@@ -138,8 +138,7 @@ public class CollegeServiceImpl implements CollegeService {
         Role userRole = currentUser.getUser().getRole();
 
         if (userRole == Role.ROLE_PRINCIPAL) {
-            College curCollege = collegeRepository.findById(currentUser.getProfileId())
-                    .orElseThrow(() -> new RuntimeException("College profile not found!"));
+            College curCollege = entityLookupService.getCollege(currentUser.getCollegeId());
 
             return collegeMapper.convertToCollegeResponse(curCollege);
         }

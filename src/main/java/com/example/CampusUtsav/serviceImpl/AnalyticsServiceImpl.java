@@ -12,6 +12,7 @@ import com.example.CampusUtsav.mapper.AnalyticsMapper;
 import com.example.CampusUtsav.repository.*;
 import com.example.CampusUtsav.security.model.CustomUserDetails;
 import com.example.CampusUtsav.service.AnalyticsService;
+import com.example.CampusUtsav.serviceImpl.helper.EntityLookupService;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.AllArgsConstructor;
 import org.springframework.security.access.AccessDeniedException;
@@ -33,6 +34,7 @@ public class AnalyticsServiceImpl implements AnalyticsService {
     private final ClubRepository clubRepository;
     private final TeamRepository teamRepository;
     private final AnalyticsMapper analyticsMapper;
+    private final EntityLookupService entityLookupService;
 
     @Override
     public Map<String, Integer> getEventsCountByClub(CustomUserDetails currentUser) {
@@ -135,8 +137,7 @@ public class AnalyticsServiceImpl implements AnalyticsService {
 
         else if (role == Role.ROLE_FACULTY) {
 
-            Staff faculty = staffRepository.findById(currentUser.getProfileId())
-                    .orElseThrow(() -> new RuntimeException("Faculty not found"));
+            Staff faculty = entityLookupService.getStaff(currentUser.getProfileId());
 
             if (!faculty.isClubCoordinator()) {
                 throw new AccessDeniedException("You are not a Club Coordinator!");
@@ -149,8 +150,7 @@ public class AnalyticsServiceImpl implements AnalyticsService {
 
         else if (role == Role.ROLE_HOD) {
 
-            Staff hod = staffRepository.findById(currentUser.getProfileId())
-                    .orElseThrow(() -> new RuntimeException("HOD not found"));
+            Staff hod = entityLookupService.getStaff(currentUser.getProfileId());
 
             if (!hod.isHod()) {
                 throw new AccessDeniedException("You are not Head Of Department!");
@@ -290,8 +290,7 @@ public class AnalyticsServiceImpl implements AnalyticsService {
     @Override
     public EventAnalyticsResponse getEventAnalytics(Integer eventId, CustomUserDetails currentUser) {
 
-        Event event = eventRepository.findById(eventId)
-                .orElseThrow(() -> new EntityNotFoundException("Event not found"));
+        Event event = entityLookupService.getEvent(eventId);
 
         Role role = currentUser.getUser().getRole();
 
@@ -302,8 +301,7 @@ public class AnalyticsServiceImpl implements AnalyticsService {
         }
 
         else if (role == Role.ROLE_FACULTY) {
-            Staff faculty = staffRepository.findById(currentUser.getProfileId())
-                    .orElseThrow(() -> new RuntimeException("Faculty not found"));
+            Staff faculty = entityLookupService.getStaff(currentUser.getProfileId());
 
             if (!faculty.isClubCoordinator() ||
                     !Objects.equals(faculty.getManagedClub().getId(), event.getClub().getId())) {
@@ -312,8 +310,7 @@ public class AnalyticsServiceImpl implements AnalyticsService {
         }
 
         else if (role == Role.ROLE_HOD) {
-            Staff hod = staffRepository.findById(currentUser.getProfileId())
-                    .orElseThrow(() -> new RuntimeException("HOD not found"));
+            Staff hod = entityLookupService.getStaff(currentUser.getProfileId());
 
             if (!hod.isHod() ||
                     !Objects.equals(hod.getBranch().getId(), event.getClub().getBranch().getId())) {
@@ -412,8 +409,7 @@ public class AnalyticsServiceImpl implements AnalyticsService {
 
         else if (role == Role.ROLE_FACULTY) {
 
-            Staff faculty = staffRepository.findById(currentUser.getProfileId())
-                    .orElseThrow(() -> new RuntimeException("Faculty not found"));
+            Staff faculty = entityLookupService.getStaff(currentUser.getProfileId());
 
             if (!faculty.isClubCoordinator()) {
                 throw new AccessDeniedException("You are not a Club Coordinator!");
@@ -426,8 +422,7 @@ public class AnalyticsServiceImpl implements AnalyticsService {
 
         else if (role == Role.ROLE_HOD) {
 
-            Staff hod = staffRepository.findById(currentUser.getProfileId())
-                    .orElseThrow(() -> new RuntimeException("HOD not found"));
+            Staff hod = entityLookupService.getStaff(currentUser.getProfileId());
 
             if (!hod.isHod()) {
                 throw new AccessDeniedException("You are not Head Of Department!");
@@ -580,8 +575,7 @@ public class AnalyticsServiceImpl implements AnalyticsService {
 
         else if (role == Role.ROLE_FACULTY) {
 
-            Staff faculty = staffRepository.findById(currentUser.getProfileId())
-                    .orElseThrow(() -> new RuntimeException("Faculty not found"));
+            Staff faculty = entityLookupService.getStaff(currentUser.getProfileId());
 
             if (!faculty.isClubCoordinator()) {
                 throw new AccessDeniedException("You are not a Club Coordinator!");
@@ -602,8 +596,7 @@ public class AnalyticsServiceImpl implements AnalyticsService {
 
         else if (role == Role.ROLE_HOD) {
 
-            Staff hod = staffRepository.findById(currentUser.getProfileId())
-                    .orElseThrow(() -> new RuntimeException("HOD not found"));
+            Staff hod = entityLookupService.getStaff(currentUser.getProfileId());
 
             if (!hod.isHod()) {
                 throw new AccessDeniedException("You are not HOD!");
