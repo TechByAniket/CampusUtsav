@@ -26,3 +26,27 @@ export const getTeamMeta = async () => {
     }
 }
 
+
+// =================================
+// GET STAFF DESIGNATIONS META
+// =================================
+export const getStaffDesignationsMeta = async () => {
+    try {
+        const res = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/public/meta/staff-designations`);
+        return res.data;
+    } catch (error: any) {
+        throw new Error(handleServiceError(error, "Fetching Staff Designations"));
+    }
+}
+
+// ================================
+// GET ALL REGISTERED BRANCHES 
+// ================================
+export const getBranches = async () => {
+  try {
+    const res = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/public/meta/branches`);
+    return res.data;
+  } catch (error: any) {
+    throw new Error(handleServiceError(error, "Fetching Branches"));
+  }
+}

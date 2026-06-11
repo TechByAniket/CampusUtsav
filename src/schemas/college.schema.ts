@@ -1,12 +1,11 @@
 import { z } from "zod";
-import { Globe, Lock, MapPin, ShieldCheck, User } from "lucide-react";
-import { CollegeAdminForm, CollegeAuthForm, CollegeIdentityForm, CollegeLocationForm, CollegeOnlinePresenceForm } from "@/features/auth/components/CollegeMultiStepForm";
 
 /* ---------------- College Identity ---------------- */
 export const collegeIdentitySchema = z.object({
   name: z.string().min(10, "Enter full college name"),
   shortForm: z.string().min(3, "At least 3 characters required"),
   affiliation: z.string().min(5, "Affiliation status required"),
+  branchIds: z.array(z.number()).min(1, "Select at least one branch"),
 });
 
 /* ---------------- College Location ---------------- */
@@ -25,6 +24,7 @@ export const collegeAdminSchema = z.object({
     .string()
     .trim()
     .regex(/^[6-9]\d{9}$/, "Enter a valid 10-digit Indian mobile number"),
+  officialDomains: z.string().min(1, "Enter official email domain(s)"),
 });
 
 /* ---------------- File Upload Schema ---------------- */
@@ -87,60 +87,3 @@ export type CollegeFormData =
   collegeAdmin &
   collegeOnlinePresence &
   collegeAuth;
-
-
-export interface Step {
-  id:string;
-  name:string;
-  description:string;
-  icon:React.ComponentType<{ className ? :string}>;
-  component: React.ComponentType<any>;
-  schema: z.ZodTypeAny;
-}
-
-/* -------------------------------------------------
-   Step metadata used ONLY for UI & flow control
-   (no business logic here)
--------------------------------------------------- */
-export const collegeSteps: Step[] = [
-  {
-    id: "college-identity",
-    name: "College Identity",
-    description: "Basic information to identify your college",
-    icon: User,
-    component: CollegeIdentityForm,
-    schema: collegeIdentitySchema,
-  },
-  {
-    id: "college-location",
-    name: "Location",
-    description: "Address details of the college",
-    icon: MapPin,
-    component: CollegeLocationForm,
-    schema: collegeLocationSchema,
-  },
-  {
-    id: "college-admin",
-    name: "Admin Details",
-    description: "Primary administrator contact information",
-    icon: ShieldCheck,
-    component: CollegeAdminForm,
-    schema: collegeAdminSchema,
-  },
-  {
-    id: "college-online",
-    name: "Online Presence",
-    description: "Official website and college branding",
-    icon: Globe,
-    component: CollegeOnlinePresenceForm,
-    schema: collegeOnlinePresenceSchema,
-  },
-  {
-    id: "college-auth",
-    name: "Security",
-    description: "Set up secure login credentials",
-    icon: Lock,
-    component: CollegeAuthForm,
-    schema: collegeAuthSchema,
-  },
-];
