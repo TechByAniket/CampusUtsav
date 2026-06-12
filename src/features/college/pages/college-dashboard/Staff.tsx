@@ -4,19 +4,8 @@ import { StaffInfoList } from '../../components/StaffInfoList'
 
 export const Staff = () => {
   return (
-    <div className="w-full">
-
-      {/* Search Bar & Filters  */}
-
-
-      <div className='w-full min-h-screen'>
-        <StaffInfoList />
-      </div>
-
-      <div className='text-center'>
-        Pagination
-      </div>
-
+    <div className="w-full space-y-10 pb-10">
+      <StaffInfoList />
     </div>
   );
 };

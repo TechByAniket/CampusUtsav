@@ -121,18 +121,16 @@ export const InboxList = ({ mode = 'COLLEGE' }) => {
   };
 
   return (
-    <section className="w-full min-h-screen bg-white py-4 font-sans text-slate-900 selection:bg-indigo-100">
-      <div className="max-w-[1550px] mx-auto space-y-10 px-6 md:px-8">
+    <div className="w-full space-y-10 pb-10">
 
         {/* --- HEADER --- */}
-        <header className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+        <header className="flex flex-col md:flex-row md:items-center justify-between gap-6 pb-6 border-b border-slate-200/60 mb-8">
           <div className="space-y-1">
-            <h1 className="text-3xl md:text-4xl font-black text-slate-900 uppercase tracking-tight">
-              {mode === 'CLUB' ? 'Action Required' : 'Inbox Console'}
+            <h1 className="text-2xl md:text-3xl font-black text-slate-900 tracking-tight leading-none">
+              {mode === 'CLUB' ? 'Action Required' : 'Inbox'}
             </h1>
-            <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] flex items-center gap-2">
-              <span className="w-1.5 h-1.5 rounded-full bg-indigo-600" />
-              {mode === 'CLUB' ? 'Pending Revisions & Corrections' : 'Institutional Approval Workflow'}
+            <p className="text-xs font-semibold text-slate-400 mt-1.5 tracking-wide">
+              {mode === 'CLUB' ? 'Review and update your pending event revisions' : 'Streamline and approve institutional request workflows'}
             </p>
           </div>
 
@@ -260,7 +258,6 @@ export const InboxList = ({ mode = 'COLLEGE' }) => {
             )}
           </div>
         </div>
-      </div>
 
       {/* --- CAPSULE-LITE REVIEW MODAL --- */}
       <AnimatePresence>
@@ -370,7 +367,7 @@ export const InboxList = ({ mode = 'COLLEGE' }) => {
           </div>
         )}
       </AnimatePresence>
-    </section>
+    </div>
   );
 };
 

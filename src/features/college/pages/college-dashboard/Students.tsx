@@ -36,7 +36,7 @@ export const Students = () => {
   }
 
   return (
-    <div className="w-full">
+    <div className="w-full space-y-10 pb-10">
         <StudentsInfoList students={students} />
     </div>
   );

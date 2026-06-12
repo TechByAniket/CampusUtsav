@@ -1,17 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { 
+import {
   AlertCircle
 } from 'lucide-react';
 import { toast } from 'sonner';
 
 // Service Imports
-import { 
-  getEventsCountByClub, 
-  getEventsCountByCategory, 
-  getAnalytics, 
-  getTopPerformingEvents, 
-  getEventTrends 
+import {
+  getEventsCountByClub,
+  getEventsCountByCategory,
+  getAnalytics,
+  getTopPerformingEvents,
+  getEventTrends
 } from '@/services/analyticsService';
 import { getAllClubsForPrincipal } from '@/services/clubService';
 
@@ -200,7 +200,7 @@ export const PrincipalOverview: React.FC = () => {
     <div className="space-y-12 animate-pulse">
       {/* 2-COLUMN PREMIUM DASHBOARD GRID LAYOUT SKELETON */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        
+
         {/* Left Column Skeleton */}
         <div className="space-y-6">
           {/* Spotlight Card Skeleton */}
@@ -295,9 +295,9 @@ export const PrincipalOverview: React.FC = () => {
 
   return (
     <div className="space-y-12">
-      
+
       {/* 1. Header Hero section */}
-      <PrincipalOverviewHeader 
+      <PrincipalOverviewHeader
         isRefreshing={isRefreshing}
         isLoading={isLoading}
         onRefresh={() => loadDashboardData(true)}
@@ -328,7 +328,7 @@ export const PrincipalOverview: React.FC = () => {
       ) : (
         <div className="space-y-12">
           {/* Bento metric grid */}
-          <PrincipalMetricCards 
+          <PrincipalMetricCards
             kpiData={kpiData}
             clubsList={clubsList}
             onNavigateToInbox={() => navigate('/college-dashboard/inbox')}
@@ -336,7 +336,7 @@ export const PrincipalOverview: React.FC = () => {
 
           {/* Charts Layer (Trends + Category) */}
           <div className="grid grid-cols-12 gap-8">
-            <EventTrendsChart 
+            <EventTrendsChart
               selectedYear={selectedYear}
               setSelectedYear={setSelectedYear}
               yearOptions={yearOptions}
@@ -346,20 +346,20 @@ export const PrincipalOverview: React.FC = () => {
               clubsList={clubsList}
             />
 
-            <CategoryDistributionChart 
+            <CategoryDistributionChart
               categoryChartData={categoryChartData}
               chartColors={COLORS.chartColors}
             />
           </div>
 
           {/* Events by Club Vertical Bar Chart */}
-          <ClubPerformanceChart 
+          <ClubPerformanceChart
             clubChartData={clubChartData}
             chartColors={COLORS.chartColors}
           />
 
           {/* Leaderboard Table */}
-          <EventLeaderboardTable 
+          <EventLeaderboardTable
             leaderboardLimit={leaderboardLimit}
             setLeaderboardLimit={setLeaderboardLimit}
             topEventsData={topEventsData}

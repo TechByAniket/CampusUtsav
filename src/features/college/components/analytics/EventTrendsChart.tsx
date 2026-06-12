@@ -1,12 +1,12 @@
 import React from 'react';
-import { 
-  ResponsiveContainer, 
-  AreaChart, 
-  Area, 
-  XAxis, 
-  YAxis, 
-  CartesianGrid, 
-  Tooltip 
+import {
+  ResponsiveContainer,
+  AreaChart,
+  Area,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip
 } from 'recharts';
 import { TrendingUp } from 'lucide-react';
 import { useSelector } from 'react-redux';
@@ -128,27 +128,27 @@ export const EventTrendsChart: React.FC<EventTrendsChartProps> = ({
                 </linearGradient>
               </defs>
               <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-              <XAxis 
-                dataKey="month" 
-                axisLine={false} 
-                tickLine={false} 
+              <XAxis
+                dataKey="month"
+                axisLine={false}
+                tickLine={false}
                 tick={{ fill: '#475569', fontSize: 12, fontWeight: 700, letterSpacing: '0.05em' }}
                 dy={10}
               />
-              <YAxis 
-                axisLine={false} 
-                tickLine={false} 
+              <YAxis
+                axisLine={false}
+                tickLine={false}
                 tick={{ fill: '#475569', fontSize: 12, fontWeight: 700 }}
                 dx={-5}
               />
               <Tooltip content={renderCustomizedTrendTooltip} cursor={{ stroke: '#f1f5f9', strokeWidth: 1.5 }} />
-              <Area 
-                type="monotone" 
-                dataKey="count" 
-                stroke="url(#trendStroke)" 
-                strokeWidth={3.5} 
-                fillOpacity={1} 
-                fill="url(#colorTrends)" 
+              <Area
+                type="monotone"
+                dataKey="count"
+                stroke="url(#trendStroke)"
+                strokeWidth={3.5}
+                fillOpacity={1}
+                fill="url(#colorTrends)"
               />
             </AreaChart>
           </ResponsiveContainer>

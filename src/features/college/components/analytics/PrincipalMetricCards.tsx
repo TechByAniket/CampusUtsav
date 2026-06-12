@@ -1,12 +1,12 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { 
-  ClipboardList, 
-  Trophy, 
-  ArrowRight, 
-  Users, 
-  UserCheck, 
-  CheckCircle2 
+import {
+  ClipboardList,
+  Trophy,
+  ArrowRight,
+  Users,
+  UserCheck,
+  CheckCircle2
 } from 'lucide-react';
 
 interface ClubOption {
@@ -28,10 +28,10 @@ export const PrincipalMetricCards: React.FC<PrincipalMetricCardsProps> = ({
 }) => {
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-      
+
       {/* Left Column: Campus Activity Pulse & Active Chapters */}
       <div className="space-y-6 flex flex-col justify-between">
-        
+
         {/* Card A: The Campus Activity Pulse */}
         <div className="bg-[#0f172a] text-white rounded-[2rem] p-6 border border-[#1e293b] shadow-sm relative overflow-hidden flex flex-col justify-between group hover:shadow-md hover:border-[#334155] transition-all duration-300 min-h-[270px] flex-1">
           <div>
@@ -50,7 +50,7 @@ export const PrincipalMetricCards: React.FC<PrincipalMetricCardsProps> = ({
                 Live
               </div>
             </div>
-            
+
             {/* Two-Column Internal Layout for Total Events and Status Stack */}
             <div className="grid grid-cols-1 sm:grid-cols-12 gap-6 mt-6 items-center relative z-10">
               {/* Left: Total Events Metric */}
@@ -62,7 +62,7 @@ export const PrincipalMetricCards: React.FC<PrincipalMetricCardsProps> = ({
                   Total Approved Events
                 </span>
               </div>
-              
+
               {/* Right: Vertical Progress Stack */}
               <div className="sm:col-span-7 space-y-4">
                 {/* Completed */}
@@ -75,7 +75,7 @@ export const PrincipalMetricCards: React.FC<PrincipalMetricCardsProps> = ({
                     <span className="text-white text-xs font-black">{kpiData?.completedEvents ?? 0}</span>
                   </div>
                   <div className="h-1.5 bg-slate-800 rounded-full overflow-hidden">
-                    <div 
+                    <div
                       style={{ width: `${Math.min(100, ((kpiData?.completedEvents ?? 0) / Math.max(1, kpiData?.totalEvents ?? 0)) * 100)}%` }}
                       className="h-full bg-slate-500 rounded-full transition-all duration-500"
                     />
@@ -92,7 +92,7 @@ export const PrincipalMetricCards: React.FC<PrincipalMetricCardsProps> = ({
                     <span className="text-emerald-400 text-xs font-black">{kpiData?.ongoingEvents ?? 0}</span>
                   </div>
                   <div className="h-1.5 bg-slate-800 rounded-full overflow-hidden">
-                    <div 
+                    <div
                       style={{ width: `${Math.min(100, ((kpiData?.ongoingEvents ?? 0) / Math.max(1, kpiData?.totalEvents ?? 0)) * 100)}%` }}
                       className="h-full bg-emerald-500 rounded-full transition-all duration-500"
                     />
@@ -109,7 +109,7 @@ export const PrincipalMetricCards: React.FC<PrincipalMetricCardsProps> = ({
                     <span className="text-rose-400 text-xs font-black">{kpiData?.upcomingEvents ?? 0}</span>
                   </div>
                   <div className="h-1.5 bg-slate-800 rounded-full overflow-hidden">
-                    <div 
+                    <div
                       style={{ width: `${Math.min(100, ((kpiData?.upcomingEvents ?? 0) / Math.max(1, kpiData?.totalEvents ?? 0)) * 100)}%` }}
                       className="h-full bg-rose-500 rounded-full transition-all duration-500"
                     />
@@ -132,7 +132,7 @@ export const PrincipalMetricCards: React.FC<PrincipalMetricCardsProps> = ({
                 <span className="text-xs font-semibold text-slate-500 mt-1 block">Active Clubs & Councils</span>
               </div>
             </div>
-            
+
             <div className="flex flex-col items-end gap-1.5 self-center shrink-0">
               <div className="w-7 h-7 rounded-xl bg-amber-50 text-amber-600 border border-amber-100/50 flex items-center justify-center shrink-0 shadow-sm">
                 <Trophy size={12} />
@@ -144,17 +144,17 @@ export const PrincipalMetricCards: React.FC<PrincipalMetricCardsProps> = ({
 
       {/* Right Column: Executive Alerts & Key Performance Indicators */}
       <div className="space-y-6 flex flex-col justify-between">
-        
+
         {/* Row 1: Card H: Awaiting Approvals (Always at the very top of right side) */}
-        <motion.div 
+        <motion.div
           onClick={onNavigateToInbox}
-          animate={{ 
+          animate={{
             borderColor: ['rgba(244, 63, 94, 0.25)', 'rgba(244, 63, 94, 0.65)', 'rgba(244, 63, 94, 0.25)'],
             boxShadow: [
-              '0 0 0 rgba(244, 63, 94, 0)', 
-              '0 0 12px rgba(244, 63, 94, 0.15)', 
+              '0 0 0 rgba(244, 63, 94, 0)',
+              '0 0 12px rgba(244, 63, 94, 0.15)',
               '0 0 0 rgba(244, 63, 94, 0)'
-            ] 
+            ]
           }}
           transition={{ repeat: Infinity, duration: 2, ease: "easeInOut" }}
           className="bg-rose-50/20 border rounded-[1.5rem] p-5 hover:bg-rose-50/45 hover:border-rose-400 transition-colors duration-300 h-[125px] flex items-center justify-between group cursor-pointer"
@@ -182,7 +182,7 @@ export const PrincipalMetricCards: React.FC<PrincipalMetricCardsProps> = ({
 
         {/* Rows 2 & 3: The 4 Grid Square Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-          
+
           {/* Card B: Total Registrations */}
           <div className="bg-white border border-slate-150 rounded-[1.5rem] p-5 shadow-[0_1px_3px_rgba(0,0,0,0.01)] hover:shadow-md hover:border-slate-300 transition-all duration-300 h-[125px] flex flex-col justify-between group">
             <div className="flex justify-between items-center">
@@ -242,30 +242,30 @@ export const PrincipalMetricCards: React.FC<PrincipalMetricCardsProps> = ({
                 <span className="text-xs font-semibold text-slate-500 mt-1 block">Average Show-Up</span>
               </div>
             </div>
-            
+
             {/* Circular Radial SVG Visual */}
             <div className="relative w-14 h-14 shrink-0 shadow-inner rounded-full p-1 bg-slate-50 border border-slate-150/70">
               <svg className="w-full h-full transform -rotate-90" viewBox="0 0 36 36">
-                <circle 
-                  className="text-slate-150" 
-                  strokeWidth="4" 
-                  stroke="currentColor" 
-                  fill="none" 
-                  cx="18" 
-                  cy="18" 
-                  r="15" 
+                <circle
+                  className="text-slate-150"
+                  strokeWidth="4"
+                  stroke="currentColor"
+                  fill="none"
+                  cx="18"
+                  cy="18"
+                  r="15"
                 />
-                <circle 
-                  className="text-indigo-600 transition-all duration-500" 
-                  strokeWidth="4" 
-                  strokeDasharray="94.2" 
+                <circle
+                  className="text-indigo-600 transition-all duration-500"
+                  strokeWidth="4"
+                  strokeDasharray="94.2"
                   strokeDashoffset={94.2 - (94.2 * (kpiData?.attendanceRate ?? 0)) / 100}
-                  strokeLinecap="round" 
-                  stroke="currentColor" 
-                  fill="none" 
-                  cx="18" 
-                  cy="18" 
-                  r="15" 
+                  strokeLinecap="round"
+                  stroke="currentColor"
+                  fill="none"
+                  cx="18"
+                  cy="18"
+                  r="15"
                 />
               </svg>
               <div className="absolute inset-0 flex items-center justify-center text-[10px] font-black text-slate-800">

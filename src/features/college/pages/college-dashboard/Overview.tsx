@@ -19,41 +19,31 @@ export const Overview: React.FC = () => {
   const role = useSelector((state: RootState) => state.auth.role);
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC] font-sans text-slate-900 selection:bg-indigo-100 pb-20">
-      <main className="max-w-7xl mx-auto space-y-16 relative z-10">
+    <div className="w-full space-y-10 pb-10">
         
         {/* Hero Section */}
         {role !== 'ROLE_PRINCIPAL' && <DashboardHero />}
 
-        <div className="px-4 sm:px-6 lg:px-8 space-y-16">
-          {role === 'ROLE_PRINCIPAL' ? (
-            <PrincipalOverview />
-          ) : (
-            <>
-              {/* KPI Performance Section */}
-              <KPICards />
+        {role === 'ROLE_PRINCIPAL' ? (
+          <PrincipalOverview />
+        ) : (
+          <>
+            {/* KPI Performance Section */}
+            <KPICards />
 
-              {/* Main Analytics Hub */}
-              <AnalyticsHub />
+            {/* Main Analytics Hub */}
+            <AnalyticsHub />
 
-              {/* Departmental Performance & Actions */}
-              <div className="grid grid-cols-12 gap-8">
-                  <BranchPerformance />
-                  <QuickActions />
-              </div>
+            {/* Departmental Performance & Actions */}
+            <div className="grid grid-cols-12 gap-8">
+                <BranchPerformance />
+                <QuickActions />
+            </div>
 
-              {/* Campus Operations & Scheduling */}
-              <OperationsPlanner />
-            </>
-          )}
-        </div>
-      </main>
-
-      <footer className="mt-32 py-12 border-t border-slate-100 flex items-center justify-center">
-        <p className="text-[10px] font-black uppercase tracking-[0.4em] text-slate-300">
-          CampusUtsav Intelligence <span className="text-indigo-400/50">v2.5</span>
-        </p>
-      </footer>
+            {/* Campus Operations & Scheduling */}
+            <OperationsPlanner />
+          </>
+        )}
     </div>
   );
 };

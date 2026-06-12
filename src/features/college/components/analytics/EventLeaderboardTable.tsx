@@ -127,9 +127,9 @@ export const EventLeaderboardTable: React.FC<EventLeaderboardTableProps> = ({
                       {event.attendanceRate ?? 0}%
                     </span>
                     <div className="flex-1 h-2.5 bg-slate-100 border border-slate-200/50 rounded-full overflow-hidden shadow-inner">
-                      <div 
-                        className="h-full bg-gradient-to-r from-orange-500 to-amber-500 rounded-full transition-all duration-500" 
-                        style={{ width: `${Math.min(100, Math.max(0, event.attendanceRate ?? 0))}%` }} 
+                      <div
+                        className="h-full bg-gradient-to-r from-orange-500 to-amber-500 rounded-full transition-all duration-500"
+                        style={{ width: `${Math.min(100, Math.max(0, event.attendanceRate ?? 0))}%` }}
                       />
                     </div>
                   </div>
