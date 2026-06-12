@@ -5,10 +5,11 @@ import {
   AlertCircle, Image as ImageIcon, Send, Edit3, Globe, Lock, Phone,
   ArrowRight, Filter, MessageSquare, History,
   ChevronRight, Info, LayoutDashboard,
-  Hash
+  Hash, ShieldAlert, CheckCircle
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useNavigate } from 'react-router-dom';
 
 import {
   getAllPendingApprovalsByRole,
@@ -56,12 +57,15 @@ const formatEventDate = (startDate: string, endDate: string) => {
 };
 
 export const InboxList = ({ mode = 'COLLEGE' }) => {
+  const navigate = useNavigate();
   const [eventList, setEventList] = useState<Event[]>([]);
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [isResubmitting, setIsResubmitting] = useState(false);
   const [actionRemark, setActionRemark] = useState("");
+  const [decision, setDecision] = useState<'APPROVE' | 'REVERT'>('APPROVE');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => { loadEvents(); }, [mode]);
 
@@ -85,20 +89,30 @@ export const InboxList = ({ mode = 'COLLEGE' }) => {
     }
   };
 
-  const handleAction = async (id: number, actionType: 'APPROVED' | 'REVERT', remarkContent = "") => {
+  const handleSubmitAction = async () => {
+    if (!selectedEvent) return;
+    if (decision === 'REVERT' && !actionRemark.trim()) {
+      toast.error('Remark is required for Revert.');
+      return;
+    }
+
+    setIsSubmitting(true);
     try {
-      if (actionType === 'APPROVED') {
-        await approveEventByRole(id, remarkContent || "Approved");
+      if (decision === 'APPROVE') {
+        await approveEventByRole(selectedEvent.id, actionRemark.trim() || 'Approved');
         toast.success("Event Approved Successfully!");
-      } else if (actionType === 'REVERT') {
-        if (!remarkContent) return toast.error("Remark is required for Revert.");
-        await revertEventByRole(id, remarkContent);
+      } else {
+        await revertEventByRole(selectedEvent.id, actionRemark.trim());
         toast.success("Event Reverted to Club!");
       }
-      setEventList(prev => prev.filter(e => e.id !== id));
+      setEventList(prev => prev.filter(e => e.id !== selectedEvent.id));
       setSelectedEvent(null);
       setActionRemark("");
-    } catch (err: any) { toast.error(err.message); }
+    } catch (err: any) {
+      toast.error(err.message || 'Action failed.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const filteredEvents = useMemo(() => {
@@ -235,12 +249,29 @@ export const InboxList = ({ mode = 'COLLEGE' }) => {
 
                       <td className="px-8 py-5">
                         <div className="flex items-center justify-end gap-2">
-                          <button
-                            onClick={() => setSelectedEvent(event)}
-                            className="px-4 py-2.5 bg-white border border-slate-200 text-slate-600 rounded-full text-[10px] font-black uppercase tracking-widest hover:bg-indigo-50 hover:text-indigo-600 hover:border-indigo-200 transition-all active:scale-95 flex items-center gap-2 shadow-sm"
-                          >
-                            Review Details <Info size={14} />
-                          </button>
+                          {mode !== 'CLUB' && (
+                            <button
+                              onClick={() => {
+                                const basePath = window.location.pathname.split('/').slice(0, 2).join('/');
+                                navigate(`${basePath}/events/${event.id}`);
+                              }}
+                              className="px-4 py-2.5 bg-slate-900 text-white rounded-full text-[10px] font-black uppercase tracking-widest hover:bg-indigo-600 hover:shadow-lg transition-all active:scale-95 flex items-center gap-2 shadow-sm"
+                            >
+                              View Event <ChevronRight size={14} />
+                            </button>
+                          )}
+                          {mode !== 'CLUB' && (
+                            <button
+                              onClick={() => {
+                                setSelectedEvent(event);
+                                setDecision('APPROVE');
+                                setActionRemark('');
+                              }}
+                              className="px-4 py-2.5 bg-indigo-600 text-white rounded-full text-[10px] font-black uppercase tracking-widest hover:bg-indigo-500 hover:shadow-lg hover:shadow-indigo-600/20 transition-all active:scale-95 flex items-center gap-2 shadow-sm"
+                            >
+                              Take Action <ShieldAlert size={14} />
+                            </button>
+                          )}
                           {mode === 'CLUB' && (
                             <button
                               onClick={() => openResubmitForm(event.id)}
@@ -262,107 +293,155 @@ export const InboxList = ({ mode = 'COLLEGE' }) => {
       {/* --- CAPSULE-LITE REVIEW MODAL --- */}
       <AnimatePresence>
         {selectedEvent && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm overflow-y-auto no-scrollbar">
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm overflow-y-auto no-scrollbar">
             <motion.div
               initial={{ scale: 0.95, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.95, opacity: 0 }}
-              className={`w-full ${isResubmitting ? 'max-w-4xl' : 'max-w-lg'} bg-white rounded-[2.5rem] shadow-2xl relative overflow-hidden border border-slate-200 my-auto`}
+              className={`w-full ${
+                isResubmitting 
+                  ? 'max-w-4xl' 
+                  : (mode !== 'CLUB' ? 'max-w-md p-8' : 'max-w-lg')
+              } bg-white rounded-[2.5rem] shadow-2xl relative overflow-hidden border border-slate-200 my-auto`}
             >
-              {/* Header: Clean & Compact */}
-              <div className="px-8 py-6 border-b border-slate-50 bg-slate-50/30 flex items-center gap-5">
-                <div className="w-14 h-14 rounded-2xl overflow-hidden border-2 border-white shadow-sm shrink-0">
-                  <img src={selectedEvent.posterUrl} className="w-full h-full object-cover" alt="" />
-                </div>
-                <div className="min-w-0 flex-1">
-                  <h3 className="text-base font-black text-slate-900 uppercase truncate leading-tight mb-1">{selectedEvent.title}</h3>
-                  <div className="flex items-center gap-2">
-                    <span className="text-[10px] font-black text-indigo-600 bg-white border border-indigo-100 px-2 py-0.5 rounded-lg">ID #{selectedEvent.id}</span>
-                    <span className={`text-[10px] font-black uppercase px-2 py-0.5 rounded border ${getStatusStyles(selectedEvent.status)}`}>
-                      {selectedEvent.status}
-                    </span>
+              {mode !== 'CLUB' && !isResubmitting ? (
+                <>
+                  <div className="flex justify-between items-center mb-6">
+                    <h3 className="text-xl font-black text-slate-900 uppercase tracking-tight">Review Decision</h3>
+                    <button
+                      onClick={() => { setSelectedEvent(null); setActionRemark(""); }}
+                      className="p-2 text-slate-400 hover:text-slate-600 transition-colors"
+                    >
+                      <X size={20} />
+                    </button>
                   </div>
-                </div>
-                <button onClick={() => { setSelectedEvent(null); setIsResubmitting(false); setActionRemark(""); }} className="p-2 text-slate-300 hover:text-slate-600 transition-colors"><X size={20} /></button>
-              </div>
 
-              <div className="max-h-[85vh] overflow-y-auto no-scrollbar">
-                {isResubmitting ? (
-                  <OnePageCreateEventForm
-                    initialData={selectedEvent as any}
-                    isModal={true}
-                    onClose={() => { setSelectedEvent(null); setIsResubmitting(false); loadEvents(); }}
-                  />
-                ) : (
-                  <div className="p-10 space-y-10">
-                    {/* KEY DETAILS IN A CAPSULE GRID */}
-                    <div className="grid grid-cols-2 gap-4">
-                      <CapsuleDetail icon={<Calendar size={14} />} label="Date" value={formatEventDate(selectedEvent.startDate, selectedEvent.endDate)} />
-                      <CapsuleDetail icon={<Clock size={14} />} label="Time" value={selectedEvent.startTime?.slice(0, 5)} />
-                      <CapsuleDetail icon={<MapPin size={14} />} label="Venue" value={selectedEvent.venue} />
-                      <CapsuleDetail icon={<Tag size={14} />} label="Category" value={selectedEvent.eventCategory} />
+                  <div className="space-y-6">
+                    <div>
+                      <label className="text-[11px] font-black uppercase text-slate-400 ml-1 tracking-widest block mb-2">Select Option</label>
+                      <div className="grid grid-cols-2 gap-4">
+                        <button
+                          type="button"
+                          onClick={() => setDecision('APPROVE')}
+                          className={`py-4 rounded-2xl font-black uppercase text-[11px] tracking-widest transition-all shadow-sm active:scale-95 flex flex-col items-center gap-2 border-2 ${
+                            decision === 'APPROVE'
+                              ? 'bg-emerald-50 border-emerald-500 text-emerald-700'
+                              : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'
+                          }`}
+                        >
+                          <CheckCircle size={20} />
+                          Approve
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setDecision('REVERT')}
+                          className={`py-4 rounded-2xl font-black uppercase text-[11px] tracking-widest transition-all shadow-sm active:scale-95 flex flex-col items-center gap-2 border-2 ${
+                            decision === 'REVERT'
+                              ? 'bg-amber-50 border-amber-500 text-amber-700'
+                              : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'
+                          }`}
+                        >
+                          <RotateCcw size={20} />
+                          Revert
+                        </button>
+                      </div>
                     </div>
 
-                    {/* Description Strip */}
-                    <div className="bg-slate-50 p-5 rounded-[1.5rem] border border-slate-100">
-                      <p className="text-[12px] font-bold text-slate-500 leading-relaxed italic">
-                        "{selectedEvent.description}"
-                      </p>
+                    <div className="space-y-2">
+                      <label className="text-[11px] font-black uppercase text-slate-400 ml-1 tracking-widest block">
+                        Remarks {decision === 'REVERT' && <span className="text-rose-500 font-bold">*</span>}
+                      </label>
+                      <textarea
+                        rows={4}
+                        value={actionRemark}
+                        onChange={(e) => setActionRemark(e.target.value)}
+                        placeholder={decision === 'REVERT' ? 'Reason for reverting (Required)...' : 'Optional approval remarks...'}
+                        className="w-full px-5 py-4 bg-slate-50 border border-slate-200 rounded-2xl text-[13px] font-medium outline-none focus:border-indigo-500 transition-all text-slate-900"
+                      />
                     </div>
 
-                    {/* Previous Remarks (If any) */}
-                    {selectedEvent.remarks && (
-                      <div className="p-4 bg-orange-50 border border-orange-100 rounded-[1.5rem] flex gap-3 items-center">
-                        <AlertCircle size={18} className="shrink-0 text-orange-500" />
-                        <div className="min-w-0">
-                          <p className="text-[9px] font-black uppercase text-orange-600 mb-0.5 tracking-widest">Previous Feedback</p>
-                          <p className="text-[12px] font-black text-orange-900 leading-snug">"{selectedEvent.remarks}"</p>
-                        </div>
+                    <button
+                      onClick={handleSubmitAction}
+                      disabled={isSubmitting}
+                      className={`w-full py-4 rounded-2xl font-black uppercase text-xs tracking-widest transition-all shadow-lg active:scale-95 text-white ${
+                        isSubmitting
+                          ? 'bg-slate-400 cursor-not-allowed'
+                          : decision === 'APPROVE'
+                          ? 'bg-emerald-600 hover:bg-emerald-500 shadow-emerald-600/20'
+                          : 'bg-amber-600 hover:bg-amber-500 shadow-amber-600/20'
+                      }`}
+                    >
+                      {isSubmitting ? 'Processing...' : 'Confirm Action'}
+                    </button>
+                  </div>
+                </>
+              ) : (
+                <>
+                  {/* Header: Clean & Compact */}
+                  <div className="px-8 py-6 border-b border-slate-50 bg-slate-50/30 flex items-center gap-5">
+                    <div className="w-14 h-14 rounded-2xl overflow-hidden border-2 border-white shadow-sm shrink-0">
+                      <img src={selectedEvent.posterUrl} className="w-full h-full object-cover" alt="" />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <h3 className="text-base font-black text-slate-900 uppercase truncate leading-tight mb-1">{selectedEvent.title}</h3>
+                      <div className="flex items-center gap-2">
+                        <span className="text-[10px] font-black text-indigo-600 bg-white border border-indigo-100 px-2 py-0.5 rounded-lg">ID #{selectedEvent.id}</span>
+                        <span className={`text-[10px] font-black uppercase px-2 py-0.5 rounded border ${getStatusStyles(selectedEvent.status)}`}>
+                          {selectedEvent.status}
+                        </span>
                       </div>
-                    )}
+                    </div>
+                    <button onClick={() => { setSelectedEvent(null); setIsResubmitting(false); setActionRemark(""); }} className="p-2 text-slate-300 hover:text-slate-600 transition-colors"><X size={20} /></button>
+                  </div>
 
-                    {/* Review Section */}
-                    {mode !== 'CLUB' && (
-                      <div className="space-y-6 pt-2">
-                        <div className="space-y-2">
-                          <label className="text-[11px] font-black uppercase text-slate-400 ml-4 tracking-widest">Official Review Remarks</label>
-                          <textarea
-                            rows={2}
-                            value={actionRemark}
-                            onChange={(e) => setActionRemark(e.target.value)}
-                            placeholder="Type your notes for the club admin..."
-                            className="w-full px-6 py-4 bg-slate-50 border border-slate-200 rounded-[1.8rem] text-[13px] font-bold uppercase outline-none focus:border-indigo-500 transition-all text-slate-900"
-                          />
+                  <div className="max-h-[85vh] overflow-y-auto no-scrollbar">
+                    {isResubmitting ? (
+                      <OnePageCreateEventForm
+                        initialData={selectedEvent as any}
+                        isModal={true}
+                        onClose={() => { setSelectedEvent(null); setIsResubmitting(false); loadEvents(); }}
+                      />
+                    ) : (
+                      <div className="p-10 space-y-10">
+                        {/* KEY DETAILS IN A CAPSULE GRID */}
+                        <div className="grid grid-cols-2 gap-4">
+                          <CapsuleDetail icon={<Calendar size={14} />} label="Date" value={formatEventDate(selectedEvent.startDate, selectedEvent.endDate)} />
+                          <CapsuleDetail icon={<Clock size={14} />} label="Time" value={selectedEvent.startTime?.slice(0, 5)} />
+                          <CapsuleDetail icon={<MapPin size={14} />} label="Venue" value={selectedEvent.venue} />
+                          <CapsuleDetail icon={<Tag size={14} />} label="Category" value={selectedEvent.eventCategory} />
                         </div>
 
-                        <div className="flex gap-4">
-                          <button
-                            onClick={() => handleAction(selectedEvent.id, 'REVERT', actionRemark)}
-                            className="flex-1 py-4 bg-white border-2 border-orange-500 text-orange-600 rounded-[1.5rem] font-black uppercase text-[11px] tracking-widest hover:bg-orange-50 transition-all shadow-sm active:scale-95"
-                          >
-                            Revert
-                          </button>
-                          <button
-                            onClick={() => handleAction(selectedEvent.id, 'APPROVED', actionRemark)}
-                            className="flex-[2] py-4 bg-slate-900 text-white rounded-[1.5rem] font-black uppercase text-[11px] tracking-widest hover:bg-black transition-all shadow-xl shadow-slate-100 active:scale-95"
-                          >
-                            Approve
-                          </button>
+                        {/* Description Strip */}
+                        <div className="bg-slate-50 p-5 rounded-[1.5rem] border border-slate-100">
+                          <p className="text-[12px] font-bold text-slate-500 leading-relaxed italic">
+                            "{selectedEvent.description}"
+                          </p>
                         </div>
+
+                        {/* Previous Remarks (If any) */}
+                        {selectedEvent.remarks && (
+                          <div className="p-4 bg-orange-50 border border-orange-100 rounded-[1.5rem] flex gap-3 items-center">
+                            <AlertCircle size={18} className="shrink-0 text-orange-500" />
+                            <div className="min-w-0">
+                              <p className="text-[9px] font-black uppercase text-orange-600 mb-0.5 tracking-widest">Previous Feedback</p>
+                              <p className="text-[12px] font-black text-orange-900 leading-snug">"{selectedEvent.remarks}"</p>
+                            </div>
+                          </div>
+                        )}
+
+                        {mode === 'CLUB' && (
+                          <button
+                            onClick={() => openResubmitForm(selectedEvent.id)}
+                            className="w-full py-5 bg-indigo-600 text-white rounded-[1.5rem] font-black text-[11px] uppercase tracking-widest hover:bg-indigo-700 transition-all shadow-xl shadow-indigo-100"
+                          >
+                            <Edit3 size={18} className="mr-2 inline" /> Start Resubmission Flow
+                          </button>
+                        )}
                       </div>
-                    )}
-
-                    {mode === 'CLUB' && (
-                      <button
-                        onClick={() => openResubmitForm(selectedEvent.id)}
-                        className="w-full py-5 bg-indigo-600 text-white rounded-[1.5rem] font-black text-[11px] uppercase tracking-widest hover:bg-indigo-700 transition-all shadow-xl shadow-indigo-100"
-                      >
-                        <Edit3 size={18} className="mr-2 inline" /> Start Resubmission Flow
-                      </button>
                     )}
                   </div>
-                )}
-              </div>
+                </>
+              )}
             </motion.div>
           </div>
         )}

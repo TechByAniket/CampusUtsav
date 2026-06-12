@@ -90,7 +90,21 @@ export const getEventDetailsByEventId = async (eventId: number | string) =>{
     });
     return response.data;
   } catch(error:any){
-    throw new Error(handleServiceError(error, "Fetching Detailed Intel"));
+    throw new Error(handleServiceError(error, "Fetching Event Details"));
+  }
+}
+
+// ***************** GET EVENT DETAILS BY EVENTID For Review -Only for club, staff, college admin ***************** //
+export const getEventDetailsByEventIdForReview = async (eventId: number | string) =>{
+  try{
+    const response = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/events/${eventId}/review`, {
+      headers: {
+        "Authorization": "Bearer " + localStorage.getItem("token"),
+      }
+    });
+    return response.data;
+  } catch(error:any){
+    throw new Error(handleServiceError(error, "Fetching Event Details"));
   }
 }
 
@@ -157,6 +171,25 @@ export const revertEventByRole = async (eventId: number | string, remarks: strin
     return response.data;
   } catch (error: any) {
     throw new Error(handleServiceError(error, "Reversion Command Failed"));
+  }
+};
+
+// ***************** REJECT EVENT BY ROLE ***************** //
+export const rejectEventByRole = async (eventId: number | string, remarks: string) => {
+  try {
+    const response = await axios.post(
+      `${import.meta.env.VITE_BACKEND_URL}/events/approvals/${eventId}/reject`, 
+      { remarks: remarks || "" },
+      {
+        headers: {
+          "Authorization": "Bearer " + localStorage.getItem("token"),
+          "Content-Type": "application/json"
+        }
+      }
+    );
+    return response.data;
+  } catch (error: any) {
+    throw new Error(handleServiceError(error, "Rejection Command Failed"));
   }
 };
 

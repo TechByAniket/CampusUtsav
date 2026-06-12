@@ -40,20 +40,20 @@ export const AdminEventDetailsPage = () => {
 
   const role = useSelector((state: RootState) => state.auth.role)
 
-  useEffect(() => {
-    const fetchEventDetails = async () => {
-      if (!id) return
-      setLoading(true)
-      try {
-        const data = await getEventDetailsByEventId(Number(id))
-        setEvent(data)
-      } catch (err: any) {
-        toast.error(err.message);
-      } finally {
-        setLoading(false)
-      }
+  const fetchEventDetails = async () => {
+    if (!id) return
+    setLoading(true)
+    try {
+      const data = await getEventDetailsByEventId(Number(id))
+      setEvent(data)
+    } catch (err: any) {
+      toast.error(err.message);
+    } finally {
+      setLoading(false)
     }
+  }
 
+  useEffect(() => {
     fetchEventDetails()
   }, [id])
 
@@ -150,7 +150,7 @@ export const AdminEventDetailsPage = () => {
       {/* ╔══════════════════════════════════════════════════╗
           ║  CONTENT AREA — 65 / 35 Split                   ║
           ╚══════════════════════════════════════════════════╝ */}
-      <div className="max-w-[1200px] mx-auto px-4 md:px-8 lg:px-10 py-8">
+      <div className="relative z-20 max-w-[1200px] mx-auto px-4 md:px-8 lg:px-10 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-7 items-start">
 
           {/* ─── LEFT COLUMN (~65%) ─── */}
@@ -161,7 +161,7 @@ export const AdminEventDetailsPage = () => {
 
             {/* Admin Control Center — Mobile Only */}
             <div className="block lg:hidden">
-              <AdminEventDetailControls role={role} />
+              <AdminEventDetailControls role={role} eventId={event.id} currentStatus={event.status} onActionComplete={fetchEventDetails} />
             </div>
 
             {/* Overview Card */}
@@ -181,7 +181,7 @@ export const AdminEventDetailsPage = () => {
               transition={{ duration: 0.35, delay: 0.05 }}
               className="hidden lg:block"
             >
-              <AdminEventDetailControls role={role} />
+              <AdminEventDetailControls role={role} eventId={event.id} currentStatus={event.status} onActionComplete={fetchEventDetails} />
             </motion.div>
 
             {/* Quick Stats Card & Event Documents */}
