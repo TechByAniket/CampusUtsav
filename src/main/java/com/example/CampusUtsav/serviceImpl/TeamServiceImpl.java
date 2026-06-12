@@ -12,6 +12,7 @@ import com.example.CampusUtsav.security.model.CustomUserDetails;
 import com.example.CampusUtsav.service.NotificationService;
 import com.example.CampusUtsav.service.TeamService;
 import com.example.CampusUtsav.serviceImpl.helper.EntityLookupService;
+import com.example.CampusUtsav.serviceImpl.helper.ValidationHelperService;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.AccessDeniedException;
@@ -33,6 +34,7 @@ public class TeamServiceImpl implements TeamService {
     private final StaffRepository staffRepository;
     private final NotificationService notificationService;
     private final EntityLookupService entityLookupService;
+    private final ValidationHelperService validationHelperService;
 
     @Override
     @Transactional
@@ -60,7 +62,8 @@ public class TeamServiceImpl implements TeamService {
         // =========================
         // Ownership check (Leader only)
         // =========================
-        if (!Objects.equals(team.getLeader().getId(), currentUser.getProfileId())) {
+        boolean isCurStudentLeader = validationHelperService.validateIsCurrentStudentLeader(team.getLeader(), currentUser.getProfileId());
+        if (!isCurStudentLeader) {
             throw new AccessDeniedException("Only team leader can add members");
         }
 
@@ -74,11 +77,7 @@ public class TeamServiceImpl implements TeamService {
         // =========================
         // Same college check
         // =========================
-        if (!Objects.equals(currentUser.getCollegeId(),
-                event.getClub().getCollege().getId())) {
-
-            throw new AccessDeniedException("Not allowed for other college events");
-        }
+        validationHelperService.validateEventBelongsToSpecifiedCollege(event, currentUser.getCollegeId());
 
         // =========================
         // Fetch Student to add
@@ -209,68 +208,45 @@ public class TeamServiceImpl implements TeamService {
         // =========================
 
         // -------- PRINCIPAL --------
-        if (userRole == Role.ROLE_PRINCIPAL &&
-                !Objects.equals(event.getClub().getCollege().getId(), collegeId)) {
+        switch (userRole) {
 
-            throw new AccessDeniedException(
-                    "You are not allowed to see registrations of other college's event!"
-            );
-        }
-
-        // -------- HOD --------
-        if (userRole == Role.ROLE_HOD) {
-
-            Staff hod = entityLookupService.getStaff(profileId);
-
-            if (!hod.isHod()) {
-                throw new AccessDeniedException("You are not Head Of Department!");
+            case ROLE_PRINCIPAL -> {
+                validationHelperService.validateEventBelongsToSpecifiedCollege(event, collegeId);
             }
 
-            if (!Objects.equals(hod.getBranch().getId(), event.getClub().getBranch().getId())) {
-                throw new AccessDeniedException(
-                        "You can't view teams of events from other branches!"
-                );
-            }
-        }
+            case ROLE_HOD -> {
 
-        // -------- FACULTY --------
-        if (userRole == Role.ROLE_FACULTY) {
+                Staff hod = entityLookupService.getStaff(profileId);
 
-            Staff faculty = entityLookupService.getStaff(profileId);
-
-            if (!faculty.isClubCoordinator()) {
-                throw new AccessDeniedException("You are not a Club Coordinator!");
+                validationHelperService.validateIsHod(hod);
+                validationHelperService.validateIsHodOfSpecifiedBranch(hod, event.getClub().getBranch().getId());
             }
 
-            if (!Objects.equals(faculty.getManagedClub().getId(), event.getClub().getId())) {
-                throw new AccessDeniedException(
-                        "You can't view teams of clubs you don't manage!"
-                );
+            case ROLE_FACULTY -> {
+
+                Staff faculty = entityLookupService.getStaff(profileId);
+
+                validationHelperService.validateIsClubCoordinator(faculty);
+                validationHelperService.validateIsClubCoordinatorOfSpecifiedClub(faculty, event.getClub().getId());
             }
-        }
 
-        // -------- CLUB ADMIN --------
-        if (userRole == Role.ROLE_CLUB &&
-                !Objects.equals(profileId, event.getClub().getId())) {
+            case ROLE_CLUB -> {
+                validationHelperService.validateEventBelongsToClub(event, profileId);
+            }
 
-            throw new AccessDeniedException(
-                    "You can't view teams of events not managed by your club!"
-            );
-        }
+            case ROLE_STUDENT -> {
 
-        // -------- STUDENT --------
-        if (userRole == Role.ROLE_STUDENT) {
+                boolean isLeader = Objects.equals(team.getLeader().getId(), profileId);
 
-            boolean isLeader = Objects.equals(team.getLeader().getId(), profileId);
+                boolean isMember = team.getMembers().stream()
+                        .anyMatch(m ->
+                                m.getStudent().getId().equals(profileId) &&
+                                        m.getStatus() == TeamMemberStatus.ACTIVE
+                        );
 
-            boolean isMember = team.getMembers().stream()
-                    .anyMatch(m ->
-                            m.getStudent().getId().equals(profileId) &&
-                                    m.getStatus() == TeamMemberStatus.ACTIVE
-                    );
-
-            if (!isLeader && !isMember) {
-                throw new AccessDeniedException("You are not part of this team!");
+                if (!isLeader && !isMember) {
+                    throw new AccessDeniedException("You are not part of this team!");
+                }
             }
         }
 

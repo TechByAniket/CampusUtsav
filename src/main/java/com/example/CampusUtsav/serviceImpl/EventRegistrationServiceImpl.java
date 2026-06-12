@@ -16,6 +16,7 @@ import com.example.CampusUtsav.security.model.CustomUserDetails;
 import com.example.CampusUtsav.service.EventRegistrationService;
 import com.example.CampusUtsav.service.NotificationService;
 import com.example.CampusUtsav.serviceImpl.helper.EntityLookupService;
+import com.example.CampusUtsav.serviceImpl.helper.ValidationHelperService;
 import jakarta.persistence.EntityNotFoundException;
 //import jakarta.transaction.Transactional;
 import org.apache.coyote.BadRequestException;
@@ -45,6 +46,7 @@ public class EventRegistrationServiceImpl implements EventRegistrationService {
     private final StaffRepository staffRepository;
     private final NotificationService notificationService;
     private final EntityLookupService entityLookupService;
+    private final ValidationHelperService validationHelperService;
 
     @Override
     @Transactional
@@ -59,9 +61,7 @@ public class EventRegistrationServiceImpl implements EventRegistrationService {
         // =========================
         Event event = entityLookupService.getEvent(eventId);
 
-        if (!Objects.equals(event.getClub().getCollege().getId(), currentUser.getCollegeId())) {
-            throw new RuntimeException("Not allowed for other college events");
-        }
+        validationHelperService.validateEventBelongsToSpecifiedCollege(event, currentUser.getCollegeId());
 
 //        if (LocalDate.now().isAfter(event.getRegistrationDeadline())) {
 //            throw new RuntimeException("Registration unsuccessful: Registration deadline passed!");

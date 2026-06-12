@@ -11,6 +11,7 @@ import com.example.CampusUtsav.repository.*;
 import com.example.CampusUtsav.security.model.CustomUserDetails;
 import com.example.CampusUtsav.service.EventAttendanceService;
 import com.example.CampusUtsav.serviceImpl.helper.EntityLookupService;
+import com.example.CampusUtsav.serviceImpl.helper.ValidationHelperService;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.AllArgsConstructor;
 import org.springframework.security.access.AccessDeniedException;
@@ -35,6 +36,7 @@ public class EventAttendanceServiceImpl implements EventAttendanceService {
     private final StaffRepository staffRepository;
     private final EventAttendanceMapper eventAttendanceMapper;
     private final EntityLookupService entityLookupService;
+    private final ValidationHelperService validationHelperService;
 
     @Override
     @Transactional
@@ -152,10 +154,7 @@ public class EventAttendanceServiceImpl implements EventAttendanceService {
 
         Event event = entityLookupService.getEvent(eventId);
 
-        // Only owning club
-        if (!Objects.equals(event.getClub().getId(), currentUser.getProfileId())) {
-            throw new AccessDeniedException("Not allowed");
-        }
+        validationHelperService.validateEventBelongsToClub(event, currentUser.getProfileId());
 
 //        validateAttendanceStartWindow(event);
 
@@ -199,38 +198,29 @@ public class EventAttendanceServiceImpl implements EventAttendanceService {
         // 2. Role-based access control
         // =========================
 
-        if (userRole == Role.ROLE_PRINCIPAL &&
-                !Objects.equals(event.getClub().getCollege().getId(), currentUser.getCollegeId())) {
-            throw new AccessDeniedException("You are not allowed to see attendance of other college's event!");
-        }
+        switch (userRole) {
 
-        if (userRole == Role.ROLE_HOD) {
-            Staff curHod = entityLookupService.getStaff(currentUser.getProfileId());
-
-            if (!curHod.isHod()) {
-                throw new AccessDeniedException("You are not Head Of Department!");
+            case ROLE_PRINCIPAL -> {
+                validationHelperService.validateEventBelongsToSpecifiedCollege(event, currentUser.getCollegeId());
             }
 
-            if (!Objects.equals(curHod.getBranch().getId(), event.getClub().getBranch().getId())) {
-                throw new AccessDeniedException("You can't view attendance of other branches!");
-            }
-        }
+            case ROLE_HOD -> {
+                Staff curHod = entityLookupService.getStaff(currentUser.getProfileId());
 
-        if (userRole == Role.ROLE_FACULTY) {
-            Staff curFaculty = entityLookupService.getStaff(currentUser.getProfileId());
-
-            if (!curFaculty.isClubCoordinator()) {
-                throw new AccessDeniedException("You are not a Club Coordinator!");
+                validationHelperService.validateIsHod(curHod);
+                validationHelperService.validateIsHodOfSpecifiedBranch(curHod, event.getClub().getBranch().getId());
             }
 
-            if (!Objects.equals(curFaculty.getManagedClub().getId(), event.getClub().getId())) {
-                throw new AccessDeniedException("You can't view other club's event attendance!");
-            }
-        }
+            case ROLE_FACULTY -> {
+                Staff curFaculty = entityLookupService.getStaff(currentUser.getProfileId());
 
-        if (userRole == Role.ROLE_CLUB &&
-                !Objects.equals(currentUser.getProfileId(), event.getClub().getId())) {
-            throw new AccessDeniedException("Unauthorised: You can't view other club's event attendance!");
+                validationHelperService.validateIsClubCoordinator(curFaculty);
+                validationHelperService.validateIsClubCoordinatorOfSpecifiedClub(curFaculty, event.getClub().getId());
+            }
+
+            case ROLE_CLUB -> {
+                validationHelperService.validateEventBelongsToClub(event, currentUser.getProfileId());
+            }
         }
 
         // =========================
@@ -317,11 +307,7 @@ public class EventAttendanceServiceImpl implements EventAttendanceService {
 
         Event event = entityLookupService.getEvent(eventId);
 
-        // Ownership check (IMPORTANT FIX)
-        if (!Objects.equals(currentUser.getProfileId(), event.getClub().getId())) {
-            throw new AccessDeniedException("You can't access this event QR");
-        }
-
+        validationHelperService.validateEventBelongsToClub(event, currentUser.getProfileId());
 //        validateAttendanceStartWindow(event);
 
         // =========================
@@ -369,10 +355,7 @@ public class EventAttendanceServiceImpl implements EventAttendanceService {
 
         Event event = entityLookupService.getEvent(eventId);
 
-        // Ownership check
-        if (!Objects.equals(event.getClub().getId(), currentUser.getProfileId())) {
-            throw new AccessDeniedException("Not allowed");
-        }
+        validationHelperService.validateEventBelongsToClub(event, currentUser.getProfileId());
 
 //        validateAttendanceStartWindow(event);
 
@@ -402,9 +385,7 @@ public class EventAttendanceServiceImpl implements EventAttendanceService {
 
         Event event = entityLookupService.getEvent(eventId);
 
-        if (!Objects.equals(event.getClub().getId(), currentUser.getProfileId())) {
-            throw new AccessDeniedException("Not allowed");
-        }
+        validationHelperService.validateEventBelongsToClub(event, currentUser.getProfileId());
 
 //        validateAttendanceStartWindow(event);
 

@@ -50,6 +50,5 @@ public interface StaffRepository extends JpaRepository<Staff, Integer> {
     @Query(value = "SELECT s.branch_id FROM staff s WHERE s.id = :staffId", nativeQuery = true)
     Integer getBranchIdOfStaffByStaffId(@Param("staffId") Integer staffId);
 
-    @Query(value = "SELECT s.is_hod FROM staff s WHERE s.id = :staffId", nativeQuery = true)
-    boolean checkIfActiveHOD(@Param("staffId") Integer staffId);
+    boolean existsByIdAndIsHodTrue(Integer staffId);
 }

@@ -15,6 +15,7 @@ import com.example.CampusUtsav.service.EventService;
 import com.example.CampusUtsav.service.NotificationService;
 import com.example.CampusUtsav.service.SupabaseService;
 import com.example.CampusUtsav.serviceImpl.helper.EntityLookupService;
+import com.example.CampusUtsav.serviceImpl.helper.ValidationHelperService;
 import com.example.CampusUtsav.utils.EventUtils;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.transaction.annotation.Transactional;
@@ -51,6 +52,7 @@ public class EventServiceImpl implements EventService {
     private final NotificationService notificationService;
     private final EventUtils eventUtils;
     private final EntityLookupService entityLookupService;
+    private final ValidationHelperService validationHelperService;
 
     @Override
     public List<String> getAllEventTypes() {
@@ -163,9 +165,7 @@ public class EventServiceImpl implements EventService {
             throw new RuntimeException("Only REVERTED events can be resubmitted. Current status: " + curEvent.getStatus());
         }
 
-        if (!Objects.equals(currentClub.getProfileId(), curEvent.getClub().getId())) {
-            throw new AccessDeniedException("Unauthorized: You cannot resubmit events of other clubs.");
-        }
+        validationHelperService.validateEventBelongsToClub(curEvent, currentClub.getProfileId());
 
         // 3. Update Fields (Do not create a new Object, update the existing one)
         // Use your mapper to update 'curEvent' with 'request' data
@@ -276,9 +276,7 @@ public class EventServiceImpl implements EventService {
     public EventResponse getEventDetailsByEventId(Integer eventId, CustomUserDetails currentUser) throws AccessDeniedException {
         Event curEvent = entityLookupService.getEvent(eventId);
 
-        if(!Objects.equals(curEvent.getClub().getCollege().getId() , currentUser.getCollegeId())){
-            throw new AccessDeniedException("Unauthorised: Access Denied to events from other college!");
-        }
+        validationHelperService.validateEventBelongsToSpecifiedCollege(curEvent, currentUser.getCollegeId());
 
         if((curEvent.getStatus() != EventStatus.APPROVED) && (currentUser.getUser().getRole() != Role.ROLE_CLUB)){
             throw new RuntimeException("Event is not approved!");
@@ -321,26 +319,20 @@ public class EventServiceImpl implements EventService {
         // =========================
         Event event = entityLookupService.getEvent(eventId);
 
-        if(!Objects.equals(currentUser.getCollegeId(), event.getClub().getCollege().getId())){
-            throw new AccessDeniedException("Unauthorised: You can't view participant details of other college's event!");
-        }
+        validationHelperService.validateEventBelongsToSpecifiedCollege(event, currentUser.getCollegeId());
 
         if(userRole == Role.ROLE_HOD){
             Staff curHod = entityLookupService.getStaff(currentUser.getProfileId());
 
-            if (!curHod.isHod()) throw new AccessDeniedException("You are not Head Of Department!");
-            if(!Objects.equals(curHod.getBranch().getId(), event.getClub().getBranch().getId())){
-                throw new AccessDeniedException("You can't view participants details of events that comes under different branches!");
-            }
+            validationHelperService.validateIsHod(curHod);
+            validationHelperService.validateIsHodOfSpecifiedBranch(curHod, event.getClub().getBranch().getId());
         }
 
         if(userRole == Role.ROLE_FACULTY){
             Staff curFaculty = entityLookupService.getStaff(currentUser.getProfileId());
 
-            if (!curFaculty.isClubCoordinator()) throw new AccessDeniedException("You are not a Club Coordinator!");
-            if(!Objects.equals(curFaculty.getManagedClub().getId(), event.getClub().getId())){
-                throw new AccessDeniedException("You can't view participants details of events of clubs that you don't manage!");
-            }
+            validationHelperService.validateIsClubCoordinator(curFaculty);
+            validationHelperService.validateIsClubCoordinatorOfSpecifiedClub(curFaculty, event.getClub().getId());
         }
 
         // =========================
@@ -403,26 +395,22 @@ public class EventServiceImpl implements EventService {
 
         Event event = entityLookupService.getEvent(eventId);
 
-        if(userRole == Role.ROLE_PRINCIPAL && !Objects.equals(event.getClub().getCollege().getId(), collegeId)){
-            throw new AccessDeniedException("You are not allowed to see registrations of other college's event!");
+        if(userRole == Role.ROLE_PRINCIPAL){
+            validationHelperService.validateEventBelongsToSpecifiedCollege(event, collegeId);
         }
 
         if (userRole == Role.ROLE_HOD) {
             Staff curHod = entityLookupService.getStaff(currentUser.getProfileId());
 
-            if (!curHod.isHod()) throw new AccessDeniedException("You are not Head Of Department!");
-            if(!Objects.equals(curHod.getBranch().getId(), event.getClub().getBranch().getId())){
-                throw new AccessDeniedException("You can't view registration details of events that comes under different branches!");
-            }
+            validationHelperService.validateIsHod(curHod);
+            validationHelperService.validateIsHodOfSpecifiedBranch(curHod, event.getClub().getBranch().getId());
         }
 
         if(userRole == Role.ROLE_FACULTY){
             Staff curFaculty = entityLookupService.getStaff(currentUser.getProfileId());
 
-            if (!curFaculty.isClubCoordinator()) throw new AccessDeniedException("You are not a Club Coordinator!");
-            if(!Objects.equals(curFaculty.getManagedClub().getId(), event.getClub().getId())){
-                throw new AccessDeniedException("You can't view registration details of events of clubs that you don't manage!");
-            }
+            validationHelperService.validateIsClubCoordinator(curFaculty);
+            validationHelperService.validateIsClubCoordinatorOfSpecifiedClub(curFaculty, event.getClub().getId());
         }
 
         // 2. Fetch full graph (single query)

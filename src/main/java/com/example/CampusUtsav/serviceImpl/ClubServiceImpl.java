@@ -21,6 +21,7 @@ import com.example.CampusUtsav.service.ClubService;
 import com.example.CampusUtsav.service.NotificationService;
 import com.example.CampusUtsav.service.SupabaseService;
 import com.example.CampusUtsav.serviceImpl.helper.EntityLookupService;
+import com.example.CampusUtsav.serviceImpl.helper.ValidationHelperService;
 import com.example.CampusUtsav.utils.ClubUtils;
 import com.example.CampusUtsav.utils.NotificationUtils;
 import jakarta.persistence.EntityNotFoundException;
@@ -52,6 +53,7 @@ public class ClubServiceImpl implements ClubService {
     private final NotificationService notificationService;
     private final NotificationUtils notificationUtils;
     private final EntityLookupService entityLookupService;
+    private final ValidationHelperService validationHelperService;
 
     @Override
     @Transactional
@@ -157,12 +159,7 @@ public class ClubServiceImpl implements ClubService {
     public ClubResponse getClubDetailsByClubId(Integer collegeId, Integer clubId){
         Club club = entityLookupService.getClub(clubId);
 
-        if (!Objects.equals(club.getCollege().getId(), collegeId)) {
-            throw new ResponseStatusException(
-                    HttpStatus.FORBIDDEN,
-                    "You are not allowed to access this club as it does not belong to your college."
-            );
-        }
+        validationHelperService.validateClubBelongsToSpecifiedCollege(club, collegeId);
 
         return clubMapper.convertToClubResponse(club);
     }
@@ -183,9 +180,7 @@ public class ClubServiceImpl implements ClubService {
 
         Club curClub = entityLookupService.getClub(clubId);
 
-        if (!curClub.getCollege().getId().equals(currentPrincipal.getCollegeId())) {
-            throw new AccessDeniedException("Access Denied: You can manage clubs of your college only!");
-        }
+        validationHelperService.validateClubBelongsToSpecifiedCollege(curClub, currentPrincipal.getCollegeId());
 
         AccountStatus targetStatus;
         try {

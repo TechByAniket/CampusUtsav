@@ -13,6 +13,7 @@ import com.example.CampusUtsav.security.model.CustomUserDetails;
 import com.example.CampusUtsav.service.NotificationService;
 import com.example.CampusUtsav.service.TeamMemberService;
 import com.example.CampusUtsav.serviceImpl.helper.EntityLookupService;
+import com.example.CampusUtsav.serviceImpl.helper.ValidationHelperService;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.AccessDeniedException;
@@ -29,6 +30,7 @@ public class TeamMemberServiceImpl implements TeamMemberService {
     private final TeamRepository teamRepository;
     private final NotificationService notificationService;
     private final EntityLookupService entityLookupService;
+    private final ValidationHelperService validationHelperService;
 
     @Override
     @Transactional
@@ -57,17 +59,12 @@ public class TeamMemberServiceImpl implements TeamMemberService {
         // =========================
         // Ownership check
         // =========================
-        if (!Objects.equals(teamMember.getStudent().getId(), currentUser.getProfileId())) {
-            throw new AccessDeniedException("You can only leave your own team");
-        }
+        validationHelperService.validateTeamMemberBelongsToCurrentUser(teamMember, currentUser.getProfileId());
 
         // =========================
         // Same college check
         // =========================
-        if (!Objects.equals(currentUser.getCollegeId(),
-                event.getClub().getCollege().getId())) {
-            throw new AccessDeniedException("You cannot leave team of another college");
-        }
+        validationHelperService.validateEventBelongsToSpecifiedCollege(event, currentUser.getCollegeId());
 
         // =========================
         // Already left check
@@ -79,7 +76,7 @@ public class TeamMemberServiceImpl implements TeamMemberService {
         // =========================
         // Leader restriction
         // =========================
-        if (Objects.equals(team.getLeader().getId(), currentUser.getProfileId())) {
+        if (validationHelperService.validateIsCurrentStudentLeader(team.getLeader(), currentUser.getProfileId())) {
             throw new RuntimeException("Leader cannot leave team. Delete team instead.");
         }
 
@@ -180,7 +177,8 @@ public class TeamMemberServiceImpl implements TeamMemberService {
         // =========================
         // Leader check
         // =========================
-        if (!Objects.equals(team.getLeader().getId(), currentUser.getProfileId())) {
+        boolean isCurStudentLeader = validationHelperService.validateIsCurrentStudentLeader(team.getLeader(), currentUser.getProfileId());
+        if (!isCurStudentLeader) {
             throw new AccessDeniedException("Only leader can remove members");
         }
 
@@ -201,11 +199,7 @@ public class TeamMemberServiceImpl implements TeamMemberService {
         // =========================
         // Same college check
         // =========================
-        if (!Objects.equals(currentUser.getCollegeId(),
-                event.getClub().getCollege().getId())) {
-
-            throw new AccessDeniedException("Not allowed for other college events");
-        }
+        validationHelperService.validateEventBelongsToSpecifiedCollege(event, currentUser.getCollegeId());
 
         // =========================
         // Remove member

@@ -13,6 +13,7 @@ import com.example.CampusUtsav.security.model.CustomUserDetails;
 import com.example.CampusUtsav.service.NotificationService;
 import com.example.CampusUtsav.service.StaffService;
 import com.example.CampusUtsav.serviceImpl.helper.EntityLookupService;
+import com.example.CampusUtsav.serviceImpl.helper.ValidationHelperService;
 import com.example.CampusUtsav.utils.NotificationUtils;
 import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
@@ -39,6 +40,7 @@ public class StaffServiceImpl implements StaffService {
     private final NotificationService notificationService;
     private final NotificationUtils notificationUtils;
     private final EntityLookupService entityLookupService;
+    private final ValidationHelperService validationHelperService;
 
     @Override
     @Transactional
@@ -98,10 +100,7 @@ public class StaffServiceImpl implements StaffService {
     public void updateStaffAccountStatus(Integer staffId, String newStatus, Integer collegeId) {
         Staff staff = entityLookupService.getStaff(staffId);
 
-        // SECURITY CHECK --> Check if the dean is managing their college's staff only! //
-        if (!staff.getCollege().getId().equals(collegeId)) {
-            throw new RuntimeException("Unauthorized : You cannot manage staff from other colleges!");
-        }
+        validationHelperService.validateStaffBelongsToSpecifiedCollege(staff, collegeId);
 
         if (!"ACTIVE".equalsIgnoreCase(newStatus)) {
             if (staff.isHod()) {
@@ -154,9 +153,7 @@ public class StaffServiceImpl implements StaffService {
                     ". Please ACTIVATE the account before assigning new responsibilities.");
         }
 
-        if(!staff.getCollege().getId().equals(collegeId)){
-            throw new RuntimeException("Unauthorized : You cannot manage staff from other colleges!");
-        }
+        validationHelperService.validateStaffBelongsToSpecifiedCollege(staff, collegeId);
 
         if (staff.isHod() && !"ROLE_HOD".equalsIgnoreCase(newRole)) {
             Integer hodCount = staffRepository.countByBranchIdAndCollegeIdAndIsHodTrue(staff.getBranch().getId(), collegeId);
@@ -228,17 +225,13 @@ public class StaffServiceImpl implements StaffService {
                     ". Please ACTIVATE the account before assigning new responsibilities.");
         }
 
-        if (!staff.getCollege().getId().equals(collegeId)) {
-            throw new RuntimeException("Unauthorized Access!");
-        }
+        validationHelperService.validateStaffBelongsToSpecifiedCollege(staff, collegeId);
 
         if (clubId != null) {
             // --- CASE: ASSIGNING OR SWAPPING ---
             Club club = entityLookupService.getClub(clubId);
 
-            if (!club.getCollege().getId().equals(collegeId)) {
-                throw new RuntimeException("Access Denied: Club belongs to another college!");
-            }
+            validationHelperService.validateClubBelongsToSpecifiedCollege(club, collegeId);
 
             // Auto-swap logic
             staffRepository.findByManagedClubIdAndCollegeId(clubId, collegeId)
