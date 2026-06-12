@@ -13,12 +13,13 @@ export const EventsHeader: React.FC<EventsHeaderProps> = ({
   onCreateClick 
 }) => {
   return (
-    <header className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+    <header className="flex flex-col md:flex-row md:items-center justify-between gap-6 pb-6 border-b border-slate-200/60 mb-8">
       <div className="space-y-1">
-        <h1 className="text-3xl md:text-4xl font-black text-slate-900 uppercase tracking-tight">Event Console</h1>
-        <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] flex items-center gap-2">
-          <span className="w-1.5 h-1.5 rounded-full bg-indigo-600" />
-          Manage Institutional Operations
+        <h1 className="text-2xl md:text-3xl font-black text-slate-900 tracking-tight leading-none">
+          Events
+        </h1>
+        <p className="text-xs font-semibold text-slate-400 mt-1.5 tracking-wide">
+          Manage and submit events for institutional approval
         </p>
       </div>
 

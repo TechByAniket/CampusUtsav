@@ -13,23 +13,14 @@ export const PrincipalOverviewHeader: React.FC<PrincipalOverviewHeaderProps> = (
   onRefresh,
 }) => {
   return (
-    <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 pb-4 border-b border-slate-100">
-      <div>
-        <div className="flex items-center gap-2 mb-1.5">
-          <span className="bg-orange-500/10 text-orange-700 text-[9px] font-black uppercase tracking-[0.2em] px-3 py-1 rounded-full">
-            Analytics Overview
-          </span>
-          {isRefreshing && (
-            <span className="flex items-center gap-1.5 text-slate-400 text-[10px] font-bold">
-              <RefreshCw size={10} className="animate-spin" /> Syncing...
-            </span>
-          )}
-        </div>
-        <div className="flex flex-col sm:flex-row sm:items-center gap-3">
-          <h2 className="text-2xl font-black text-slate-900 tracking-tight leading-none">
-            Executive Overview & Analytics
-          </h2>
-        </div>
+    <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 pb-6 border-b border-slate-200/60 mb-8">
+      <div className="space-y-1">
+        <h1 className="text-2xl md:text-3xl font-black text-slate-900 tracking-tight leading-none">
+          Executive Overview
+        </h1>
+        <p className="text-xs font-semibold text-slate-400 mt-1.5 tracking-wide">
+          Monitor campus-wide engagement and live analytics
+        </p>
       </div>
 
       <button

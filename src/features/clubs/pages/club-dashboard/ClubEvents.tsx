@@ -77,8 +77,7 @@ export const ClubEvents = () => {
   };
 
   return (
-    <div className="w-full min-h-screen bg-white font-sans text-slate-900 selection:bg-indigo-100 selection:text-indigo-900">
-      <div className="max-w-[1550px] mx-auto space-y-10">
+    <div className="w-full space-y-10 pb-10">
 
         {/* Header Section */}
         <EventsHeader 
@@ -116,7 +115,7 @@ export const ClubEvents = () => {
             </div>
           </div>
         </div>
-      </div>
+
 
       {/* Modals */}
       <AnimatePresence>

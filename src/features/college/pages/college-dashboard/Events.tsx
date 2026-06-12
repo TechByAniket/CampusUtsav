@@ -3,7 +3,7 @@ import { useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
-import { Sparkles, AlertCircle } from 'lucide-react';
+import { AlertCircle } from 'lucide-react';
 
 import { getAllEventsByCollege } from '@/services/eventService';
 import type { EventSummary } from '@/types/event';
@@ -69,21 +69,17 @@ export const Events = () => {
   }
 
   return (
-    <section className="w-full min-h-screen bg-slate-50/50 py-4 px-2 md:px-6 font-sans text-slate-900">
-      <div className="max-w-7xl mx-auto space-y-10">
-        
+    <div className="w-full space-y-10 pb-10">
+      
         {/* Header Section */}
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
-          <div className="space-y-2">
-            <div className="inline-flex items-center gap-2 px-3 py-1 bg-indigo-50 text-indigo-600 rounded-full text-[10px] font-black uppercase tracking-widest border border-indigo-100">
-              <Sparkles size={12} /> Institutional Roster
-            </div>
-            <h1 className="text-4xl font-black text-slate-900 tracking-tight flex items-center gap-4">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 pb-6 border-b border-slate-200/60 mb-8">
+          <div className="space-y-1">
+            <h1 className="text-2xl md:text-3xl font-black text-slate-900 tracking-tight leading-none">
               Events Dashboard
-              <span className="text-slate-200 font-light translate-y-1">/</span>
-              <span className="text-indigo-600/20">{filteredEvents.length}</span>
             </h1>
-            <p className="text-slate-400 text-sm font-medium">Manage and monitor all club-hosted activities across the campus.</p>
+            <p className="text-xs font-semibold text-slate-400 mt-1.5 tracking-wide">
+              Manage and track all student-run events and activities
+            </p>
           </div>
         </div>
 
@@ -139,7 +135,6 @@ export const Events = () => {
         </AnimatePresence>
 
 
-      </div>
-    </section>
+    </div>
   );
 };

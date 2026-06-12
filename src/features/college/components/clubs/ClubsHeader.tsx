@@ -8,13 +8,13 @@ interface ClubsHeaderProps {
 
 export const ClubsHeader: React.FC<ClubsHeaderProps> = ({ totalClubs, onSearch }) => {
   return (
-    <div className="mb-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
-      <div>
-        <h2 className="text-xl md:text-2xl font-black text-slate-900 uppercase tracking-tight">
-          Club Management <span className="text-indigo-600 ml-2 text-lg">({totalClubs})</span>
-        </h2>
-        <p className="text-slate-400 font-bold text-[10px] uppercase tracking-widest mt-1">
-          CampusUtsav Administration
+    <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 pb-6 border-b border-slate-200/60 mb-8">
+      <div className="space-y-1">
+        <h1 className="text-2xl md:text-3xl font-black text-slate-900 tracking-tight leading-none">
+          Club Management
+        </h1>
+        <p className="text-xs font-semibold text-slate-400 mt-1.5 tracking-wide">
+          Administrate and view student clubs across the campus
         </p>
       </div>
       <div className="relative">

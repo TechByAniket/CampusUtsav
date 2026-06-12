@@ -98,7 +98,7 @@ export const Clubs = () => {
   }
 
   return (
-    <div className="w-full font-sans pb-10">
+    <div className="w-full space-y-10 pb-10">
         <ClubsHeader 
           totalClubs={clubs.length} 
           onSearch={setSearchQuery} 

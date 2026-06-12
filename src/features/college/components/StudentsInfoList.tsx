@@ -233,12 +233,14 @@ export const StudentsInfoList = ({ students }: StudentsInfoListProps) => {
     <div className="w-full font-sans">
         
         {/* --- HEADER --- */}
-        <div className="mb-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div className="min-w-[300px]">
-            <h2 className="text-xl md:text-2xl font-bold text-slate-900 uppercase tracking-tight">
-              Student Directory <span className="text-indigo-600 ml-2 text-lg tabular-nums">({filteredData.length})</span>
-            </h2>
-            <p className="text-slate-400 font-bold text-[10px] uppercase tracking-widest mt-1">CampusUtsav Administration</p>
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 pb-6 border-b border-slate-200/60 mb-8">
+          <div className="space-y-1">
+            <h1 className="text-2xl md:text-3xl font-black text-slate-900 tracking-tight leading-none">
+              Student Directory
+            </h1>
+            <p className="text-xs font-semibold text-slate-400 mt-1.5 tracking-wide">
+              Access and manage comprehensive student profiles and records
+            </p>
           </div>
           
           <div className="flex items-center gap-2 w-full md:w-auto">

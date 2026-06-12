@@ -299,8 +299,7 @@ export const StaffOverview: React.FC = () => {
   );
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC] pb-20 px-4 sm:px-6 lg:px-8">
-      <main className="max-w-7xl mx-auto space-y-12 relative z-10">
+    <div className="w-full space-y-10 pb-10">
         
         {/* 1. Header Hero section */}
         <PrincipalOverviewHeader 
@@ -372,7 +371,6 @@ export const StaffOverview: React.FC = () => {
           </div>
         )}
 
-      </main>
     </div>
   );
 };
