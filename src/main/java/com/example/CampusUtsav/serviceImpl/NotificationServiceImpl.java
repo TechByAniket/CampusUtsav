@@ -8,6 +8,7 @@ import com.example.CampusUtsav.mapper.NotificationMapper;
 import com.example.CampusUtsav.repository.NotificationRepository;
 import com.example.CampusUtsav.security.model.CustomUserDetails;
 import com.example.CampusUtsav.service.NotificationService;
+import com.example.CampusUtsav.serviceImpl.helper.EntityLookupService;
 import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
 import org.springframework.stereotype.Service;

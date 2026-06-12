@@ -15,6 +15,7 @@ import com.example.CampusUtsav.repository.*;
 import com.example.CampusUtsav.security.model.CustomUserDetails;
 import com.example.CampusUtsav.service.NotificationService;
 import com.example.CampusUtsav.service.StudentService;
+import com.example.CampusUtsav.serviceImpl.helper.EntityLookupService;
 import com.example.CampusUtsav.utils.StudentUtils;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
@@ -43,6 +44,7 @@ public class StudentServiceImpl implements StudentService {
     private final EventAttendanceRepository eventAttendanceRepository;
     private final StudentRegistrationsMapper studentRegistrationsMapper;
     private final NotificationService notificationService;
+    private final EntityLookupService entityLookupService;
 
 
     @Override
@@ -53,11 +55,9 @@ public class StudentServiceImpl implements StudentService {
             throw new IllegalArgumentException("Graduation year must be after admission year");
         }
 
-        College linkedCollege = collegeRepository.findById(request.getCollegeId())
-                .orElseThrow(() -> new EntityNotFoundException("College Not Found!"));
+        College linkedCollege = entityLookupService.getCollege(request.getCollegeId());
 
-        Branch linkedBranch = branchRepository.findById(request.getBranchId())
-                .orElseThrow(() -> new EntityNotFoundException("Branch Not Found!"));
+        Branch linkedBranch = entityLookupService.getBranch(request.getBranchId());
 
         Student newStudent = studentMapper.convertToStudentEntity(
                 request, linkedCollege, linkedBranch
@@ -132,8 +132,7 @@ public class StudentServiceImpl implements StudentService {
 
         Role userRole = currentUser.getUser().getRole();
         if(userRole == Role.ROLE_STUDENT) {
-            Student curStudent = studentRepository.findById(currentUser.getProfileId())
-                    .orElseThrow(() -> new RuntimeException("Student not found!"));
+            Student curStudent = entityLookupService.getStudent(currentUser.getProfileId());
 
             return studentMapper.convertToStudentResponse(curStudent);
         }

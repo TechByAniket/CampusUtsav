@@ -12,6 +12,8 @@ import com.example.CampusUtsav.mapper.AnalyticsMapper;
 import com.example.CampusUtsav.repository.*;
 import com.example.CampusUtsav.security.model.CustomUserDetails;
 import com.example.CampusUtsav.service.AnalyticsService;
+import com.example.CampusUtsav.serviceImpl.helper.EntityLookupService;
+import com.example.CampusUtsav.serviceImpl.helper.ValidationHelperService;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.AllArgsConstructor;
 import org.springframework.security.access.AccessDeniedException;
@@ -33,6 +35,8 @@ public class AnalyticsServiceImpl implements AnalyticsService {
     private final ClubRepository clubRepository;
     private final TeamRepository teamRepository;
     private final AnalyticsMapper analyticsMapper;
+    private final EntityLookupService entityLookupService;
+    private final ValidationHelperService validationHelperService;
 
     @Override
     public Map<String, Integer> getEventsCountByClub(CustomUserDetails currentUser) {
@@ -135,12 +139,9 @@ public class AnalyticsServiceImpl implements AnalyticsService {
 
         else if (role == Role.ROLE_FACULTY) {
 
-            Staff faculty = staffRepository.findById(currentUser.getProfileId())
-                    .orElseThrow(() -> new RuntimeException("Faculty not found"));
+            Staff faculty = entityLookupService.getStaff(currentUser.getProfileId());
 
-            if (!faculty.isClubCoordinator()) {
-                throw new AccessDeniedException("You are not a Club Coordinator!");
-            }
+            validationHelperService.validateIsClubCoordinator(faculty);
 
             Integer clubId = faculty.getManagedClub().getId();
 
@@ -149,12 +150,9 @@ public class AnalyticsServiceImpl implements AnalyticsService {
 
         else if (role == Role.ROLE_HOD) {
 
-            Staff hod = staffRepository.findById(currentUser.getProfileId())
-                    .orElseThrow(() -> new RuntimeException("HOD not found"));
+            Staff hod = entityLookupService.getStaff(currentUser.getProfileId());
 
-            if (!hod.isHod()) {
-                throw new AccessDeniedException("You are not Head Of Department!");
-            }
+            validationHelperService.validateIsHod(hod);
 
             Integer branchId = hod.getBranch().getId();
 
@@ -290,40 +288,32 @@ public class AnalyticsServiceImpl implements AnalyticsService {
     @Override
     public EventAnalyticsResponse getEventAnalytics(Integer eventId, CustomUserDetails currentUser) {
 
-        Event event = eventRepository.findById(eventId)
-                .orElseThrow(() -> new EntityNotFoundException("Event not found"));
+        Event event = entityLookupService.getEvent(eventId);
 
         Role role = currentUser.getUser().getRole();
 
-        if (role == Role.ROLE_CLUB) {
-            if (!Objects.equals(event.getClub().getId(), currentUser.getProfileId())) {
-                throw new AccessDeniedException("Not your club event");
+        switch (role) {
+
+            case ROLE_CLUB -> {
+                validationHelperService.validateEventBelongsToClub(event, currentUser.getProfileId());
             }
-        }
 
-        else if (role == Role.ROLE_FACULTY) {
-            Staff faculty = staffRepository.findById(currentUser.getProfileId())
-                    .orElseThrow(() -> new RuntimeException("Faculty not found"));
+            case ROLE_FACULTY -> {
+                Staff faculty = entityLookupService.getStaff(currentUser.getProfileId());
 
-            if (!faculty.isClubCoordinator() ||
-                    !Objects.equals(faculty.getManagedClub().getId(), event.getClub().getId())) {
-                throw new AccessDeniedException("Not your club event");
+                validationHelperService.validateIsClubCoordinator(faculty);
+                validationHelperService.validateIsClubCoordinatorOfSpecifiedClub(faculty, event.getClub().getId());
             }
-        }
 
-        else if (role == Role.ROLE_HOD) {
-            Staff hod = staffRepository.findById(currentUser.getProfileId())
-                    .orElseThrow(() -> new RuntimeException("HOD not found"));
+            case ROLE_HOD -> {
+                Staff hod = entityLookupService.getStaff(currentUser.getProfileId());
 
-            if (!hod.isHod() ||
-                    !Objects.equals(hod.getBranch().getId(), event.getClub().getBranch().getId())) {
-                throw new AccessDeniedException("Not your branch event");
+                validationHelperService.validateIsHod(hod);
+                validationHelperService.validateIsHodOfSpecifiedBranch(hod, event.getClub().getBranch().getId());
             }
-        }
 
-        else if (role == Role.ROLE_PRINCIPAL) {
-            if (!Objects.equals(event.getClub().getCollege().getId(), currentUser.getCollegeId())) {
-                throw new AccessDeniedException("Not your college event");
+            case ROLE_PRINCIPAL -> {
+                validationHelperService.validateEventBelongsToSpecifiedCollege(event, currentUser.getCollegeId());
             }
         }
 
@@ -403,56 +393,51 @@ public class AnalyticsServiceImpl implements AnalyticsService {
         // ROLE BASED SCOPING
         // =========================
 
-        if (role == Role.ROLE_CLUB) {
+        switch (role) {
 
-            Integer clubId = currentUser.getProfileId();
+            case ROLE_CLUB -> {
 
-            eventIds = eventRepository.findEventIdsByClubId(clubId);
-        }
+                Integer clubId = currentUser.getProfileId();
 
-        else if (role == Role.ROLE_FACULTY) {
-
-            Staff faculty = staffRepository.findById(currentUser.getProfileId())
-                    .orElseThrow(() -> new RuntimeException("Faculty not found"));
-
-            if (!faculty.isClubCoordinator()) {
-                throw new AccessDeniedException("You are not a Club Coordinator!");
+                eventIds = eventRepository.findEventIdsByClubId(clubId);
             }
 
-            Integer clubId = faculty.getManagedClub().getId();
+            case ROLE_FACULTY -> {
 
-            eventIds = eventRepository.findEventIdsByClubId(clubId);
-        }
+                Staff faculty = entityLookupService.getStaff(currentUser.getProfileId());
 
-        else if (role == Role.ROLE_HOD) {
+                validationHelperService.validateIsClubCoordinator(faculty);
 
-            Staff hod = staffRepository.findById(currentUser.getProfileId())
-                    .orElseThrow(() -> new RuntimeException("HOD not found"));
+                Integer clubId = faculty.getManagedClub().getId();
 
-            if (!hod.isHod()) {
-                throw new AccessDeniedException("You are not Head Of Department!");
+                eventIds = eventRepository.findEventIdsByClubId(clubId);
             }
 
-            Integer branchId = hod.getBranch().getId();
+            case ROLE_HOD -> {
 
-            eventIds = eventRepository.findEventIdsByBranchId(branchId);
-        }
+                Staff hod = entityLookupService.getStaff(currentUser.getProfileId());
 
-        else if (role == Role.ROLE_PRINCIPAL) {
+                validationHelperService.validateIsHod(hod);
 
-            Integer collegeId = currentUser.getCollegeId();
+                Integer branchId = hod.getBranch().getId();
 
-            boolean exists = clubRepository.existsByCollegeId(collegeId);
-
-            if (!exists) {
-                throw new AccessDeniedException("Invalid college access!");
+                eventIds = eventRepository.findEventIdsByBranchId(branchId);
             }
 
-            eventIds = eventRepository.findEventIdsByCollegeId(collegeId);
-        }
+            case ROLE_PRINCIPAL -> {
 
-        else {
-            throw new AccessDeniedException("Unauthorized");
+                Integer collegeId = currentUser.getCollegeId();
+
+                boolean exists = clubRepository.existsByCollegeId(collegeId);
+
+                if (!exists) {
+                    throw new AccessDeniedException("Invalid college access!");
+                }
+
+                eventIds = eventRepository.findEventIdsByCollegeId(collegeId);
+            }
+
+            default -> throw new AccessDeniedException("Unauthorized");
         }
 
         // =========================
@@ -563,107 +548,102 @@ public class AnalyticsServiceImpl implements AnalyticsService {
         // ROLE BASED ACCESS
         // =========================
 
-        if (role == Role.ROLE_CLUB) {
+        switch (role) {
 
-            Integer currentClubId = currentUser.getProfileId();
+            case ROLE_CLUB -> {
 
-            // club users cannot access other clubs
-            if (clubId != null && !Objects.equals(clubId, currentClubId)) {
-                throw new AccessDeniedException("Access denied");
-            }
+                Integer currentClubId = currentUser.getProfileId();
 
-            eventIds = eventRepository.findApprovedEventIdsByClubAndYear(
-                    currentClubId,
-                    year
-            );
-        }
-
-        else if (role == Role.ROLE_FACULTY) {
-
-            Staff faculty = staffRepository.findById(currentUser.getProfileId())
-                    .orElseThrow(() -> new RuntimeException("Faculty not found"));
-
-            if (!faculty.isClubCoordinator()) {
-                throw new AccessDeniedException("You are not a Club Coordinator!");
-            }
-
-            Integer managedClubId =
-                    faculty.getManagedClub().getId();
-
-            if (clubId != null && !Objects.equals(clubId, managedClubId)) {
-                throw new AccessDeniedException("Access denied");
-            }
-
-            eventIds = eventRepository.findApprovedEventIdsByClubAndYear(
-                    managedClubId,
-                    year
-            );
-        }
-
-        else if (role == Role.ROLE_HOD) {
-
-            Staff hod = staffRepository.findById(currentUser.getProfileId())
-                    .orElseThrow(() -> new RuntimeException("HOD not found"));
-
-            if (!hod.isHod()) {
-                throw new AccessDeniedException("You are not HOD!");
-            }
-
-            Integer branchId =
-                    hod.getBranch().getId();
-
-            // optional club filter
-            if (clubId != null) {
-
-                boolean validClub =
-                        clubRepository.existsByIdAndBranchId(clubId, branchId);
-
-                if (!validClub) {
-                    throw new AccessDeniedException(
-                            "Club does not belong to your branch"
-                    );
+                // club users cannot access other clubs
+                if (clubId != null && !Objects.equals(clubId, currentClubId)) {
+                    throw new AccessDeniedException("Access denied");
                 }
 
-                eventIds = eventRepository.findApprovedEventIdsByClubAndYear(clubId, year);
+                eventIds = eventRepository.findApprovedEventIdsByClubAndYear(
+                        currentClubId,
+                        year
+                );
             }
 
-            else {
-                eventIds = eventRepository.findApprovedEventIdsByBranchAndYear(branchId, year);
-            }
-        }
+            case ROLE_FACULTY -> {
 
-        else if (role == Role.ROLE_PRINCIPAL) {
+                Staff faculty = entityLookupService.getStaff(currentUser.getProfileId());
 
-            Integer collegeId = currentUser.getCollegeId();
+                validationHelperService.validateIsClubCoordinator(faculty);
 
-            boolean exists =
-                    clubRepository.existsByCollegeId(collegeId);
+                Integer managedClubId =
+                        faculty.getManagedClub().getId();
 
-            if (!exists) {
-                throw new AccessDeniedException("Invalid college access!");
-            }
-
-            // optional club filter
-            if (clubId != null) {
-
-                boolean validClub = clubRepository.existsByIdAndCollegeId(clubId, collegeId);
-
-                if (!validClub) {
-                    throw new AccessDeniedException(
-                            "Club does not belong to your college"
-                    );
+                if (clubId != null && !Objects.equals(clubId, managedClubId)) {
+                    throw new AccessDeniedException("Access denied");
                 }
 
-                eventIds = eventRepository.findApprovedEventIdsByClubAndYear(clubId, year);
+                eventIds = eventRepository.findApprovedEventIdsByClubAndYear(
+                        managedClubId,
+                        year
+                );
             }
 
-            else {
-                eventIds = eventRepository.findApprovedEventIdsByCollegeAndYear(collegeId, year);
-            }
-        }
+            case ROLE_HOD -> {
 
-        else {
-            throw new AccessDeniedException("Unauthorized");
+                Staff hod = entityLookupService.getStaff(currentUser.getProfileId());
+
+                validationHelperService.validateIsHod(hod);
+
+                Integer branchId =
+                        hod.getBranch().getId();
+
+                // optional club filter
+                if (clubId != null) {
+
+                    boolean validClub =
+                            clubRepository.existsByIdAndBranchId(clubId, branchId);
+
+                    if (!validClub) {
+                        throw new AccessDeniedException(
+                                "Club does not belong to your branch"
+                        );
+                    }
+
+                    eventIds = eventRepository.findApprovedEventIdsByClubAndYear(clubId, year);
+                }
+
+                else {
+                    eventIds = eventRepository.findApprovedEventIdsByBranchAndYear(branchId, year);
+                }
+            }
+
+            case ROLE_PRINCIPAL -> {
+
+                Integer collegeId = currentUser.getCollegeId();
+
+                boolean exists =
+                        clubRepository.existsByCollegeId(collegeId);
+
+                if (!exists) {
+                    throw new AccessDeniedException("Invalid college access!");
+                }
+
+                // optional club filter
+                if (clubId != null) {
+
+                    boolean validClub = clubRepository.existsByIdAndCollegeId(clubId, collegeId);
+
+                    if (!validClub) {
+                        throw new AccessDeniedException(
+                                "Club does not belong to your college"
+                        );
+                    }
+
+                    eventIds = eventRepository.findApprovedEventIdsByClubAndYear(clubId, year);
+                }
+
+                else {
+                    eventIds = eventRepository.findApprovedEventIdsByCollegeAndYear(collegeId, year);
+                }
+            }
+
+            default -> throw new AccessDeniedException("Unauthorized");
         }
 
         // =========================
@@ -725,10 +705,8 @@ public class AnalyticsServiceImpl implements AnalyticsService {
     }
 
     private void validateHOD(Integer profileId) {
-        // combine exists and active check in one query if possible,
-        // otherwise this is fine.
-        if (!staffRepository.checkIfActiveHOD(profileId)) {
-            throw new RuntimeException("HOD profile not found or inactive!");
+        if (!staffRepository.existsByIdAndIsHodTrue(profileId)) {
+            throw new AccessDeniedException("You are not Head Of Department!");
         }
     }
 

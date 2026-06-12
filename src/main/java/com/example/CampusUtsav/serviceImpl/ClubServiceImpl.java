@@ -20,6 +20,8 @@ import com.example.CampusUtsav.security.model.CustomUserDetails;
 import com.example.CampusUtsav.service.ClubService;
 import com.example.CampusUtsav.service.NotificationService;
 import com.example.CampusUtsav.service.SupabaseService;
+import com.example.CampusUtsav.serviceImpl.helper.EntityLookupService;
+import com.example.CampusUtsav.serviceImpl.helper.ValidationHelperService;
 import com.example.CampusUtsav.utils.ClubUtils;
 import com.example.CampusUtsav.utils.NotificationUtils;
 import jakarta.persistence.EntityNotFoundException;
@@ -50,20 +52,20 @@ public class ClubServiceImpl implements ClubService {
     private final BranchRepository branchRepository;
     private final NotificationService notificationService;
     private final NotificationUtils notificationUtils;
+    private final EntityLookupService entityLookupService;
+    private final ValidationHelperService validationHelperService;
 
     @Override
     @Transactional
     public String registerClub(ClubRegistrationRequest request, Integer collegeId, MultipartFile logoFile) {
 //      Find the college from DB
-        College linkedCollege = collegeRepository.findById(collegeId)
-                                .orElseThrow(()-> new EntityNotFoundException("College Not Found!"));
+        College linkedCollege = entityLookupService.getCollege(collegeId);
 
         Branch linkedBranch;
 
         if(request.getBranchId() != null)
         {
-            linkedBranch = branchRepository.findById(request.getBranchId())
-                    .orElseThrow(() -> new RuntimeException("Branch not found!"));
+            linkedBranch = entityLookupService.getBranch(request.getBranchId());
 
             boolean branchExistsInCollege = linkedCollege.getBranches().stream()
                     .anyMatch(branch -> branch.getId().equals(linkedBranch.getId()));
@@ -127,8 +129,7 @@ public class ClubServiceImpl implements ClubService {
     @Override
     public List<ClubSummary> getAllClubsForPrincipal(CustomUserDetails currentPrincipal){
         Integer collegeId = currentPrincipal.getCollegeId();
-        College curCollege = collegeRepository.findById(collegeId)
-                .orElseThrow(()-> new RuntimeException("College not found!"));
+        College curCollege = entityLookupService.getCollege(collegeId);
 
         List<Club> clubs = clubRepository.findByCollege(curCollege);
 
@@ -141,8 +142,7 @@ public class ClubServiceImpl implements ClubService {
 
     @Override
     public List<ClubSummary> getAllClubsByCollege(Integer collegeId){
-        College linkedCollege = collegeRepository.findById(collegeId)
-                .orElseThrow(()-> new EntityNotFoundException("College Not Found!"));
+        College linkedCollege = entityLookupService.getCollege(collegeId);
 
         List<Club> clubs = clubRepository.findByCollegeAndStatus(linkedCollege, AccountStatus.ACTIVE);
 
@@ -157,15 +157,9 @@ public class ClubServiceImpl implements ClubService {
 
     @Override
     public ClubResponse getClubDetailsByClubId(Integer collegeId, Integer clubId){
-        Club club = clubRepository.findById(clubId)
-                .orElseThrow(()-> new EntityNotFoundException("Club Not Found!"));
+        Club club = entityLookupService.getClub(clubId);
 
-        if (!Objects.equals(club.getCollege().getId(), collegeId)) {
-            throw new ResponseStatusException(
-                    HttpStatus.FORBIDDEN,
-                    "You are not allowed to access this club as it does not belong to your college."
-            );
-        }
+        validationHelperService.validateClubBelongsToSpecifiedCollege(club, collegeId);
 
         return clubMapper.convertToClubResponse(club);
     }
@@ -184,12 +178,9 @@ public class ClubServiceImpl implements ClubService {
             throw new IllegalArgumentException("Status cannot be empty");
         }
 
-        Club curClub = clubRepository.findById(clubId)
-                .orElseThrow(() -> new EntityNotFoundException("Club not found with ID: " + clubId));
+        Club curClub = entityLookupService.getClub(clubId);
 
-        if (!curClub.getCollege().getId().equals(currentPrincipal.getCollegeId())) {
-            throw new AccessDeniedException("Access Denied: You can manage clubs of your college only!");
-        }
+        validationHelperService.validateClubBelongsToSpecifiedCollege(curClub, currentPrincipal.getCollegeId());
 
         AccountStatus targetStatus;
         try {
@@ -230,8 +221,7 @@ public class ClubServiceImpl implements ClubService {
         Role userRole = currentUser.getUser().getRole();
 
         if (userRole == Role.ROLE_CLUB) {
-            Club curClub = clubRepository.findById(currentUser.getProfileId())
-                    .orElseThrow(() -> new RuntimeException("Club profile not found!"));
+            Club curClub = entityLookupService.getClub(currentUser.getProfileId());
 
             return clubMapper.convertToClubResponse(curClub);
         }

@@ -13,6 +13,8 @@ import com.example.CampusUtsav.repository.*;
 import com.example.CampusUtsav.security.model.CustomUserDetails;
 import com.example.CampusUtsav.service.EventLogService;
 import com.example.CampusUtsav.service.NotificationService;
+import com.example.CampusUtsav.serviceImpl.helper.EntityLookupService;
+import com.example.CampusUtsav.serviceImpl.helper.ValidationHelperService;
 import com.example.CampusUtsav.utils.EventUtils;
 import com.example.CampusUtsav.utils.NotificationUtils;
 import lombok.AllArgsConstructor;
@@ -39,6 +41,8 @@ public class EventLogServiceImpl implements EventLogService {
     private final NotificationService notificationService;
     private final NotificationUtils notificationUtils;
     private final EventUtils eventUtils;
+    private final EntityLookupService entityLookupService;
+    private final ValidationHelperService validationHelperService;
 
 
     @Override
@@ -50,13 +54,10 @@ public class EventLogServiceImpl implements EventLogService {
 
         switch(userRole) {
             case ROLE_FACULTY:
-                Staff curFaculty = staffRepository.findByEmail(userEmail)
-                        .orElseThrow(() -> new RuntimeException("Faculty profile not found!"));
+                Staff curFaculty = entityLookupService.getStaff(userEmail);
 
                 // Security check: Only if they are actually a coordinator
-                if (!curFaculty.isClubCoordinator()) {
-                    throw new AccessDeniedException("Error: You are not assigned as a Coordinator for any Club.");
-                }
+                validationHelperService.validateIsClubCoordinator(curFaculty);
 
                 pendingEvents = eventRepository.findAllByClub_Coordinator_EmailAndStatusAndPendingApprovalAt(
                         userEmail,
@@ -66,12 +67,9 @@ public class EventLogServiceImpl implements EventLogService {
                 break;
 
             case ROLE_HOD:
-                Staff curStaff = staffRepository.findByEmail(userEmail)
-                        .orElseThrow(() -> new RuntimeException("HOD profile not found!"));
+                Staff curStaff = entityLookupService.getStaff(userEmail);
 
-                if (!curStaff.isHod()) {
-                    throw new AccessDeniedException("Unauthorized: You do not have HOD privileges.");
-                }
+                validationHelperService.validateIsHod(curStaff);
 
                 if (curStaff.getBranch() == null) {
                     throw new RuntimeException("Error: No branch assigned to this HOD profile.");
@@ -113,8 +111,7 @@ public class EventLogServiceImpl implements EventLogService {
         Role userRole = currentUser.getUser().getRole();
         String userEmail = currentUser.getUser().getEmail();
 
-        Event currentEvent = eventRepository.findById(eventId)
-                .orElseThrow(()-> new RuntimeException("Event not found!"));
+        Event currentEvent = entityLookupService.getEvent(eventId);
         Club linkedClub = currentEvent.getClub();
         EventLog eventLog;
         EventLog existingLog = eventLogRepository.findFirstByEventOrderByIdDesc(currentEvent)
@@ -126,16 +123,11 @@ public class EventLogServiceImpl implements EventLogService {
 
         switch(userRole){
             case ROLE_FACULTY:
-                Staff curFaculty = staffRepository.findByEmail(userEmail)
-                        .orElseThrow(()-> new RuntimeException("Faculty not found!"));
+                Staff curFaculty = entityLookupService.getStaff(userEmail);
 
-                if(!curFaculty.isClubCoordinator()){
-                    throw new AccessDeniedException("Unauthorized: You are not a Faculty Coordinator of any CLUB/STUDENT CHAPTER!");
-                }
+                validationHelperService.validateIsClubCoordinator(curFaculty);
 
-                if(curFaculty.getManagedClub() == null || !Objects.equals(linkedClub.getId(), curFaculty.getManagedClub().getId())){
-                    throw new AccessDeniedException("Unauthorized: You are not the faculty coordinator of :" + linkedClub.getName());
-                }
+                validationHelperService.validateIsClubCoordinatorOfSpecifiedClub(curFaculty, linkedClub.getId());
 
                 if(linkedClub.getBranch() == null)
                     forwardedTo = Role.ROLE_PRINCIPAL;
@@ -200,16 +192,11 @@ public class EventLogServiceImpl implements EventLogService {
                 else return "Event approved and successfully forwarded to the Head of Department for further review.";
 
             case ROLE_HOD:
-                Staff curHod = staffRepository.findByEmail(userEmail)
-                        .orElseThrow(()-> new RuntimeException("HOD not found!"));
+                Staff curHod = entityLookupService.getStaff(userEmail);
 
-                if(!curHod.isHod()){
-                    throw new AccessDeniedException("Unauthorized: You are not a Head of Department!");
-                }
+                validationHelperService.validateIsHod(curHod);
 
-                if(curHod.getBranch() == null || !Objects.equals(linkedClub.getBranch().getId(), curHod.getBranch().getId())){
-                    throw new AccessDeniedException("Unauthorized: You are not the Head of Department of :" + linkedClub.getBranch().getName());
-                }
+                validationHelperService.validateIsHodOfSpecifiedBranch(curHod, linkedClub.getBranch().getId());
 
                 currentEvent.setStatus(EventStatus.HOD_APPROVED);
                 currentEvent.setPendingApprovalAt(Role.ROLE_PRINCIPAL);
@@ -264,12 +251,9 @@ public class EventLogServiceImpl implements EventLogService {
                 return "Departmental clearance granted. Forwarded to the Principal for final approval.";
 
             case ROLE_PRINCIPAL:
-                College curPrincipal = collegeRepository.findByEmail(userEmail)
-                        .orElseThrow(()-> new RuntimeException("College profile not found!"));
+                College curPrincipal = entityLookupService.getCollege(userEmail);
 
-                if(!Objects.equals(linkedClub.getCollege().getId(), currentUser.getCollegeId())){
-                    throw new AccessDeniedException("Security Alert: Unauthorized access. You cannot approve events from another college.");
-                }
+                validationHelperService.validateClubBelongsToSpecifiedCollege(linkedClub, currentUser.getCollegeId());
 
                 if(linkedClub.getBranch() == null)
                     fromStatus = EventStatus.FACULTY1_APPROVED;
@@ -323,8 +307,7 @@ public class EventLogServiceImpl implements EventLogService {
         Role userRole = currentUser.getUser().getRole();
         String userEmail = currentUser.getUser().getEmail();
 
-        Event currentEvent = eventRepository.findById(eventId)
-                .orElseThrow(() -> new RuntimeException("Event not found!"));
+        Event currentEvent = entityLookupService.getEvent(eventId);
         Club linkedClub = currentEvent.getClub();
         EventLog eventLog;
         EventLog existingLog = eventLogRepository.findFirstByEventOrderByIdDesc(currentEvent)
@@ -335,16 +318,11 @@ public class EventLogServiceImpl implements EventLogService {
 
         switch (userRole) {
             case ROLE_FACULTY:
-                Staff curFaculty = staffRepository.findByEmail(userEmail)
-                        .orElseThrow(() -> new RuntimeException("Faculty not found!"));
+                Staff curFaculty = entityLookupService.getStaff(userEmail);
 
-                if (!curFaculty.isClubCoordinator()) {
-                    throw new AccessDeniedException("Unauthorized: You are not a Faculty Coordinator of any CLUB/STUDENT CHAPTER!");
-                }
+                validationHelperService.validateIsClubCoordinator(curFaculty);
 
-                if (curFaculty.getManagedClub() == null || !Objects.equals(linkedClub.getId(), curFaculty.getManagedClub().getId())) {
-                    throw new AccessDeniedException("Unauthorized: You are not the faculty coordinator of :" + linkedClub.getName());
-                }
+                validationHelperService.validateIsClubCoordinatorOfSpecifiedClub(curFaculty, linkedClub.getId());
 
                 currentEvent.setStatus(EventStatus.REVERTED);
                 currentEvent.setPendingApprovalAt(Role.ROLE_CLUB);
@@ -372,16 +350,11 @@ public class EventLogServiceImpl implements EventLogService {
                 return "Event successfully reverted back to the " + linkedClub.getName() + " from Faculty Coordinator's desk";
 
             case ROLE_HOD:
-                Staff curHod = staffRepository.findByEmail(userEmail)
-                        .orElseThrow(() -> new RuntimeException("HOD not found!"));
+                Staff curHod = entityLookupService.getStaff(userEmail);
 
-                if (!curHod.isHod()) {
-                    throw new AccessDeniedException("Unauthorized: You are not a Head of Department!");
-                }
+                validationHelperService.validateIsHod(curHod);
 
-                if (curHod.getBranch() == null || !Objects.equals(linkedClub.getBranch().getId(), curHod.getBranch().getId())) {
-                    throw new AccessDeniedException("Unauthorized: You are not the Head of Department of :" + linkedClub.getBranch().getName());
-                }
+                validationHelperService.validateIsHodOfSpecifiedBranch(curHod, linkedClub.getBranch().getId());
 
                 currentEvent.setStatus(EventStatus.REVERTED);
                 currentEvent.setPendingApprovalAt(Role.ROLE_CLUB);
@@ -408,12 +381,9 @@ public class EventLogServiceImpl implements EventLogService {
                 return "Event successfully reverted back to the " + linkedClub.getName() + " from Departmental/HOD desk";
 
             case ROLE_PRINCIPAL:
-                College curPrincipal = collegeRepository.findByEmail(userEmail)
-                        .orElseThrow(() -> new RuntimeException("College profile not found!"));
+                College curPrincipal = entityLookupService.getCollege(userEmail);
 
-                if (!Objects.equals(linkedClub.getCollege().getId(), currentUser.getCollegeId())) {
-                    throw new AccessDeniedException("Security Alert: Unauthorized access. You cannot approve events from another college.");
-                }
+                validationHelperService.validateClubBelongsToSpecifiedCollege(linkedClub, currentUser.getCollegeId());
 
                 if (linkedClub.getBranch() == null)
                     fromStatus = EventStatus.FACULTY1_APPROVED;
@@ -459,12 +429,9 @@ public class EventLogServiceImpl implements EventLogService {
         String userEmailFromClaims = currentUser.getUser().getEmail();
         Integer collegeIdFromClaims = currentUser.getCollegeId();
 
-        Club currentClub = clubRepository.findByAdminEmail(userEmailFromClaims)
-                .orElseThrow(()-> new RuntimeException("Club not found!"));
+        Club currentClub = entityLookupService.getClub(userEmailFromClaims);
 
-        if (!Objects.equals(collegeIdFromClaims, currentClub.getCollege().getId())) {
-            throw new AccessDeniedException("Security Alert: You do not have permission to manage events outside of your assigned college.");
-        }
+        validationHelperService.validateClubBelongsToSpecifiedCollege(currentClub, collegeIdFromClaims);
 
         List<Event> revertedEventsList = eventRepository.findAllByStatusAndPendingApprovalAtAndClub(
                 EventStatus.REVERTED,
@@ -490,36 +457,28 @@ public class EventLogServiceImpl implements EventLogService {
 
     @Override
     public List<EventLogResponse> getAllLogsByEventId(Integer eventId, CustomUserDetails currentUser) throws AccessDeniedException {
-        Event curEvent = eventRepository.findById(eventId)
-                .orElseThrow(() -> new RuntimeException("Event not found!"));
+        Event curEvent = entityLookupService.getEvent(eventId);
 
-        if (!Objects.equals(curEvent.getClub().getCollege().getId(), currentUser.getCollegeId())) {
-            throw new AccessDeniedException("Access Denied: You cannot view events from other colleges.");
-        }
+        validationHelperService.validateEventBelongsToSpecifiedCollege(curEvent, currentUser.getCollegeId());
 
         Role userRole = currentUser.getUser().getRole();
 
-        if (userRole == Role.ROLE_FACULTY) {
-            if (!Objects.equals(currentUser.getProfileId(), curEvent.getClub().getCoordinator().getId())) {
-                throw new AccessDeniedException("Access Denied: You are not the coordinator for " + curEvent.getClub().getShortForm());
+        switch (userRole) {
+
+            case ROLE_FACULTY -> {
+                Staff curFaculty = entityLookupService.getStaff(currentUser.getProfileId());
+                validationHelperService.validateIsClubCoordinatorOfSpecifiedClub(curFaculty, curEvent.getClub().getId());
             }
-        }
 
-        if (userRole == Role.ROLE_HOD) {
-            Staff curStaff = staffRepository.findById(currentUser.getProfileId())
-                    .orElseThrow(() -> new RuntimeException("Staff profile not found"));
+            case ROLE_HOD -> {
+                Staff curStaff = entityLookupService.getStaff(currentUser.getProfileId());
 
-            if (!curStaff.isHod()) throw new AccessDeniedException("Unauthorized: You do not have HOD privileges.");
-
-            if (curEvent.getClub().getBranch() == null ||
-                    !Objects.equals(curStaff.getBranch().getId(), curEvent.getClub().getBranch().getId())) {
-                throw new AccessDeniedException("Access Denied: This club is outside your department's jurisdiction.");
+                validationHelperService.validateIsHod(curStaff);
+                validationHelperService.validateIsHodOfSpecifiedBranch(curStaff, curEvent.getClub().getBranch().getId());
             }
-        }
 
-        if (userRole == Role.ROLE_CLUB) {
-            if (!Objects.equals(currentUser.getProfileId(), curEvent.getClub().getId())) {
-                throw new AccessDeniedException("Access Denied: You can only view logs for your own events.");
+            case ROLE_CLUB -> {
+                validationHelperService.validateEventBelongsToClub(curEvent, currentUser.getProfileId());
             }
         }
 

@@ -12,6 +12,8 @@ import com.example.CampusUtsav.repository.*;
 import com.example.CampusUtsav.security.model.CustomUserDetails;
 import com.example.CampusUtsav.service.NotificationService;
 import com.example.CampusUtsav.service.StaffService;
+import com.example.CampusUtsav.serviceImpl.helper.EntityLookupService;
+import com.example.CampusUtsav.serviceImpl.helper.ValidationHelperService;
 import com.example.CampusUtsav.utils.NotificationUtils;
 import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
@@ -37,13 +39,14 @@ public class StaffServiceImpl implements StaffService {
     private final ClubRepository clubRepository;
     private final NotificationService notificationService;
     private final NotificationUtils notificationUtils;
+    private final EntityLookupService entityLookupService;
+    private final ValidationHelperService validationHelperService;
 
     @Override
     @Transactional
     public String registerStaff(StaffRegistrationRequest req) {
 
-        College linkedCollege = collegeRepository.findById(req.getCollegeId())
-                .orElseThrow(() -> new RuntimeException("College not found!"));
+        College linkedCollege = entityLookupService.getCollege(req.getCollegeId());
 
         // ----- CHECK FOR DUPLICATE EMAIL ----- //
         if (staffRepository.existsByEmail(req.getEmail())) {
@@ -56,8 +59,7 @@ public class StaffServiceImpl implements StaffService {
             throw new DuplicateResourceException("Employee Id already exists, please sign in!");
         }
 
-        Branch linkedBranch = branchRepository.findById(req.getBranchId())
-                .orElseThrow(() -> new RuntimeException("Branch not found!"));
+        Branch linkedBranch = entityLookupService.getBranch(req.getBranchId());
 
         Staff newStaff = staffMapper.toStaffEntity(req, linkedBranch, linkedCollege);
         String encodedPassword = passwordEncoder.encode(req.getPassword());
@@ -96,13 +98,9 @@ public class StaffServiceImpl implements StaffService {
     @Override
     @Transactional
     public void updateStaffAccountStatus(Integer staffId, String newStatus, Integer collegeId) {
-        Staff staff = staffRepository.findById(staffId)
-                .orElseThrow(() -> new RuntimeException("Staff member not found!"));
+        Staff staff = entityLookupService.getStaff(staffId);
 
-        // SECURITY CHECK --> Check if the dean is managing their college's staff only! //
-        if (!staff.getCollege().getId().equals(collegeId)) {
-            throw new RuntimeException("Unauthorized : You cannot manage staff from other colleges!");
-        }
+        validationHelperService.validateStaffBelongsToSpecifiedCollege(staff, collegeId);
 
         if (!"ACTIVE".equalsIgnoreCase(newStatus)) {
             if (staff.isHod()) {
@@ -147,8 +145,7 @@ public class StaffServiceImpl implements StaffService {
     @Override
     @Transactional
     public void updateStaffRole(Integer staffId, String newRole, Integer collegeId){
-        Staff staff = staffRepository.findById(staffId)
-                .orElseThrow(()-> new RuntimeException("Staff member not found!"));
+        Staff staff = entityLookupService.getStaff(staffId);
 
         if (staff.getStatus() == null || !staff.getStatus().name().equalsIgnoreCase("ACTIVE")) {
             String currentStatus = staff.getStatus() != null ? staff.getStatus().name() : "DEACTIVATED";
@@ -156,9 +153,7 @@ public class StaffServiceImpl implements StaffService {
                     ". Please ACTIVATE the account before assigning new responsibilities.");
         }
 
-        if(!staff.getCollege().getId().equals(collegeId)){
-            throw new RuntimeException("Unauthorized : You cannot manage staff from other colleges!");
-        }
+        validationHelperService.validateStaffBelongsToSpecifiedCollege(staff, collegeId);
 
         if (staff.isHod() && !"ROLE_HOD".equalsIgnoreCase(newRole)) {
             Integer hodCount = staffRepository.countByBranchIdAndCollegeIdAndIsHodTrue(staff.getBranch().getId(), collegeId);
@@ -222,8 +217,7 @@ public class StaffServiceImpl implements StaffService {
     public void updateStaffClubAssignment(Integer staffId, Integer clubId, Integer collegeId) {
         if (staffId == null) throw new RuntimeException("Invalid Staff ID!");
 
-        Staff staff = staffRepository.findById(staffId)
-                .orElseThrow(() -> new RuntimeException("Staff member not found!"));
+        Staff staff = entityLookupService.getStaff(staffId);
 
         if (staff.getStatus() == null || !staff.getStatus().name().equalsIgnoreCase("ACTIVE")) {
             String currentStatus = staff.getStatus() != null ? staff.getStatus().name() : "DEACTIVATED";
@@ -231,18 +225,13 @@ public class StaffServiceImpl implements StaffService {
                     ". Please ACTIVATE the account before assigning new responsibilities.");
         }
 
-        if (!staff.getCollege().getId().equals(collegeId)) {
-            throw new RuntimeException("Unauthorized Access!");
-        }
+        validationHelperService.validateStaffBelongsToSpecifiedCollege(staff, collegeId);
 
         if (clubId != null) {
             // --- CASE: ASSIGNING OR SWAPPING ---
-            Club club = clubRepository.findById(clubId)
-                    .orElseThrow(() -> new RuntimeException("Club not found!"));
+            Club club = entityLookupService.getClub(clubId);
 
-            if (!club.getCollege().getId().equals(collegeId)) {
-                throw new RuntimeException("Access Denied: Club belongs to another college!");
-            }
+            validationHelperService.validateClubBelongsToSpecifiedCollege(club, collegeId);
 
             // Auto-swap logic
             staffRepository.findByManagedClubIdAndCollegeId(clubId, collegeId)
@@ -310,8 +299,7 @@ public class StaffServiceImpl implements StaffService {
         Role userRole = currentUser.getUser().getRole();
 
         if (userRole == Role.ROLE_FACULTY || userRole == Role.ROLE_HOD) {
-            Staff curStaff = staffRepository.findById(currentUser.getProfileId())
-                    .orElseThrow(() -> new RuntimeException("Staff profile not found!"));
+            Staff curStaff = entityLookupService.getStaff(currentUser.getProfileId());
 
             return staffMapper.toStaffResponse(curStaff);
         }
