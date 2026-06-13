@@ -266,7 +266,7 @@ export const CollegeDashboardLayout = () => {
         className={`flex-1 flex flex-col min-w-0 transition-all duration-300 ${isCollapsed ? "lg:pl-20" : "lg:pl-[280px]"}`}
       >
         {/* Top Navbar */}
-        <header className="sticky top-0 z-10 h-20 bg-white/80 backdrop-blur-md border-b border-slate-200/60 px-4 lg:px-8 flex items-center justify-between">
+        <header className="sticky top-0 z-30 h-20 bg-white/80 backdrop-blur-md border-b border-slate-200/60 px-4 lg:px-8 flex items-center justify-between">
           <div className="flex items-center gap-4">
             <Button
               variant="ghost"

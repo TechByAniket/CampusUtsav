@@ -141,6 +141,12 @@ export const AdminEventDetailsPage = () => {
   // ── Data Prep ──
   const sc = getStatusConfig(event.status);
 
+  const today = new Date();
+  const todayDateOnly = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+  const eventEnd = new Date(event.endDate);
+  const endDateOnly = new Date(eventEnd.getFullYear(), eventEnd.getMonth(), eventEnd.getDate());
+  const shouldShowKPIs = todayDateOnly >= endDateOnly;
+
   return (
     <div data-admin-event-details className="w-full min-h-screen font-sans text-slate-900 selection:bg-indigo-100 selection:text-indigo-900 rounded-[15px]">
 
@@ -157,7 +163,9 @@ export const AdminEventDetailsPage = () => {
           <div className="lg:col-span-8 space-y-7">
 
             {/* KPI Analytics Row */}
-            <AdminEventDetailKPIs event={event} showAnalytics={showAnalytics} analytics={analytics} />
+            {shouldShowKPIs && (
+              <AdminEventDetailKPIs event={event} showAnalytics={showAnalytics} analytics={analytics} />
+            )}
 
             {/* Admin Control Center — Mobile Only */}
             <div className="block lg:hidden">
