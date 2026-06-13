@@ -1,5 +1,6 @@
 import React from 'react';
 import { Sparkles, MapPin, Layers, ChevronDown, Tag, FileText, ChevronRight } from 'lucide-react';
+import { motion } from 'framer-motion';
 import { CompactInput, CompactTextarea } from './FormHelpers';
 import { type FormDataState } from './types';
 
@@ -96,13 +97,15 @@ export const Step1Details: React.FC<Step1DetailsProps> = ({
       </div>
 
       <div className="flex justify-end pt-4">
-        <button 
+        <motion.button 
           type="button" 
+          whileHover={{ scale: 1.01 }}
+          whileTap={{ scale: 0.98 }}
           onClick={() => validateStep1() && setStep(2)} 
           className="w-44 h-[46px] bg-orange-500 hover:bg-orange-600 disabled:bg-orange-300 text-white font-bold text-sm rounded-xl shadow-lg shadow-orange-200/50 hover:shadow-xl hover:shadow-orange-200/60 transition-all flex items-center justify-center gap-2 disabled:cursor-not-allowed disabled:shadow-none shrink-0"
         >
           Continue <ChevronRight size={14}/>
-        </button>
+        </motion.button>
       </div>
     </div>
   );

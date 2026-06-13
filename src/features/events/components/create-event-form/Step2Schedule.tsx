@@ -1,5 +1,6 @@
 import React from 'react';
 import { Calendar, Clock, Users, ChevronRight } from 'lucide-react';
+import { motion } from 'framer-motion';
 import { CompactInput, SelectionGroup } from './FormHelpers';
 import { type FormDataState } from './types';
 
@@ -71,7 +72,7 @@ export const Step2Schedule: React.FC<Step2ScheduleProps> = ({
           </div>
         </div>
         {formData.startDate && formData.endDate && formData.startDate > formData.endDate && (
-          <p className="text-rose-500 text-[10px] font-semibold uppercase mt-1">
+          <p className="text-rose-500 text-[10px] font-semibold tracking-wide mt-1">
             End date cannot be before start date
           </p>
         )}
@@ -98,9 +99,9 @@ export const Step2Schedule: React.FC<Step2ScheduleProps> = ({
              <div className="w-8 h-8 rounded-xl bg-orange-50 flex items-center justify-center text-orange-500">
                <Users size={14} />
              </div>
-             <div>
-                <h4 className="text-[11px] font-semibold text-slate-700 uppercase tracking-wider">Team Event</h4>
-             </div>
+              <div>
+                 <h4 className="text-[11px] font-semibold text-slate-700 tracking-wider">Team Event</h4>
+              </div>
           </div>
           <label className="relative flex items-center cursor-pointer select-none">
             <input 
@@ -138,7 +139,7 @@ export const Step2Schedule: React.FC<Step2ScheduleProps> = ({
               </div>
             </div>
             {formData.minTeamSize > formData.maxTeamSize && (
-              <p className="text-rose-500 text-[10px] font-semibold uppercase mt-1.5 ml-1">
+              <p className="text-rose-500 text-[10px] font-semibold tracking-wide mt-1.5 ml-1">
                 Minimum team size cannot be greater than maximum team size
               </p>
             )}
@@ -147,21 +148,25 @@ export const Step2Schedule: React.FC<Step2ScheduleProps> = ({
       </div>
 
       <div className="flex justify-between items-center gap-4 pt-4">
-        <button 
+        <motion.button 
           type="button" 
+          whileHover={{ scale: 1.01 }}
+          whileTap={{ scale: 0.98 }}
           onClick={() => setStep(1)} 
           className="w-32 h-[46px] border border-orange-200 text-orange-600 hover:bg-orange-50/50 rounded-xl text-sm font-semibold transition-all flex items-center justify-center gap-2 shrink-0"
         >
           Back
-        </button>
-        <button 
+        </motion.button>
+        <motion.button 
           type="button" 
+          whileHover={{ scale: 1.01 }}
+          whileTap={{ scale: 0.98 }}
           disabled={!!((formData.teamEvent && formData.minTeamSize > formData.maxTeamSize) || (formData.startDate && formData.endDate && formData.startDate > formData.endDate))}
           onClick={() => validateStep2() && setStep(3)} 
           className="w-44 h-[46px] bg-orange-500 hover:bg-orange-600 disabled:bg-orange-300 text-white font-bold text-sm rounded-xl shadow-lg shadow-orange-200/50 hover:shadow-xl hover:shadow-orange-200/60 transition-all flex items-center justify-center gap-2 disabled:cursor-not-allowed disabled:shadow-none shrink-0"
         >
           Continue <ChevronRight size={14}/>
-        </button>
+        </motion.button>
       </div>
     </div>
   );

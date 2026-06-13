@@ -1,5 +1,6 @@
 import React from 'react';
 import { Globe, Lock, Plus, Phone, User, Mail, Trash2, Upload } from 'lucide-react';
+import { motion } from 'framer-motion';
 import { AttachmentList } from './FormHelpers';
 import { type FormDataState } from './types';
 import type { AdminEventDetail } from '@/types/event';
@@ -61,7 +62,7 @@ export const Step3Uploads: React.FC<Step3UploadsProps> = ({
           <div className="flex justify-between items-center px-1">
             <div className="flex items-center gap-2">
               <Phone className="text-orange-500" size={16}/>
-              <h4 className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Contact Details</h4>
+              <h4 className="text-[11px] font-semibold text-slate-500 tracking-wider">Contact Details</h4>
             </div>
             <button 
               type="button" 
@@ -136,8 +137,8 @@ export const Step3Uploads: React.FC<Step3UploadsProps> = ({
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center bg-slate-50/50 p-6 rounded-2xl border border-slate-100">
         <div className="space-y-1">
-          <h4 className="text-[11px] font-semibold text-slate-500 uppercase ml-0.5">Event Poster</h4>
-          <p className="text-[10px] font-medium text-slate-400 uppercase italic">Max size: 5MB.</p>
+          <h4 className="text-[11px] font-semibold text-slate-500 ml-0.5">Event Poster</h4>
+          <p className="text-[10px] font-medium text-slate-400 italic">Max size: 5MB.</p>
           {initialData && !formData.poster && <p className="text-[10px] text-orange-600 font-semibold mt-1">Using Existing Poster</p>}
         </div>
         <label className="relative h-44 bg-white border-2 border-dashed border-orange-200/60 rounded-2xl flex flex-col items-center justify-center cursor-pointer hover:border-orange-400 transition-all overflow-hidden group">
@@ -161,20 +162,24 @@ export const Step3Uploads: React.FC<Step3UploadsProps> = ({
       </div>
 
       <div className="flex justify-between items-center gap-4 pt-4">
-        <button 
+        <motion.button 
           type="button" 
+          whileHover={{ scale: 1.01 }}
+          whileTap={{ scale: 0.98 }}
           onClick={() => setStep(2)} 
           className="w-32 h-[46px] border border-orange-200 text-orange-600 hover:bg-orange-50/50 rounded-xl text-sm font-semibold transition-all flex items-center justify-center gap-2 shrink-0"
         >
           Back
-        </button>
-        <button 
+        </motion.button>
+        <motion.button 
           type="submit" 
+          whileHover={{ scale: 1.01 }}
+          whileTap={{ scale: 0.98 }}
           disabled={!!((formData.teamEvent && formData.minTeamSize > formData.maxTeamSize) || (formData.startDate && formData.endDate && formData.startDate > formData.endDate))} 
           className="w-44 h-[46px] bg-orange-500 hover:bg-orange-600 disabled:bg-orange-300 text-white font-bold text-sm rounded-xl shadow-lg shadow-orange-200/50 hover:shadow-xl hover:shadow-orange-200/60 transition-all flex justify-center items-center gap-2 disabled:cursor-not-allowed disabled:shadow-none shrink-0"
         >
           Submit
-        </button>
+        </motion.button>
       </div>
     </div>
   );

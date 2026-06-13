@@ -151,13 +151,14 @@ export const ClubEvents = () => {
           {isCreateModalOpen && (
             <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-md overflow-y-auto no-scrollbar font-sans">
               <motion.div
-                initial={{ scale: 0.95, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                exit={{ scale: 0.95, opacity: 0 }}
+                initial={{ opacity: 0, y: 24, scale: 0.97 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: 24, scale: 0.97 }}
+                transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
                 className="w-full max-w-2xl bg-white rounded-[2rem] shadow-[0_24px_80px_-12px_rgba(234,88,12,0.12)] border border-orange-100/40 relative overflow-hidden my-auto"
               >
                 <div className="p-6 border-b border-orange-100/30 flex items-center justify-between bg-orange-50/20">
-                  <h3 className="text-sm font-extrabold uppercase tracking-wider text-slate-900">Create New Event</h3>
+                  <h3 className="text-sm font-extrabold tracking-wider text-slate-900">Create New Event</h3>
                   <button onClick={() => setIsCreateModalOpen(false)} className="p-2 text-slate-400 hover:text-orange-500 hover:bg-orange-50 rounded-xl transition-all">
                     <X size={20} />
                   </button>

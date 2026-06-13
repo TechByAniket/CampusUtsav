@@ -3,7 +3,7 @@ import { Plus, Trash2 } from 'lucide-react';
 import { type Attachment } from './types';
 
 export const SectionHeader = ({ label }: { label: string }) => (
-  <h3 className="text-[11px] font-bold uppercase tracking-wider text-slate-500 flex items-center gap-2 mb-3">
+  <h3 className="text-[11px] font-bold tracking-wider text-slate-500 flex items-center gap-2 mb-3">
     <div className="w-2 h-2 bg-orange-500 rounded-full" /> {label}
   </h3>
 );
@@ -128,7 +128,7 @@ export const AttachmentList = ({
     <div className="flex justify-between items-center px-1">
       <div className="flex items-center gap-2">
         <div className="text-orange-500">{icon}</div>
-        <h4 className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">{title}</h4>
+        <h4 className="text-[11px] font-semibold text-slate-500 tracking-wider">{title}</h4>
       </div>
       <button
         type="button"

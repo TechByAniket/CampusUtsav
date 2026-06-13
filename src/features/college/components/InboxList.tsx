@@ -1,12 +1,9 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import {
-  Search, X, Calendar, Clock, MapPin,
-  CheckCircle2, RotateCcw, Tag, Layers,
-  AlertCircle, Image as ImageIcon, Send, Edit3, Globe, Lock, Phone,
-  ArrowRight, Filter, MessageSquare, History,
-  ChevronRight, Info, LayoutDashboard,
-  Hash, ShieldAlert, CheckCircle
+  Search, X, Calendar, Clock, MapPin, Tag,
+  AlertCircle, Image as ImageIcon, Edit3,
+  ChevronRight, ShieldAlert, CheckCircle, RotateCcw
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -19,8 +16,7 @@ import {
   getRevertedEventsByClub,
   getEventDetailsByEventId
 } from '@/services/eventService';
-import { OnePageCreateEventForm } from '@/features/events/components/CreateEventForm';
-import { Button } from '@/components/ui/button';
+import { ResubmitModal } from '@/features/clubs/components/events/ResubmitModal';
 
 interface Event {
   id: number;
@@ -289,24 +285,20 @@ export const InboxList = ({ mode = 'COLLEGE' }) => {
               </table>
             )}
           </div>
-        </div>
-
-      {/* --- CAPSULE-LITE REVIEW MODAL --- */}
+        </div>      {/* --- CAPSULE-LITE REVIEW MODAL --- */}
       {createPortal(
         <AnimatePresence>
-          {selectedEvent && (
+          {selectedEvent && !isResubmitting && (
             <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm overflow-y-auto no-scrollbar">
               <motion.div
                 initial={{ scale: 0.95, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
                 exit={{ scale: 0.95, opacity: 0 }}
                 className={`w-full ${
-                  isResubmitting 
-                    ? 'max-w-2xl rounded-[2rem] border-orange-100/40 shadow-[0_24px_80px_-12px_rgba(234,88,12,0.12)]' 
-                    : (mode !== 'CLUB' ? 'max-w-md p-8 rounded-[2.5rem] border-slate-200 shadow-2xl' : 'max-w-lg rounded-[2.5rem] border-slate-200 shadow-2xl')
+                  mode !== 'CLUB' ? 'max-w-md p-8 rounded-[2.5rem] border-slate-200 shadow-2xl' : 'max-w-lg rounded-[2.5rem] border-slate-200 shadow-2xl'
                 } bg-white relative overflow-hidden border my-auto`}
               >
-                {mode !== 'CLUB' && !isResubmitting ? (
+                {mode !== 'CLUB' ? (
                   <>
                     <div className="flex justify-between items-center mb-6">
                       <h3 className="text-xl font-black text-slate-900 uppercase tracking-tight">Review Decision</h3>
@@ -388,67 +380,59 @@ export const InboxList = ({ mode = 'COLLEGE' }) => {
                 ) : (
                   <>
                     {/* Header: Clean & Compact */}
-                    <div className={`px-8 py-6 border-b ${isResubmitting ? 'border-orange-100/30 bg-orange-50/20' : 'border-slate-50 bg-slate-50/30'} flex items-center gap-5`}>
+                    <div className="px-8 py-6 border-b border-slate-50 bg-slate-50/30 flex items-center gap-5">
                       <div className="w-14 h-14 rounded-2xl overflow-hidden border-2 border-white shadow-sm shrink-0">
                         <img src={selectedEvent.posterUrl} className="w-full h-full object-cover" alt="" />
                       </div>
                       <div className="min-w-0 flex-1">
                         <h3 className="text-base font-extrabold text-slate-900 uppercase truncate leading-tight mb-1">{selectedEvent.title}</h3>
                         <div className="flex items-center gap-2">
-                          <span className={`text-[10px] font-semibold ${isResubmitting ? 'text-orange-600 border-orange-100 bg-white' : 'text-indigo-600 border-indigo-100 bg-white'} border px-2 py-0.5 rounded-lg`}>ID #{selectedEvent.id}</span>
+                          <span className="text-[10px] font-semibold text-indigo-600 border-indigo-100 bg-white border px-2 py-0.5 rounded-lg">ID #{selectedEvent.id}</span>
                           <span className={`text-[10px] font-black uppercase px-2 py-0.5 rounded border ${getStatusStyles(selectedEvent.status)}`}>
                             {selectedEvent.status}
                           </span>
                         </div>
                       </div>
-                      <button onClick={() => { setSelectedEvent(null); setIsResubmitting(false); setActionRemark(""); }} className={`p-2 transition-colors ${isResubmitting ? 'text-slate-400 hover:text-orange-500 hover:bg-orange-50 rounded-xl' : 'text-slate-300 hover:text-slate-600'}`}><X size={20} /></button>
+                      <button onClick={() => { setSelectedEvent(null); setActionRemark(""); }} className="p-2 transition-colors text-slate-300 hover:text-slate-600"><X size={20} /></button>
                     </div>
 
                     <div className="max-h-[70vh] overflow-y-auto">
-                      {isResubmitting ? (
-                        <OnePageCreateEventForm
-                          initialData={selectedEvent as any}
-                          isModal={true}
-                          onClose={() => { setSelectedEvent(null); setIsResubmitting(false); loadEvents(); }}
-                        />
-                      ) : (
-                        <div className="p-10 space-y-10">
-                          {/* KEY DETAILS IN A CAPSULE GRID */}
-                          <div className="grid grid-cols-2 gap-4">
-                            <CapsuleDetail icon={<Calendar size={14} />} label="Date" value={formatEventDate(selectedEvent.startDate, selectedEvent.endDate)} />
-                            <CapsuleDetail icon={<Clock size={14} />} label="Time" value={selectedEvent.startTime?.slice(0, 5)} />
-                            <CapsuleDetail icon={<MapPin size={14} />} label="Venue" value={selectedEvent.venue} />
-                            <CapsuleDetail icon={<Tag size={14} />} label="Category" value={selectedEvent.eventCategory} />
-                          </div>
-
-                          {/* Description Strip */}
-                          <div className="bg-slate-50 p-5 rounded-[1.5rem] border border-slate-100">
-                            <p className="text-[12px] font-bold text-slate-500 leading-relaxed italic">
-                              "{selectedEvent.description}"
-                            </p>
-                          </div>
-
-                          {/* Previous Remarks (If any) */}
-                          {selectedEvent.remarks && (
-                            <div className="p-4 bg-orange-50 border border-orange-100 rounded-[1.5rem] flex gap-3 items-center">
-                              <AlertCircle size={18} className="shrink-0 text-orange-500" />
-                              <div className="min-w-0">
-                                <p className="text-[9px] font-black uppercase text-orange-600 mb-0.5 tracking-widest">Previous Feedback</p>
-                                <p className="text-[12px] font-black text-orange-900 leading-snug">"{selectedEvent.remarks}"</p>
-                              </div>
-                            </div>
-                          )}
-
-                          {mode === 'CLUB' && (
-                            <button
-                              onClick={() => openResubmitForm(selectedEvent.id)}
-                              className="w-full py-5 bg-indigo-600 text-white rounded-[1.5rem] font-black text-[11px] uppercase tracking-widest hover:bg-indigo-700 transition-all shadow-xl shadow-indigo-100"
-                            >
-                              <Edit3 size={18} className="mr-2 inline" /> Start Resubmission Flow
-                            </button>
-                          )}
+                      <div className="p-10 space-y-10">
+                        {/* KEY DETAILS IN A CAPSULE GRID */}
+                        <div className="grid grid-cols-2 gap-4">
+                          <CapsuleDetail icon={<Calendar size={14} />} label="Date" value={formatEventDate(selectedEvent.startDate, selectedEvent.endDate)} />
+                          <CapsuleDetail icon={<Clock size={14} />} label="Time" value={selectedEvent.startTime?.slice(0, 5)} />
+                          <CapsuleDetail icon={<MapPin size={14} />} label="Venue" value={selectedEvent.venue} />
+                          <CapsuleDetail icon={<Tag size={14} />} label="Category" value={selectedEvent.eventCategory} />
                         </div>
-                      )}
+
+                        {/* Description Strip */}
+                        <div className="bg-slate-50 p-5 rounded-[1.5rem] border border-slate-100">
+                          <p className="text-[12px] font-bold text-slate-500 leading-relaxed italic">
+                            "{selectedEvent.description}"
+                          </p>
+                        </div>
+
+                        {/* Previous Remarks (If any) */}
+                        {selectedEvent.remarks && (
+                          <div className="p-4 bg-orange-50 border border-orange-100 rounded-[1.5rem] flex gap-3 items-center">
+                            <AlertCircle size={18} className="shrink-0 text-orange-500" />
+                            <div className="min-w-0">
+                              <p className="text-[9px] font-black uppercase text-orange-600 mb-0.5 tracking-widest">Previous Feedback</p>
+                              <p className="text-[12px] font-black text-orange-900 leading-snug">"{selectedEvent.remarks}"</p>
+                            </div>
+                          </div>
+                        )}
+
+                        {mode === 'CLUB' && (
+                          <button
+                            onClick={() => openResubmitForm(selectedEvent.id)}
+                            className="w-full py-5 bg-indigo-600 text-white rounded-[1.5rem] font-black text-[11px] uppercase tracking-widest hover:bg-indigo-700 transition-all shadow-xl shadow-indigo-100"
+                          >
+                            <Edit3 size={18} className="mr-2 inline" /> Start Resubmission Flow
+                          </button>
+                        )}
+                      </div>
                     </div>
                   </>
                 )}
@@ -458,6 +442,16 @@ export const InboxList = ({ mode = 'COLLEGE' }) => {
         </AnimatePresence>,
         document.body
       )}
+
+      <AnimatePresence>
+        {selectedEvent && isResubmitting && (
+          <ResubmitModal
+            event={selectedEvent as any}
+            onClose={() => { setSelectedEvent(null); setIsResubmitting(false); }}
+            onSuccess={() => { setSelectedEvent(null); setIsResubmitting(false); loadEvents(); }}
+          />
+        )}
+      </AnimatePresence>
     </div>
   );
 };
