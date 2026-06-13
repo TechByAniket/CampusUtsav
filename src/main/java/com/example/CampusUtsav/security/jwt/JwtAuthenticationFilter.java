@@ -25,7 +25,9 @@ import java.io.IOException;
 @Component
 @AllArgsConstructor
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
+
     private static final Logger logger = LoggerFactory.getLogger(JwtAuthenticationFilter.class);
+
     private final JwtUtils jwtUtils;
     private final CustomUserDetailsService customUserDetailsService;
     private final StaffRepository staffRepository;
@@ -36,7 +38,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                                     FilterChain filterChain)
             throws IOException, ServletException {
 
-        //  1. Handle preflight FIRST
+        // ONLY NECESSARY FIX: allow CORS preflight
         if ("OPTIONS".equalsIgnoreCase(request.getMethod())) {
             filterChain.doFilter(request, response);
             return;
@@ -45,10 +47,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         try {
             String authHeader = request.getHeader("Authorization");
 
+            // 1. Tight Validation for Header and Token
             if (authHeader != null && authHeader.startsWith("Bearer ")) {
 
                 String token = authHeader.substring(7);
 
+                // Extra Check: frontend may send "undefined" or "null"
                 if (!token.isEmpty()
                         && !token.equalsIgnoreCase("undefined")
                         && !token.equalsIgnoreCase("null")) {
@@ -56,7 +60,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                     if (jwtUtils.validateJwtToken(token)) {
 
                         String email = jwtUtils.getUsernameFromJwtToken(token);
-                        Integer collegeIdFromToken = jwtUtils.getCollegeIdFromJwtToken(token);
+                        Integer collegeIdFromToken = jwtUtils.getCollegeIdFromToken(token);
                         String role = jwtUtils.getRoleFromJwtToken(token);
                         Integer profileId = jwtUtils.getProfileIdFromJwtToken(token);
 
@@ -71,9 +75,16 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                         }
 
                         CustomUserDetails principal =
-                                new CustomUserDetails(userDetails.getUser(), collegeIdFromToken, status, profileId);
+                                new CustomUserDetails(
+                                        userDetails.getUser(),
+                                        collegeIdFromToken,
+                                        status,
+                                        profileId
+                                );
 
+                        // 3. Only authenticate if enabled
                         if (principal.isEnabled()) {
+
                             UsernamePasswordAuthenticationToken authentication =
                                     new UsernamePasswordAuthenticationToken(
                                             principal,
@@ -82,17 +93,20 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                                     );
 
                             SecurityContextHolder.getContext().setAuthentication(authentication);
+                        } else {
+                            logger.warn("User {} is blocked due to status: {}", email, status);
                         }
                     }
                 }
             }
 
         } catch (Exception e) {
-            logger.error("JWT auth error: {}", e.getMessage());
+            logger.error("Cannot set user authentication: {}", e.getMessage());
         }
 
         filterChain.doFilter(request, response);
     }
+}
 
 //  Intercepts every request
 //  Validates JWT → extracts user
