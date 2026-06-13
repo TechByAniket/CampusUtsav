@@ -100,7 +100,7 @@ const StaffProfileModal = ({
                       value={pendingRoleChanges[faculty.id] || faculty.role}
                       onChange={(e) => setPendingRoleChanges({ ...pendingRoleChanges, [faculty.id]: e.target.value })}
                     >
-                      {availableRoles.map(role => <option key={role} value={role}>{role.replace('ROLE_', '')}</option>)}
+                      {availableRoles.map((role: any) => <option key={role} value={role}>{role.replace('ROLE_', '')}</option>)}
                     </select>
                     <ChevronDown size={12} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-indigo-400 pointer-events-none" />
                   </div>
@@ -124,7 +124,7 @@ const StaffProfileModal = ({
                       onChange={(e) => setPendingClubChanges({ ...pendingClubChanges, [faculty.id]: e.target.value })}
                     >
                       <option value="NONE">NONE</option>
-                      {clubs.map(c => <option key={c.id} value={c.id}>{c.shortForm}</option>)}
+                      {clubs.map((c: any) => <option key={c.id} value={c.id}>{c.shortForm}</option>)}
                     </select>
                     <ChevronDown size={12} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-emerald-400 pointer-events-none" />
                   </div>
@@ -147,7 +147,7 @@ const StaffProfileModal = ({
                       value={pendingStatusChanges[faculty.id] || faculty.status}
                       onChange={(e) => setPendingStatusChanges({ ...pendingStatusChanges, [faculty.id]: e.target.value })}
                     >
-                      {availableStatuses.map(st => <option key={st} value={st}>{st}</option>)}
+                      {availableStatuses.map((st: any) => <option key={st} value={st}>{st}</option>)}
                     </select>
                     <ChevronDown size={12} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-orange-400 pointer-events-none" />
                   </div>
@@ -186,19 +186,19 @@ const StaffProfileModal = ({
 
 export const StaffInfoList = () => {
   const [activeTab, setActiveTab] = useState('ACTIVE');
-  const [facultyList, setFacultyList] = useState([]);
-  const [selectedFaculty, setSelectedFaculty] = useState(null);
+  const [facultyList, setFacultyList] = useState<any[]>([]);
+  const [selectedFaculty, setSelectedFaculty] = useState<any>(null);
   const [searchQuery, setSearchQuery] = useState("");
 
-  const [availableRoles, setAvailableRoles] = useState([]);
-  const [availableStatuses, setAvailableStatuses] = useState([]);
-  const [clubs, setClubs] = useState([]);
+  const [availableRoles, setAvailableRoles] = useState<any[]>([]);
+  const [availableStatuses, setAvailableStatuses] = useState<any[]>([]);
+  const [clubs, setClubs] = useState<any[]>([]);
 
-  const [pendingRoleChanges, setPendingRoleChanges] = useState({});
-  const [pendingStatusChanges, setPendingStatusChanges] = useState({});
-  const [pendingClubChanges, setPendingClubChanges] = useState({});
+  const [pendingRoleChanges, setPendingRoleChanges] = useState<Record<string, any>>({});
+  const [pendingStatusChanges, setPendingStatusChanges] = useState<Record<string, any>>({});
+  const [pendingClubChanges, setPendingClubChanges] = useState<Record<string, any>>({});
 
-  const collegeId = useSelector((state) => state.auth.collegeId);
+  const collegeId = useSelector((state: any) => state.auth.collegeId);
 
   useEffect(() => {
     const getData = async () => {
@@ -224,8 +224,8 @@ export const StaffInfoList = () => {
     const newStatus = pendingStatusChanges[id];
     try {
       await updateStaffStatus(id, newStatus);
-      setFacultyList(prev => prev.map(f => f.id === id ? { ...f, status: newStatus } : f));
-      if (selectedFaculty?.id === id) setSelectedFaculty(prev => ({ ...prev, status: newStatus }));
+      setFacultyList((prev: any[]) => prev.map((f: any) => f.id === id ? { ...f, status: newStatus } : f));
+      if (selectedFaculty?.id === id) setSelectedFaculty((prev: any) => ({ ...prev, status: newStatus }));
       const updated = { ...pendingStatusChanges }; delete updated[id];
       setPendingStatusChanges(updated);
       toast.success("Status Updated!");
@@ -238,8 +238,8 @@ export const StaffInfoList = () => {
     const newRole = pendingRoleChanges[id];
     try {
       await updateStaffRole(id, newRole);
-      setFacultyList(prev => prev.map(f => f.id === id ? { ...f, role: newRole, hod: newRole === 'ROLE_HOD' } : f));
-      if (selectedFaculty?.id === id) setSelectedFaculty(prev => ({ ...prev, role: newRole, hod: newRole === 'ROLE_HOD' }));
+      setFacultyList((prev: any[]) => prev.map((f: any) => f.id === id ? { ...f, role: newRole, hod: newRole === 'ROLE_HOD' } : f));
+      if (selectedFaculty?.id === id) setSelectedFaculty((prev: any) => ({ ...prev, role: newRole, hod: newRole === 'ROLE_HOD' }));
       const updated = { ...pendingRoleChanges }; delete updated[id];
       setPendingRoleChanges(updated);
       toast.success("Role Updated!");
@@ -254,7 +254,7 @@ export const StaffInfoList = () => {
       await updateStaffClubAssignment(id, clubId === "NONE" ? null : clubId);
       const selectedClub = clubs.find(c => c.id === parseInt(clubId));
       
-      setFacultyList(prev => prev.map(f => {
+      setFacultyList((prev: any[]) => prev.map((f: any) => {
         if (f.id === id) {
           return { 
             ...f, 
@@ -266,7 +266,7 @@ export const StaffInfoList = () => {
       }));
 
       if (selectedFaculty?.id === id) {
-        setSelectedFaculty(prev => ({
+        setSelectedFaculty((prev: any) => ({
           ...prev,
           clubCoordinator: clubId !== "NONE",
           managedClubDetails: clubId === "NONE" ? null : selectedClub 

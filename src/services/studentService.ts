@@ -53,7 +53,7 @@ export const getMyStudentProfileDetails = async () => {
 }
 
 // *********** GET Student's profile details *********** //
-export const getAllStudentsByCollege = async (collegeId) => {
+export const getAllStudentsByCollege = async (collegeId: any) => {
   try {
     const res = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/colleges/${collegeId}/students`, {
       headers:{
@@ -68,7 +68,7 @@ export const getAllStudentsByCollege = async (collegeId) => {
 
 
 
-export const students: Student[] = [
+export const students: any[] = [
   {
     srNo: 1,
     regId: "REG001",

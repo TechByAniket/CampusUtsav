@@ -248,7 +248,7 @@ export const CollegeOnlinePresenceForm: React.FC<Props> = ({
         label="College Logo"
         name="logo"
         register={(name: string) =>
-          form.register(name, {
+          form.register(name as any, {
             onChange: (e) => e.target.files,
           })
         }
@@ -261,7 +261,7 @@ export const CollegeOnlinePresenceForm: React.FC<Props> = ({
         label="College Image"
         name="collegeImg"
         register={(name: string) =>
-          form.register(name, {
+          form.register(name as any, {
             onChange: (e) => e.target.files,
           })
         }

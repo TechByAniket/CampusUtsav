@@ -1,5 +1,7 @@
-import { collegeSteps, type CollegeFormData, type Step } from "@/schemas/college.schema"
+import { type CollegeFormData } from "@/schemas/college.schema"
 import { useState } from "react";
+
+const collegeSteps: any[] = [];
 
 // /* -------------------------------------------------
 //    Step-wise Zod schemas

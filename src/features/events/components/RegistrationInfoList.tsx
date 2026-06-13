@@ -5,7 +5,7 @@ import type { RootState } from '@/store/store';
 import { 
   Phone, Mail, Search, X, Check,
   UserCircle, Users, ChevronDown, 
-  Calendar, ShieldCheck, User, Smartphone, AlertCircle
+  Calendar, ShieldCheck, User, Smartphone, AlertCircle, Loader2
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { getRegistrationMeta, getTeamMeta } from '@/services/metaService';
