@@ -10,26 +10,20 @@ import com.example.CampusUtsav.mapper.EventRegistrationMapper;
 import com.example.CampusUtsav.mapper.StudentMapper;
 import com.example.CampusUtsav.repository.*;
 import com.example.CampusUtsav.security.model.CustomUserDetails;
-import com.example.CampusUtsav.service.EventLogService;
 import com.example.CampusUtsav.service.EventService;
 import com.example.CampusUtsav.service.NotificationService;
 import com.example.CampusUtsav.service.SupabaseService;
 import com.example.CampusUtsav.serviceImpl.helper.EntityLookupService;
 import com.example.CampusUtsav.serviceImpl.helper.ValidationHelperService;
 import com.example.CampusUtsav.utils.EventUtils;
-import jakarta.persistence.EntityNotFoundException;
 import org.springframework.transaction.annotation.Transactional;
 import lombok.AllArgsConstructor;
-import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.nio.file.AccessDeniedException;
-import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -278,7 +272,7 @@ public class EventServiceImpl implements EventService {
 
         validationHelperService.validateEventBelongsToSpecifiedCollege(curEvent, currentUser.getCollegeId());
 
-        if((curEvent.getStatus() != EventStatus.APPROVED) && (currentUser.getUser().getRole() != Role.ROLE_CLUB)){
+        if((curEvent.getStatus() != EventStatus.APPROVED) && (currentUser.getUser().getRole() == Role.ROLE_STUDENT)){
             throw new RuntimeException("Event is not approved!");
         }
 
