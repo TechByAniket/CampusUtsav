@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
+import { createPortal } from 'react-dom';
 import { LayoutDashboard, X } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
@@ -145,34 +146,37 @@ export const ClubEvents = () => {
         )}
       </AnimatePresence>
 
-      <AnimatePresence>
-        {isCreateModalOpen && (
-          <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-md overflow-y-auto no-scrollbar font-sans">
-            <motion.div
-              initial={{ scale: 0.95, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.95, opacity: 0 }}
-              className="w-full max-w-4xl bg-white rounded-3xl shadow-2xl relative overflow-hidden border border-slate-200 my-auto"
-            >
-              <div className="p-6 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
-                <h3 className="text-sm font-black uppercase tracking-widest text-slate-900 italic">Create New Event</h3>
-                <button onClick={() => setIsCreateModalOpen(false)} className="p-2 text-slate-400 hover:text-slate-600 transition-colors">
-                  <X size={20} />
-                </button>
-              </div>
-              <div className="max-h-[85vh] overflow-y-auto no-scrollbar">
-                <OnePageCreateEventForm
-                  isModal={true}
-                  onClose={() => {
-                    setIsCreateModalOpen(false);
-                    window.location.reload();
-                  }}
-                />
-              </div>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
+      {createPortal(
+        <AnimatePresence>
+          {isCreateModalOpen && (
+            <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-md overflow-y-auto no-scrollbar font-sans">
+              <motion.div
+                initial={{ scale: 0.95, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0.95, opacity: 0 }}
+                className="w-full max-w-2xl bg-white rounded-[2rem] shadow-[0_24px_80px_-12px_rgba(234,88,12,0.12)] border border-orange-100/40 relative overflow-hidden my-auto"
+              >
+                <div className="p-6 border-b border-orange-100/30 flex items-center justify-between bg-orange-50/20">
+                  <h3 className="text-sm font-extrabold uppercase tracking-wider text-slate-900">Create New Event</h3>
+                  <button onClick={() => setIsCreateModalOpen(false)} className="p-2 text-slate-400 hover:text-orange-500 hover:bg-orange-50 rounded-xl transition-all">
+                    <X size={20} />
+                  </button>
+                </div>
+                <div className="max-h-[70vh] overflow-y-auto">
+                  <OnePageCreateEventForm
+                    isModal={true}
+                    onClose={() => {
+                      setIsCreateModalOpen(false);
+                      window.location.reload();
+                    }}
+                  />
+                </div>
+              </motion.div>
+            </div>
+          )}
+        </AnimatePresence>,
+        document.body
+      )}
     </div>
   );
 };
