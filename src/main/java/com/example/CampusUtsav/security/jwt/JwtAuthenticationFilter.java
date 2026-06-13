@@ -33,27 +33,35 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request,
                                     HttpServletResponse response,
-                                    FilterChain filterChain) throws IOException, ServletException {
+                                    FilterChain filterChain)
+            throws IOException, ServletException {
+
+        //  1. Handle preflight FIRST
+        if ("OPTIONS".equalsIgnoreCase(request.getMethod())) {
+            filterChain.doFilter(request, response);
+            return;
+        }
 
         try {
             String authHeader = request.getHeader("Authorization");
 
-            // 1. Tight Validation for Header and Token
             if (authHeader != null && authHeader.startsWith("Bearer ")) {
+
                 String token = authHeader.substring(7);
 
-                // Extra Check: Frontend agar "undefined" ya "null" bhej de
-                if (!token.isEmpty() && !token.equalsIgnoreCase("undefined") && !token.equalsIgnoreCase("null")) {
+                if (!token.isEmpty()
+                        && !token.equalsIgnoreCase("undefined")
+                        && !token.equalsIgnoreCase("null")) {
 
                     if (jwtUtils.validateJwtToken(token)) {
+
                         String email = jwtUtils.getUsernameFromJwtToken(token);
-                        Integer collegeIdFromToken = jwtUtils.getCollegeIdFromToken(token);
+                        Integer collegeIdFromToken = jwtUtils.getCollegeIdFromJwtToken(token);
                         String role = jwtUtils.getRoleFromJwtToken(token);
                         Integer profileId = jwtUtils.getProfileIdFromJwtToken(token);
 
-                        // 2. Performance Tip: loadUserByUsername ki jagah seedha User object nikal sakte ho
-                        // ya fir userDetails ko filter logic mein reuse karo.
-                        CustomUserDetails userDetails = (CustomUserDetails) customUserDetailsService.loadUserByUsername(email);
+                        CustomUserDetails userDetails =
+                                (CustomUserDetails) customUserDetailsService.loadUserByUsername(email);
 
                         String status = "ACTIVE";
                         if ("ROLE_FACULTY".equals(role) || "ROLE_HOD".equals(role)) {
@@ -62,9 +70,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                                     .orElse("DEACTIVATED");
                         }
 
-                        CustomUserDetails principal = new CustomUserDetails(userDetails.getUser(), collegeIdFromToken, status, profileId);
+                        CustomUserDetails principal =
+                                new CustomUserDetails(userDetails.getUser(), collegeIdFromToken, status, profileId);
 
-                        // 3. 🛡️ The Most Important Check: Only authenticate if ENABLED
                         if (principal.isEnabled()) {
                             UsernamePasswordAuthenticationToken authentication =
                                     new UsernamePasswordAuthenticationToken(
@@ -72,23 +80,19 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                                             null,
                                             principal.getAuthorities()
                                     );
+
                             SecurityContextHolder.getContext().setAuthentication(authentication);
-                        } else {
-                            // Agar account pending/suspended hai, toh context set mat karo
-                            // Isse Spring Security automatically 403/401 return kar degi
-                            logger.warn("User {} is blocked due to status: {}", email, status);
                         }
                     }
                 }
             }
+
         } catch (Exception e) {
-            // Kisi bhi JWT parsing error par crash mat hone do, bas log karo
-            logger.error("Cannot set user authentication: {}", e.getMessage());
+            logger.error("JWT auth error: {}", e.getMessage());
         }
 
         filterChain.doFilter(request, response);
     }
-}
 
 //  Intercepts every request
 //  Validates JWT → extracts user
