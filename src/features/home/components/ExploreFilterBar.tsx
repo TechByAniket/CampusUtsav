@@ -21,6 +21,7 @@ const FilterSection = ({
   options,
   selected,
   onToggle,
+  onClear,
   icon: Icon,
   colorClass,
 }: {
@@ -28,6 +29,7 @@ const FilterSection = ({
   options: string[];
   selected: string[];
   onToggle: (val: string) => void;
+  onClear?: () => void;
   icon: any;
   colorClass: string;
 }) => {
@@ -213,42 +215,43 @@ export const ExploreFilterBar = ({
                       options={categories}
                       selected={selectedCategories}
                       onToggle={(v) => toggleVal(selectedCategories, onCategoriesChange, v)}
+                      onClear={() => onCategoriesChange([])}
                       icon={Tag}
                       colorClass="text-indigo-500"
                     />
-
-                    <FilterSection
-                      title="Clubs"
-                      options={clubs.map((c) => c.shortForm)}
-                      selected={selectedClubs}
-                      onToggle={(v) => toggleVal(selectedClubs, onClubsChange, v)}
-                      icon={Users}
-                      colorClass="text-orange-500"
-                    />
+                    
+                    {clubs.length > 0 && (
+                      <FilterSection
+                        title="Clubs"
+                        options={clubs.map(c => c.nameShortForm)}
+                        selected={selectedClubs}
+                        onToggle={(v) => toggleVal(selectedClubs, onClubsChange, v)}
+                        onClear={() => onClubsChange([])}
+                        icon={Users}
+                        colorClass="text-rose-500"
+                      />
+                    )}
 
                     <FilterSection
                       title="Status"
                       options={statuses}
                       selected={selectedStatus}
                       onToggle={(v) => toggleVal(selectedStatus, onStatusChange, v)}
+                      onClear={() => onStatusChange([])}
                       icon={Calendar}
                       colorClass="text-emerald-500"
                     />
                   </div>
-
-                  {activeFiltersCount > 0 && (
-                    <div className="p-3 border-t border-slate-100 bg-slate-50">
-                      <button
-                        onClick={() => {
-                          clearAllFilters();
-                          setIsFilterOpen(false);
-                        }}
-                        className="w-full px-4 py-2.5 bg-white border border-slate-200 text-rose-600 rounded-xl font-black uppercase text-[10px] tracking-widest hover:bg-rose-50 transition-colors"
-                      >
-                        Clear Selections
-                      </button>
-                    </div>
-                  )}
+                    {(selectedCategories.length > 0 || selectedClubs.length > 0 || selectedStatus.length > 0) && (
+                       <div className="p-3 border-t border-slate-100 bg-slate-50/50">
+                         <button 
+                            onClick={clearAllFilters}
+                            className="w-full py-3 bg-rose-50 text-rose-600 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-rose-500 hover:text-white transition-all shadow-sm"
+                         >
+                            Reset All Filters
+                         </button>
+                       </div>
+                    )}
                 </motion.div>
               </>
             )}

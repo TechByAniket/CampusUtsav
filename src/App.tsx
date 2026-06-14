@@ -40,6 +40,7 @@ import ProfilePage from './features/auth/pages/ProfilePage'
 import MyRegistrationsPage from './features/student/pages/MyRegistrationsPage'
 // import { De } from 'zod/v4/locales'
 import { DashboardLayoutSelector } from './components/layout/DashboardLayoutSelector'
+import { SmartLayoutSelector } from './components/layout/SmartLayoutSelector'
 import { NotificationsPage } from './features/notifications/pages/NotificationsPage'
 
 
@@ -56,17 +57,17 @@ function App() {
       {/* ================= PUBLIC SITE ================= */}
       <Route element={<DefaultLayout />}>
         <Route index element={<HomePage />} />
-        <Route path="explore-events" element={<ExploreEventsPage />} />
-        <Route path="explore-events/events/:id" element={<PublicEventDetailsPage />} />
-        <Route path="about" element={<AboutPage />} />
-        <Route path="users/profile" element={<ProfilePage />} />
-        <Route element={<ProtectedRoute allowedRoles={['ROLE_STUDENT']} />}>
-          <Route path="users/registrations" element={<MyRegistrationsPage />} />
-        </Route>
         {/* Public 404 / Access Denied */}
         <Route path="access-denied" element={<AccessDenied />} />
         {/* The asterisk '*' matches anything not defined above */}
         <Route path="*" element={<NotFound />} />
+      </Route>
+
+      {/* ================= SMART ROUTING FOR SHARED PUBLIC PAGES ================= */}
+      <Route element={<SmartLayoutSelector />}>
+        <Route path="explore-events" element={<ExploreEventsPage />} />
+        <Route path="explore-events/events/:id" element={<PublicEventDetailsPage />} />
+        <Route path="about" element={<AboutPage />} />
       </Route>
 
       {/* ================= COLLEGE DASHBOARD ================= */}
@@ -114,10 +115,13 @@ function App() {
         </Route>
       </Route>
 
-      {/* ================= NOTIFICATIONS ================= */}
+      {/* ================= SHARED PROTECTED PAGES ================= */}
       <Route element={<ProtectedRoute allowedRoles={['ROLE_COLLEGE', 'ROLE_PRINCIPAL', 'ROLE_CLUB', 'ROLE_FACULTY', 'ROLE_HOD', 'ROLE_STUDENT']} />}>
         <Route element={<DashboardLayoutSelector />}>
           <Route path="notifications" element={<NotificationsPage />} />
+          <Route path="users/profile" element={<ProfilePage />} />
+          <Route path="user/settings" element={<ProfilePage />} />
+          <Route path="users/registrations" element={<MyRegistrationsPage />} />
         </Route>
       </Route>
 

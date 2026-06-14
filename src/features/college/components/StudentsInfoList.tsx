@@ -6,7 +6,8 @@ import { getAllBranchesOfCollege } from '@/services/collegeService';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Phone, Mail, Search, X, 
-  GraduationCap, Info, UserCircle, Users, Hash, ChevronDown, Check
+  GraduationCap, Info, UserCircle, Users, Hash, ChevronDown, Check,
+  Filter, XCircle
 } from 'lucide-react';
 
 type StudentsInfoListProps = {
@@ -15,69 +16,71 @@ type StudentsInfoListProps = {
 
 // --- HELPER COMPONENTS ---
 
-const MultiSelect = ({ 
-  label, 
-  options, 
-  selected, 
-  onToggle, 
+const FilterSection = ({
+  title,
+  options,
+  selected,
+  onToggle,
   onClear,
-  icon: Icon 
-}: { 
-  label: string; 
-  options: string[]; 
-  selected: string[]; 
+  icon: Icon,
+  colorClass,
+}: {
+  title: string;
+  options: string[];
+  selected: string[];
   onToggle: (val: string) => void;
-  onClear: () => void;
-  icon?: any;
+  onClear?: () => void;
+  icon: any;
+  colorClass: string;
 }) => {
   const [isOpen, setIsOpen] = useState(false);
-  
+  const activeCount = selected.length;
+
   return (
-    <div className="relative">
+    <div className="border-b border-slate-100 last:border-0">
       <button 
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center gap-2 bg-indigo-50 border border-indigo-100 rounded-xl px-4 py-2 text-[11px] font-black text-indigo-700 outline-none transition-all hover:bg-indigo-100 min-w-[140px] justify-between shadow-sm"
+        className="w-full flex items-center justify-between py-4 hover:bg-slate-50 transition-colors px-2 rounded-lg"
       >
-        <div className="flex items-center gap-2">
-            {Icon && <Icon size={12} className="text-indigo-400" />}
-            <span className="uppercase tracking-widest whitespace-nowrap">
-            {selected.length === 0 ? `ALL ${label}S` : `${selected.length} ${label}${selected.length > 1 ? 'S' : ''}`}
+        <div className="flex items-center gap-3">
+          <Icon size={16} className={colorClass} />
+          <h3 className="text-xs font-black uppercase tracking-widest text-slate-700">{title}</h3>
+          {activeCount > 0 && (
+            <span className="w-5 h-5 flex items-center justify-center bg-indigo-100 text-indigo-700 rounded-full text-[10px] font-bold">
+              {activeCount}
             </span>
+          )}
         </div>
-        <ChevronDown size={12} className={`transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`} />
+        <ChevronDown size={16} className={`text-slate-400 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
       </button>
       
-      {isOpen && (
-        <>
-          <div className="fixed inset-0 z-40" onClick={() => setIsOpen(false)} />
-          <div className="absolute right-0 mt-2 w-64 bg-white border border-slate-200 rounded-2xl shadow-2xl z-50 p-2 overflow-hidden animate-in fade-in zoom-in-95 duration-200">
-             <div className="max-h-60 overflow-y-auto no-scrollbar py-1">
-                {options.map(opt => (
-                  <label key={opt} className="flex items-center gap-3 px-3 py-2.5 hover:bg-slate-50 rounded-xl cursor-pointer transition-colors group">
-                    <div className={`w-4 h-4 rounded border transition-all flex items-center justify-center shrink-0 ${selected.includes(opt) ? 'bg-indigo-600 border-indigo-600' : 'border-slate-300 group-hover:border-indigo-400'}`}>
-                      {selected.includes(opt) && <Check size={10} className="text-white stroke-[4]" />}
-                    </div>
-                    <input 
-                      type="checkbox" 
-                      className="hidden" 
-                      checked={selected.includes(opt)}
-                      onChange={() => onToggle(opt)}
-                    />
-                    <span className="text-[11px] font-bold text-slate-600 uppercase tracking-tight truncate">{opt}</span>
-                  </label>
-                ))}
-             </div>
-             {selected.length > 0 && (
-               <button 
-                 onClick={(e) => { e.stopPropagation(); onClear(); }}
-                 className="w-full mt-1 pt-2 border-t border-slate-100 text-[9px] font-black text-slate-400 uppercase tracking-widest hover:text-red-500 transition-colors py-2"
-               >
-                 Clear Selections
-               </button>
-             )}
-          </div>
-        </>
-      )}
+      <AnimatePresence>
+        {isOpen && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            className="overflow-hidden"
+          >
+            <div className="grid grid-cols-1 gap-2 pb-4 px-2">
+              {options.map((opt) => (
+                <label key={opt} className="flex items-center gap-3 p-2 rounded-xl hover:bg-slate-50 cursor-pointer border border-transparent hover:border-slate-100 transition-all group">
+                  <div className={`w-4 h-4 rounded border flex items-center justify-center shrink-0 transition-all ${selected.includes(opt) ? 'bg-indigo-600 border-indigo-600' : 'border-slate-300 group-hover:border-indigo-400'}`}>
+                    {selected.includes(opt) && <Check size={10} className="text-white stroke-[4]" />}
+                  </div>
+                  <input
+                    type="checkbox"
+                    className="hidden"
+                    checked={selected.includes(opt)}
+                    onChange={() => onToggle(opt)}
+                  />
+                  <span className="text-xs font-bold text-slate-700 truncate">{opt}</span>
+                </label>
+              ))}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };
@@ -178,6 +181,7 @@ export const StudentsInfoList = ({ students }: StudentsInfoListProps) => {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
   const [branches, setBranches] = useState<string[]>([]);
+  const [isFilterOpen, setIsFilterOpen] = useState(false);
   
   const collegeId = useSelector((state: RootState) => state.auth.collegeId);
   const years = ['FY', 'SY', 'TY', 'FINAL'];
@@ -242,48 +246,111 @@ export const StudentsInfoList = ({ students }: StudentsInfoListProps) => {
               Access and manage comprehensive student profiles and records
             </p>
           </div>
-          
-          <div className="flex items-center gap-2 w-full md:w-auto">
-            <div className="relative flex-1 md:flex-none">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
-              <input 
-                  type="text" 
-                  placeholder="Search students..." 
-                  className="pl-9 pr-4 py-2 bg-white border border-slate-200 rounded-full text-sm focus:outline-none w-full md:w-72 font-medium transition-all focus:border-indigo-300" 
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)} 
-              />
-            </div>
-          </div>
         </div>
 
-        {/* --- FILTERS ROW --- */}
-        <div className="flex flex-wrap items-center gap-3 mb-6 bg-white/50 p-2 rounded-2xl border border-slate-100">
-          <div className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em] px-2">Filters:</div>
-          <MultiSelect 
-            label="YEAR" 
-            options={years} 
-            selected={selectedYears} 
-            onToggle={toggleYear} 
-            onClear={() => setSelectedYears([])}
-            icon={GraduationCap}
-          />
-          <MultiSelect 
-            label="BRANCH" 
-            options={branches} 
-            selected={selectedBranches} 
-            onToggle={toggleBranch} 
-            onClear={() => setSelectedBranches([])}
-            icon={Users}
-          />
-          {(selectedYears.length > 0 || selectedBranches.length > 0) && (
-            <button 
-              onClick={() => { setSelectedYears([]); setSelectedBranches([]); }}
-              className="text-[10px] font-black text-indigo-600 uppercase tracking-widest hover:text-indigo-700 px-2 transition-colors"
+        {/* --- SEARCH AND FILTERS ROW --- */}
+        <div className="flex flex-row gap-3 items-center justify-between mb-8 w-full relative z-20">
+          {/* Search Field */}
+          <div className="flex-1 w-full relative group bg-slate-50 rounded-2xl transition-all focus-within:bg-white focus-within:ring-2 focus-within:ring-indigo-100">
+            <Search className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-indigo-500 transition-colors" size={20} />
+            <input 
+              type="text" 
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search students by name, ID, or email..." 
+              className="w-full pl-14 pr-12 py-3.5 bg-transparent text-sm font-bold placeholder:text-slate-400 placeholder:font-black placeholder:uppercase placeholder:text-[10px] placeholder:tracking-widest outline-none text-slate-900" 
+            />
+            {searchQuery && (
+              <button 
+                onClick={() => setSearchQuery("")}
+                className="absolute right-5 top-1/2 -translate-y-1/2 p-1.5 bg-slate-200/50 hover:bg-rose-500 hover:text-white text-slate-400 rounded-full transition-all"
+              >
+                <X size={12} />
+              </button>
+            )}
+          </div>
+
+          {/* Filter Trigger Button */}
+          <div className="flex items-center gap-3 shrink-0 relative z-50">
+            <button
+              onClick={() => setIsFilterOpen(!isFilterOpen)}
+              className={`flex items-center gap-2.5 px-5 py-3.5 border transition-all rounded-full font-black uppercase text-[11px] tracking-widest shadow-sm active:scale-95 ${isFilterOpen ? 'bg-indigo-50 border-indigo-300 text-indigo-700' : 'bg-white border-slate-200/60 hover:border-indigo-300 hover:bg-slate-50 text-slate-700'}`}
             >
-              Reset Filters
+              <Filter size={16} className={isFilterOpen ? 'text-indigo-600' : 'text-indigo-500'} />
+              <span className="hidden sm:inline">Filters</span>
+              {(selectedYears.length + selectedBranches.length) > 0 && (
+                <span className="w-5 h-5 flex items-center justify-center bg-indigo-600 text-white rounded-full text-[10px]">
+                  {selectedYears.length + selectedBranches.length}
+                </span>
+              )}
             </button>
-          )}
+            
+            {(selectedYears.length > 0 || selectedBranches.length > 0 || searchQuery) && (
+               <button 
+                   onClick={() => {
+                       setSearchQuery("");
+                       setSelectedYears([]);
+                       setSelectedBranches([]);
+                   }}
+                   className="hidden md:flex items-center gap-1.5 text-[10px] font-black text-rose-500 uppercase tracking-widest hover:text-rose-600 px-3 transition-colors"
+               >
+                   <XCircle size={14} /> Clear All
+               </button>
+            )}
+
+            {/* Filter Dropdown */}
+            <AnimatePresence>
+              {isFilterOpen && (
+                <>
+                  <div className="fixed inset-0 z-40" onClick={() => setIsFilterOpen(false)} />
+                  <motion.div
+                    initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                    transition={{ duration: 0.2 }}
+                    className="absolute top-full right-0 mt-3 w-[280px] sm:w-[320px] bg-white shadow-2xl rounded-2xl border border-slate-200 overflow-hidden z-50 flex flex-col max-h-[70vh]"
+                  >
+                    <div className="flex items-center justify-between p-4 border-b border-slate-100 bg-slate-50/50">
+                      <h3 className="font-black text-xs uppercase tracking-widest text-slate-800">Filter Students</h3>
+                      <button onClick={() => setIsFilterOpen(false)} className="text-slate-400 hover:text-slate-600 transition-colors bg-white p-1.5 rounded-full shadow-sm border border-slate-200">
+                        <X size={14} />
+                      </button>
+                    </div>
+                    
+                    <div className="overflow-y-auto no-scrollbar p-2 space-y-1">
+                      <FilterSection
+                        title="Academic Year"
+                        options={years}
+                        selected={selectedYears}
+                        onToggle={toggleYear}
+                        icon={GraduationCap}
+                        colorClass="text-indigo-500"
+                      />
+                      <FilterSection
+                        title="Branch"
+                        options={branches}
+                        selected={selectedBranches}
+                        onToggle={toggleBranch}
+                        icon={Users}
+                        colorClass="text-teal-500"
+                      />
+                    </div>
+                    
+                    {(selectedYears.length > 0 || selectedBranches.length > 0) && (
+                       <div className="p-3 border-t border-slate-100 bg-slate-50/50">
+                         <button 
+                            onClick={() => { setSelectedYears([]); setSelectedBranches([]); }}
+                            className="w-full py-3 bg-rose-50 text-rose-600 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-rose-500 hover:text-white transition-all shadow-sm"
+                         >
+                            Reset All Filters
+                         </button>
+                       </div>
+                    )}
+                  </motion.div>
+                </>
+              )}
+            </AnimatePresence>
+          </div>
         </div>
 
         {/* --- CONTENT AREA --- */}

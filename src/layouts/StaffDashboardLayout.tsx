@@ -277,18 +277,25 @@ export const StaffDashboardLayout = () => {
               <Menu size={20} />
             </Button>
             
-            <div className="flex flex-col">
+            <div className="hidden md:flex flex-col">
                 {/* Breadcrumbs */}
                 <nav className="flex items-center gap-1.5 text-[11px] font-medium text-slate-400 mb-1">
-                    <span className="hover:text-slate-600 cursor-pointer transition-colors">Staff Dashboard</span>
-                    {breadcrumbs.map((crumb, idx) => (
-                        <div key={idx} className="flex items-center gap-1.5">
-                            <BreadcrumbSeparator size={10} className="shrink-0" />
-                            <span className={idx === breadcrumbs.length - 1 ? "text-slate-900 font-bold" : "hover:text-slate-600 cursor-pointer transition-colors"}>
-                                {crumb.label}
-                            </span>
-                        </div>
-                    ))}
+                    <Link to="/staff-dashboard" className="hover:text-slate-600 transition-colors">Staff Dashboard</Link>
+                    {breadcrumbs.map((crumb, idx) => {
+                        const isLast = idx === breadcrumbs.length - 1;
+                        return (
+                            <div key={idx} className="flex items-center gap-1.5">
+                                <BreadcrumbSeparator size={10} className="shrink-0" />
+                                {isLast ? (
+                                    <span className="text-slate-900 font-bold">{crumb.label}</span>
+                                ) : (
+                                    <Link to={crumb.path} className="hover:text-slate-600 transition-colors">
+                                        {crumb.label}
+                                    </Link>
+                                )}
+                            </div>
+                        );
+                    })}
                 </nav>
                 <h1 className="text-xl font-bold text-slate-900 tracking-tight">{pageTitle}</h1>
             </div>
