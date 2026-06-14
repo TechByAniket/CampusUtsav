@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useNotifications, checkIfUnread } from "@/hooks/useNotifications";
+import { useNotifications, checkIfUnread, type NotificationResponse } from "@/hooks/useNotifications";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Bell, Loader2, Search, X, Filter, Activity, Calendar, XCircle, CheckCheck } from "lucide-react";

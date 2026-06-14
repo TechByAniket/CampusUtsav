@@ -145,20 +145,28 @@ export const InboxList = ({ mode = 'COLLEGE' }) => {
             </p>
           </div>
 
-          <div className="flex items-center gap-4">
-            <div className="relative group">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-indigo-500 transition-colors" size={16} />
+          <div className="flex flex-row items-center gap-3 w-full md:w-auto">
+            <div className="relative group flex-1 md:w-80">
+              <Search className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-indigo-500 transition-colors" size={20} />
               <input
                 type="text"
                 placeholder="Search by title or ID..."
-                className="pl-11 pr-6 py-3 bg-slate-50 border border-slate-100 rounded-2xl text-sm focus:outline-none focus:border-indigo-300 w-full md:w-80 font-bold shadow-sm transition-all"
+                className="w-full pl-14 pr-12 py-3.5 bg-white border border-slate-200/60 rounded-full text-sm font-bold placeholder:text-slate-400 placeholder:font-black placeholder:uppercase placeholder:text-[10px] placeholder:tracking-widest outline-none focus:border-indigo-300 transition-all text-slate-900 shadow-sm"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
+              {searchQuery && (
+                <button
+                  onClick={() => setSearchQuery("")}
+                  className="absolute right-5 top-1/2 -translate-y-1/2 p-1.5 bg-slate-100 hover:bg-rose-500 hover:text-white text-slate-400 rounded-full transition-all"
+                >
+                  <X size={12} />
+                </button>
+              )}
             </div>
-            <div className="px-5 py-3 bg-slate-100 rounded-2xl flex items-center gap-3">
+            <div className="px-4 py-3.5 bg-white border border-slate-200/60 rounded-full flex items-center justify-center gap-2 shadow-sm shrink-0">
               <span className="w-2 h-2 rounded-full bg-indigo-600 animate-pulse" />
-              <span className="text-[10px] font-black uppercase tracking-widest text-slate-500">{filteredEvents.length} Pending Tasks</span>
+              <span className="text-[12px] font-black text-slate-700">{filteredEvents.length}</span>
             </div>
           </div>
         </header>
