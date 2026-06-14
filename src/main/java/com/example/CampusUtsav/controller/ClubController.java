@@ -81,7 +81,7 @@ public class ClubController {
     }
 
     @GetMapping("/club/me")
-    public ResponseEntity<ClubResponse> getMyCollegeProfileDetails(@AuthenticationPrincipal CustomUserDetails currentUser){
+    public ResponseEntity<ClubResponse> getMyClubProfileDetails(@AuthenticationPrincipal CustomUserDetails currentUser){
         ClubResponse response = clubService.getMyClubProfileDetails(currentUser);
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
