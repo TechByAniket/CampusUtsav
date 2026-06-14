@@ -62,7 +62,7 @@ export const NotificationItem = ({
 }: {
   n: NotificationResponse;
   onClick: (n: NotificationResponse) => void;
-  onMarkRead: (e: React.MouseEvent, id: string) => void;
+  onMarkRead: (e: React.MouseEvent, id: number) => void;
 }) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const isUnread = checkIfUnread(n);

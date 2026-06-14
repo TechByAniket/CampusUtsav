@@ -17,6 +17,7 @@ interface SharedEventDetailHeroProps {
     heroBg: string;
     heroText: string;
   };
+  isPublic?: boolean;
 }
 
 const fmtDate = (s: string, e: string) => {

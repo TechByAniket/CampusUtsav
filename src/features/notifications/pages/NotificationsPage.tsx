@@ -78,7 +78,7 @@ export const NotificationsPage: React.FC = () => {
     }
   };
 
-  const handleMarkAsRead = async (e: React.MouseEvent, id: string) => {
+  const handleMarkAsRead = async (e: React.MouseEvent, id: number) => {
     e.stopPropagation();
     try {
       await markAsRead(id);
