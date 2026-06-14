@@ -9,7 +9,7 @@ import { getAllEventsByCollege } from '@/services/eventService';
 import type { EventSummary } from '@/types/event';
 import type { RootState } from '@/store/store';
 import { EventListCard } from '@/features/events/components/EventListCard';
-import { EventFilterBar } from '@/features/events/components/EventFilterBar';
+import { ExploreFilterBar } from '../components/ExploreFilterBar';
 import { ExploreHero } from '../components/ExploreHero';
 import { NoEventsFound } from '../components/NoEventsFound';
 
@@ -97,9 +97,9 @@ export const ExploreEventsPage = () => {
     <section className="w-full min-h-screen bg-white py-12 px-4 md:px-10 lg:px-16 font-sans text-slate-900 overflow-x-hidden selection:bg-indigo-100 selection:text-indigo-900">
       <div className="max-w-6xl mx-auto space-y-12">
         
-        <ExploreHero eventCount={filteredEvents.length} />
+        <ExploreHero />
 
-        <EventFilterBar 
+        <ExploreFilterBar 
           searchQuery={searchQuery}
           onSearchChange={setSearchQuery}
           selectedCategories={selectedCategories}

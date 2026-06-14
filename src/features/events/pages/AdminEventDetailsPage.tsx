@@ -12,12 +12,12 @@ import type { RootState } from '@/store/store'
 import { Button } from '@/components/ui/button'
 
 // Sub-components
-import { AdminEventDetailHero } from '../components/AdminEventDetailHero'
+import { SharedEventDetailHero } from '../components/SharedEventDetailHero'
 import { AdminEventDetailKPIs } from '../components/AdminEventDetailKPIs'
 import { AdminEventDetailControls } from '../components/AdminEventDetailControls'
-import { AdminEventDetailOverview } from '../components/AdminEventDetailOverview'
-import { AdminEventDetailContact } from '../components/AdminEventDetailContact'
-import { AdminEventDetailStats } from '../components/AdminEventDetailStats'
+import { SharedEventDetailOverview } from '../components/SharedEventDetailOverview'
+import { SharedEventDetailContact } from '../components/SharedEventDetailContact'
+import { SharedEventDetailStats } from '../components/SharedEventDetailStats'
 
 /* ─── Helpers ─── */
 const getStatusConfig = (status: string) => {
@@ -151,7 +151,7 @@ export const AdminEventDetailsPage = () => {
     <div data-admin-event-details className="w-full min-h-screen font-sans text-slate-900 selection:bg-indigo-100 selection:text-indigo-900 rounded-[15px]">
 
       {/* Hero Banner */}
-      <AdminEventDetailHero event={event} statusConfig={sc} />
+      <SharedEventDetailHero event={event} statusConfig={sc} />
 
       {/* ╔══════════════════════════════════════════════════╗
           ║  CONTENT AREA — 65 / 35 Split                   ║
@@ -160,7 +160,7 @@ export const AdminEventDetailsPage = () => {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-7 items-start">
 
           {/* ─── LEFT COLUMN (~65%) ─── */}
-          <div className="lg:col-span-8 space-y-7">
+          <div className="lg:col-span-8 flex flex-col gap-7">
 
             {/* KPI Analytics Row */}
             {shouldShowKPIs && (
@@ -173,14 +173,14 @@ export const AdminEventDetailsPage = () => {
             </div>
 
             {/* Overview Card */}
-            <AdminEventDetailOverview event={event} />
+            <SharedEventDetailOverview event={event} />
 
             {/* Need Help? — Contact Card */}
-            <AdminEventDetailContact event={event} />
+            <SharedEventDetailContact event={event} />
           </div>
 
           {/* ─── RIGHT COLUMN — Sticky Sidebar (~35%) ─── */}
-          <div className="lg:col-span-4 space-y-5 lg:sticky lg:top-24">
+          <div className="lg:col-span-4 flex flex-col gap-5 lg:sticky lg:top-24">
 
             {/* Admin Control Center — Separate Card */}
             <motion.div
@@ -193,7 +193,7 @@ export const AdminEventDetailsPage = () => {
             </motion.div>
 
             {/* Quick Stats Card & Event Documents */}
-            <AdminEventDetailStats event={event} statusConfig={sc} role={role} />
+            <SharedEventDetailStats event={event} statusConfig={sc} role={role} />
           </div>
         </div>
       </div>

@@ -31,15 +31,30 @@ export const Profile = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch<AppDispatch>();
   
-  const navLinks = [
-    { label: "Home", path: "/", icon: Home },
-    { label: "Explore Events", path: "/explore-events", icon: Compass },
-    { label: "My Registrations", path: "/users/registrations", icon: Sparkles },
-    { label: "About Us", path: "/about", icon: Info },
-  ];
-
   // Redux Auth Intel
   const { email, role, studentSummary } = useSelector((state: RootState) => state.auth);
+
+  const getDashboardPath = () => {
+    switch (role) {
+      case 'ROLE_COLLEGE':
+      case 'ROLE_PRINCIPAL': return '/college-dashboard';
+      case 'ROLE_FACULTY':
+      case 'ROLE_HOD': return '/staff-dashboard';
+      case 'ROLE_CLUB': return '/club-dashboard';
+      default: return '/';
+    }
+  };
+
+  const isStudent = !role || role === 'ROLE_USER' || role === 'ROLE_STUDENT';
+  const dashboardLabel = isStudent ? 'Home' : 'Dashboard';
+  const dashboardPath = isStudent ? '/' : getDashboardPath();
+
+  const navLinks = [
+    { label: dashboardLabel, path: dashboardPath, icon: Home },
+    { label: "Explore Events", path: "/explore-events", icon: Compass },
+    ...(isStudent ? [{ label: "My Registrations", path: "/users/registrations", icon: Sparkles }] : []),
+    { label: "About Us", path: "/about", icon: Info },
+  ];
 
   // Identity Mapping
   const displayName = studentSummary?.name || email?.split('@')[0] || "Coordinator";
@@ -112,8 +127,8 @@ export const Profile = () => {
             p-2 animate-in fade-in zoom-in-95 duration-200 font-jakarta overflow-hidden
           "
         >
-          {/* --- MOBILE NAVIGATION (Hidden on Desktop) --- */}
-          <div className="md:hidden space-y-1 mb-2">
+          {/* --- NAVIGATION (Mobile for Students, Always for Admins) --- */}
+          <div className={`${isStudent ? 'md:hidden' : ''} space-y-1 mb-2`}>
             <p className="px-4 py-2 text-[8px] font-black text-slate-400 uppercase tracking-[0.3em]">Navigation</p>
             {navLinks.map((link) => (
               <DropdownMenuItem

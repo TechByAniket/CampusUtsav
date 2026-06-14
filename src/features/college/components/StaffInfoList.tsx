@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { 
   Phone, Mail, Search, X, Shield, Star, CheckCircle, 
   UserCircle, IdCard, Briefcase, ChevronDown, Users, 
-  School, MapPin, Activity 
+  School, MapPin, Activity, Filter 
 } from 'lucide-react';
 import { 
   fetchAvailableRoles, fetchAccountStatuses, fetchStaffMembers, 
@@ -15,16 +15,13 @@ import { motion, AnimatePresence } from 'framer-motion';
 
 // --- HELPER COMPONENTS ---
 
-const StaffInfoPill = ({ icon, label, value, action, isLowCase = false }: { icon: React.ReactNode; label: string; value: string; action?: React.ReactNode; isLowCase?: boolean }) => (
-  <div className="flex flex-col gap-1.5 w-full">
-    <div className="flex items-center gap-3 px-4 py-2.5 rounded-full bg-slate-50 border border-slate-100 transition-all hover:bg-white hover:border-indigo-100 group">
-      <div className="text-indigo-500 group-hover:scale-110 transition-transform shrink-0">{icon}</div>
-      <div className="flex items-center justify-between flex-1 min-w-0">
-        <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest shrink-0">{label}</span>
-        <span className={`text-[12px] font-bold text-slate-700 truncate pl-3 ${isLowCase ? 'lowercase' : 'uppercase'}`}>{value}</span>
-      </div>
+const StaffInfoRow = ({ label, value, action, isLowCase = false }: { label: string; value: string; action?: React.ReactNode; isLowCase?: boolean }) => (
+  <div className="flex flex-col py-3 border-b border-slate-100/60 last:border-0 w-full">
+    <div className="flex items-center justify-between">
+      <span className="text-[13px] font-medium text-slate-500">{label}</span>
+      <span className={`text-[13px] font-bold text-slate-900 ${isLowCase ? 'lowercase' : 'uppercase'}`}>{value}</span>
     </div>
-    {action && <div className="px-2">{action}</div>}
+    {action && <div className="mt-3">{action}</div>}
   </div>
 );
 
@@ -49,7 +46,7 @@ const StaffProfileModal = ({
       initial={{ opacity: 0, scale: 0.9, y: 20 }}
       animate={{ opacity: 1, scale: 1, y: 0 }}
       exit={{ opacity: 0, scale: 0.9, y: 20 }}
-      className="w-full max-w-lg bg-white rounded-[2.5rem] shadow-2xl relative overflow-hidden no-scrollbar border border-white/20"
+      className="w-full max-w-lg bg-white rounded-[2.5rem] shadow-2xl relative overflow-y-auto max-h-[75vh] no-scrollbar border border-white/20"
     >
       {/* Decorative Banner */}
       <div className="h-28 bg-gradient-to-br from-indigo-50 to-white relative border-b border-slate-100">
@@ -83,14 +80,13 @@ const StaffProfileModal = ({
             )}
         </div>
 
-        {/* Info Grid - Strict Two Column Style */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-3 gap-y-3 mb-8 text-left">
-            <StaffInfoPill icon={<IdCard size={14}/>} label="EMPLOYEE ID" value={faculty.employeeId} />
-            <StaffInfoPill icon={<Briefcase size={14}/>} label="DEPARTMENT" value={faculty.branchShortForm} />
+        {/* Info List */}
+        <div className="flex flex-col mb-8 text-left px-2">
+            <StaffInfoRow label="Employee ID" value={faculty.employeeId} />
+            <StaffInfoRow label="Department" value={faculty.branchShortForm} />
             
-            <StaffInfoPill 
-              icon={<Shield size={14}/>} 
-              label="SYSTEM ROLE" 
+            <StaffInfoRow 
+              label="System Role" 
               value={faculty.role.replace('ROLE_', '')}
               action={
                 <div className="flex items-center gap-2">
@@ -111,9 +107,8 @@ const StaffProfileModal = ({
               }
             />
             
-            <StaffInfoPill 
-              icon={<Users size={14}/>} 
-              label="CLUB ASSIGN" 
+            <StaffInfoRow 
+              label="Club Assign" 
               value={faculty.managedClubDetails?.shortForm || "NONE"}
               action={
                 <div className="flex items-center gap-2">
@@ -135,9 +130,8 @@ const StaffProfileModal = ({
               }
             />
 
-            <StaffInfoPill 
-              icon={<Activity size={14}/>} 
-              label="STATUS" 
+            <StaffInfoRow 
+              label="Account Status" 
               value={faculty.status}
               action={
                 <div className="flex items-center gap-2">
@@ -158,8 +152,8 @@ const StaffProfileModal = ({
               }
             />
 
-            <StaffInfoPill icon={<Mail size={14}/>} label="EMAIL" value={faculty.email} isLowCase />
-            <StaffInfoPill icon={<Phone size={14}/>} label="CONTACT" value={faculty.phone} />
+            <StaffInfoRow label="Email Address" value={faculty.email} isLowCase />
+            <StaffInfoRow label="Contact Number" value={faculty.phone} />
         </div>
 
         {/* Final Actions */}
@@ -189,6 +183,7 @@ export const StaffInfoList = () => {
   const [facultyList, setFacultyList] = useState<any[]>([]);
   const [selectedFaculty, setSelectedFaculty] = useState<any>(null);
   const [searchQuery, setSearchQuery] = useState("");
+  const [isFilterOpen, setIsFilterOpen] = useState(false);
 
   const [availableRoles, setAvailableRoles] = useState<any[]>([]);
   const [availableStatuses, setAvailableStatuses] = useState<any[]>([]);
@@ -289,7 +284,7 @@ export const StaffInfoList = () => {
   return (
     <div className="w-full font-sans">
 
-        {/* --- HEADER --- */}
+        {/* --- SEARCH AND FILTERS ROW --- */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 pb-6 border-b border-slate-200/60 mb-8">
           <div className="space-y-1">
             <h1 className="text-2xl md:text-3xl font-black text-slate-900 tracking-tight leading-none">
@@ -299,46 +294,113 @@ export const StaffInfoList = () => {
               Organize faculty designations, roles, and club assignments
             </p>
           </div>
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
-            <input type="text" placeholder="Search faculty..." className="pl-9 pr-4 py-2 bg-white border border-slate-200 rounded-full text-sm focus:outline-none w-full md:w-64 font-medium" onChange={(e) => setSearchQuery(e.target.value)} />
+        </div>
+
+        <div className="flex flex-row gap-3 items-center justify-between w-full relative z-20 mb-8">
+          {/* Search Field */}
+          <div className="flex-1 w-full relative group bg-slate-50 rounded-2xl transition-all focus-within:bg-white focus-within:ring-2 focus-within:ring-indigo-100">
+            <Search className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-indigo-500 transition-colors" size={20} />
+            <input 
+              type="text" 
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search faculty..." 
+              className="w-full pl-14 pr-12 py-3.5 bg-transparent text-sm font-bold placeholder:text-slate-400 placeholder:font-black placeholder:uppercase placeholder:text-[10px] placeholder:tracking-widest outline-none text-slate-900" 
+            />
+            {searchQuery && (
+              <button 
+                onClick={() => setSearchQuery("")}
+                className="absolute right-5 top-1/2 -translate-y-1/2 p-1.5 bg-slate-200/50 hover:bg-rose-500 hover:text-white text-slate-400 rounded-full transition-all"
+              >
+                <X size={12} />
+              </button>
+            )}
+          </div>
+
+          {/* Filter Trigger Button */}
+          <div className="flex items-center gap-3 shrink-0 relative z-50">
+            <button
+              onClick={() => setIsFilterOpen(!isFilterOpen)}
+              className={`flex items-center gap-2.5 px-5 py-3.5 border transition-all rounded-full font-black uppercase text-[11px] tracking-widest shadow-sm active:scale-95 ${isFilterOpen ? 'bg-indigo-50 border-indigo-300 text-indigo-700' : 'bg-white border-slate-200/60 hover:border-indigo-300 hover:bg-slate-50 text-slate-700'}`}
+            >
+              <Filter size={16} className={isFilterOpen ? 'text-indigo-600' : 'text-indigo-500'} />
+              <span className="hidden sm:inline">Filters</span>
+              {activeTab && (
+                <span className="w-5 h-5 flex items-center justify-center bg-indigo-600 text-white rounded-full text-[10px]">
+                  1
+                </span>
+              )}
+            </button>
+            
+            {(searchQuery) && (
+               <button 
+                   onClick={() => setSearchQuery("")}
+                   className="hidden md:flex items-center gap-1.5 text-[10px] font-black text-rose-500 uppercase tracking-widest hover:text-rose-600 px-3 transition-colors"
+               >
+                   <CheckCircle size={14} className="hidden" /> Clear Search
+               </button>
+            )}
+
+            {/* Filter Dropdown */}
+            <AnimatePresence>
+              {isFilterOpen && (
+                <>
+                  <div className="fixed inset-0 z-40" onClick={() => setIsFilterOpen(false)} />
+                  <motion.div
+                    initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                    transition={{ duration: 0.2 }}
+                    className="absolute top-full right-0 mt-3 w-[280px] sm:w-[320px] bg-white shadow-2xl rounded-2xl border border-slate-200 overflow-hidden z-50 flex flex-col max-h-[70vh]"
+                  >
+                    <div className="flex items-center justify-between p-4 border-b border-slate-100 bg-slate-50/50">
+                      <h3 className="font-black text-xs uppercase tracking-widest text-slate-800">Filter Staff</h3>
+                      <button onClick={() => setIsFilterOpen(false)} className="text-slate-400 hover:text-slate-600 transition-colors bg-white p-1.5 rounded-full shadow-sm border border-slate-200">
+                        <X size={14} />
+                      </button>
+                    </div>
+                    
+                    <div className="overflow-y-auto no-scrollbar p-2 space-y-1">
+                      <div className="border-b border-slate-100 last:border-0 pb-4">
+                          <div className="flex items-center gap-3 py-4 px-2">
+                            <Activity size={16} className="text-emerald-500" />
+                            <h3 className="text-xs font-black uppercase tracking-widest text-slate-700">Account Status</h3>
+                          </div>
+                          <div className="grid grid-cols-1 gap-2 px-2">
+                            {availableStatuses.map((opt) => (
+                              <label key={opt} className="flex items-center justify-between p-2 rounded-xl hover:bg-slate-50 cursor-pointer border border-transparent hover:border-slate-100 transition-all group">
+                                <div className="flex items-center gap-3">
+                                    <div className={`w-4 h-4 rounded-full border flex items-center justify-center shrink-0 transition-all ${activeTab === opt ? 'bg-indigo-600 border-indigo-600' : 'border-slate-300 group-hover:border-indigo-400'}`}>
+                                      {activeTab === opt && <div className="w-1.5 h-1.5 bg-white rounded-full" />}
+                                    </div>
+                                    <input
+                                      type="radio"
+                                      name="staffStatus"
+                                      className="hidden"
+                                      checked={activeTab === opt}
+                                      onChange={() => setActiveTab(opt)}
+                                    />
+                                    <span className="text-xs font-bold text-slate-700 truncate">{opt}</span>
+                                </div>
+                                <span className="text-[10px] font-black text-slate-400 bg-slate-100 px-2 py-0.5 rounded-md">
+                                    {facultyList.filter(f => f.status === opt).length}
+                                </span>
+                              </label>
+                            ))}
+                          </div>
+                      </div>
+                    </div>
+                  </motion.div>
+                </>
+              )}
+            </AnimatePresence>
           </div>
         </div>
 
-        {/* --- STATUS TABS --- */}
-        <div className="flex gap-2 mb-6 overflow-x-auto pb-2 no-scrollbar">
-          {availableStatuses.map((tab) => (
-            <button key={tab} onClick={() => setActiveTab(tab)} className={`px-6 py-2 rounded-full text-[10px] font-black uppercase tracking-widest transition-all shrink-0 ${activeTab === tab ? 'bg-slate-900 text-white shadow-lg' : 'bg-white text-slate-400 border border-slate-200 hover:bg-slate-50'}`}>
-              {tab}
-            </button>
-          ))}
-        </div>
-
-        {/* --- MOBILE VIEW --- */}
-        <div className="grid grid-cols-1 gap-4 md:hidden">
-          {filteredData.map((f) => (
-            <div key={f.id} className="bg-white p-5 rounded-3xl border border-slate-100 shadow-sm" onClick={() => setSelectedFaculty(f)}>
-              <div className="flex justify-between items-start mb-3">
-                <div>
-                  <h3 className="font-bold text-slate-800 uppercase text-sm">{f.name}</h3>
-                  <p className="text-[10px] text-slate-400 font-mono mt-0.5">{f.employeeId}</p>
-                </div>
-                {f.hod && <span className="bg-amber-100 text-amber-700 text-[8px] font-black px-2 py-0.5 rounded border border-amber-200 uppercase">HOD</span>}
-              </div>
-              <div className="flex items-center gap-2 text-[10px] text-slate-500 font-bold uppercase tracking-tight">
-                 <Briefcase size={12} className="text-indigo-500" /> {f.branchShortForm} • {f.designation.replace('_', ' ')}
-              </div>
-              <div className="mt-4 pt-4 border-t border-slate-50 flex justify-between items-center">
-                <span className="text-[9px] font-black text-indigo-600 uppercase">Tap for Quick Actions</span>
-                <ChevronDown size={14} className="text-slate-300 -rotate-90" />
-              </div>
-            </div>
-          ))}
-        </div>
-
-        {/* --- DESKTOP VIEW --- */}
-        <div className="hidden md:block bg-white border border-slate-200 rounded-[2rem] overflow-hidden shadow-xl shadow-slate-200/50">
-          <table className="w-full border-collapse">
+        {/* --- ALL SCREENS VIEW --- */}
+        <div className="bg-white border border-slate-200 rounded-[2rem] overflow-hidden shadow-xl shadow-slate-200/50">
+          <div className="overflow-x-auto custom-scrollbar">
+          <table className="w-full border-collapse min-w-[900px]">
             <thead>
               <tr className="bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 border-b border-slate-700">
                 <th className="px-6 py-5 text-[10px] font-black uppercase tracking-[0.2em] text-slate-100 text-left">Faculty Info</th>
@@ -416,6 +478,7 @@ export const StaffInfoList = () => {
               })}
             </tbody>
           </table>
+          </div>
         </div>
 
         {/* --- STAFF PROFILE MODAL --- */}

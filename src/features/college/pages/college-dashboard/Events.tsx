@@ -9,7 +9,7 @@ import { getAllEventsByCollege } from '@/services/eventService';
 import type { EventSummary } from '@/types/event';
 import type { RootState } from '@/store/store';
 import { EventListCard } from '../../../events/components/EventListCard';
-import { EventFilterBar } from '../../../events/components/EventFilterBar';
+import { ExploreFilterBar } from '../../../home/components/ExploreFilterBar';
 
 export const Events = () => {
   const navigate = useNavigate();
@@ -84,7 +84,7 @@ export const Events = () => {
         </div>
 
         {/* Filter & Search Bar */}
-        <EventFilterBar 
+        <ExploreFilterBar 
           searchQuery={searchQuery}
           onSearchChange={setSearchQuery}
           selectedCategories={selectedCategories}

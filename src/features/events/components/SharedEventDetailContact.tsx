@@ -2,11 +2,11 @@ import { motion } from 'framer-motion';
 import { Phone, Mail } from 'lucide-react';
 import type { AdminEventDetail } from '@/types/event';
 
-interface AdminEventDetailContactProps {
+interface SharedEventDetailContactProps {
   event: AdminEventDetail;
 }
 
-export const AdminEventDetailContact: React.FC<AdminEventDetailContactProps> = ({ event }) => {
+export const SharedEventDetailContact: React.FC<SharedEventDetailContactProps> = ({ event }) => {
   const contacts = Object.entries(event.contactDetails || {});
   if (contacts.length === 0) return null;
 

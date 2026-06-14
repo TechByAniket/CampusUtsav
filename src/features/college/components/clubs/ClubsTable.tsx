@@ -28,8 +28,9 @@ export const ClubsTable: React.FC<ClubsTableProps> = ({
   onUpdateStatus
 }) => {
   return (
-    <div className="hidden md:block bg-white border border-slate-200 rounded-[2rem] overflow-hidden shadow-xl shadow-slate-200/50">
-      <table className="w-full border-collapse">
+    <div className="bg-white border border-slate-200 rounded-[2rem] overflow-hidden shadow-xl shadow-slate-200/50">
+      <div className="overflow-x-auto custom-scrollbar">
+        <table className="w-full border-collapse min-w-[800px]">
         <thead>
           <tr className="bg-slate-900 border-b border-slate-800 text-left">
             <th className="px-6 py-5 text-[10px] font-black uppercase tracking-[0.2em] text-slate-100">Club Information</th>
@@ -103,6 +104,7 @@ export const ClubsTable: React.FC<ClubsTableProps> = ({
           ))}
         </tbody>
       </table>
+      </div>
     </div>
   );
 };

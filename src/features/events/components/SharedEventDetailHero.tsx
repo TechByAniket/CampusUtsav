@@ -7,7 +7,7 @@ import {
 } from 'lucide-react';
 import type { AdminEventDetail } from '@/types/event';
 
-interface AdminEventDetailHeroProps {
+interface SharedEventDetailHeroProps {
   event: AdminEventDetail;
   statusConfig: {
     bg: string;
@@ -28,7 +28,7 @@ const fmtDate = (s: string, e: string) => {
   return `${d1.toLocaleDateString('en-GB', { day: '2-digit', month: 'short' })} – ${d2.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}`;
 };
 
-export const AdminEventDetailHero: React.FC<AdminEventDetailHeroProps> = ({ event, statusConfig }) => {
+export const SharedEventDetailHero: React.FC<SharedEventDetailHeroProps> = ({ event, statusConfig, isPublic }) => {
   const navigate = useNavigate();
 
   const handleShare = () => {
@@ -110,10 +110,12 @@ export const AdminEventDetailHero: React.FC<AdminEventDetailHeroProps> = ({ even
           {/* 4. Status Bar - order-4 */}
           <div className="lg:col-span-8 order-4">
             <div className="flex items-center gap-3 pt-2">
-              <div className={`flex items-center gap-2 px-3 py-1.5 rounded-full ${statusConfig.bg} border border-slate-200/50 shadow-sm`}>
-                <span className={`w-2 h-2 rounded-full ${statusConfig.dot}`} />
-                <span className={`text-[11px] font-bold uppercase tracking-wider ${statusConfig.text}`}>{statusConfig.label}</span>
-              </div>
+              {!isPublic && (
+                <div className={`flex items-center gap-2 px-3 py-1.5 rounded-full ${statusConfig.bg} border border-slate-200/50 shadow-sm`}>
+                  <span className={`w-2 h-2 rounded-full ${statusConfig.dot}`} />
+                  <span className={`text-[11px] font-bold uppercase tracking-wider ${statusConfig.text}`}>{statusConfig.label}</span>
+                </div>
+              )}
               {event.registrationDeadline && (
                 <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-rose-50 border border-rose-100 text-[11px] font-bold text-rose-700 uppercase tracking-wider shadow-sm">
                   <Clock size={11} className="text-rose-500" />

@@ -3,117 +3,18 @@ import { useNavigate } from "react-router-dom";
 import { useNotifications, checkIfUnread, type NotificationResponse } from "@/hooks/useNotifications";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Bell, CheckCheck, Loader2, Search, X, ChevronDown, Filter, Calendar } from "lucide-react";
+import { Bell, Loader2, Search, X, Filter, Activity, Calendar, XCircle, CheckCheck } from "lucide-react";
 import { toast } from "sonner";
-
-
-// Relative time helper
-const getRelativeTime = (dateString: string): string => {
-  try {
-    const now = new Date();
-    const date = new Date(dateString);
-    const diffMs = now.getTime() - date.getTime();
-    
-    if (isNaN(date.getTime())) return "Some time ago";
-    if (diffMs < 0) return "Just now";
-
-    const diffMins = Math.floor(diffMs / 60000);
-    const diffHours = Math.floor(diffMins / 60);
-    const diffDays = Math.floor(diffHours / 24);
-
-    if (diffMins < 1) return "Just now";
-    if (diffMins < 60) return `${diffMins} min ago`;
-    if (diffHours < 24) return `${diffHours} hr ago`;
-    if (diffDays === 1) return "Yesterday";
-    if (diffDays < 7) return `${diffDays} days ago`;
-    
-    return date.toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" });
-  } catch (error) {
-    return "Some time ago";
-  }
-};
-
-const DropdownSelect = ({
-  label,
-  options,
-  selected,
-  onSelect,
-  icon: Icon
-}: {
-  label: string;
-  options: { label: string; value: string }[];
-  selected: string;
-  onSelect: (val: string) => void;
-  icon: any;
-}) => {
-  const [isOpen, setIsOpen] = useState(false);
-
-  const selectedOption = options.find((opt) => opt.value === selected);
-
-  return (
-    <div className="relative font-sans">
-      <button
-        onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center gap-2 bg-orange-50 border border-orange-100 rounded-xl px-4 py-2.5 text-[11px] font-black text-orange-700 outline-none transition-all hover:bg-orange-100 min-w-[145px] justify-between shadow-sm group"
-      >
-        <div className="flex items-center gap-2">
-          <Icon size={14} className="text-orange-400" />
-          <span className="uppercase tracking-widest whitespace-nowrap">
-            {selectedOption ? selectedOption.label : `ALL ${label}S`}
-          </span>
-        </div>
-        <ChevronDown size={14} className={`transition-transform duration-300 opacity-40 ${isOpen ? 'rotate-180' : ''}`} />
-      </button>
-
-      {isOpen && (
-        <>
-          <div className="fixed inset-0 z-40" onClick={() => setIsOpen(false)} />
-          <div className="absolute right-0 mt-2 w-52 bg-white border border-slate-200 rounded-2xl shadow-2xl z-50 p-2 overflow-hidden animate-in fade-in zoom-in-95 duration-200">
-            <div className="max-h-60 overflow-y-auto custom-scrollbar py-1">
-              {options.map((opt) => (
-                <label
-                  key={opt.value}
-                  className="flex items-center gap-3 px-3 py-2.5 hover:bg-slate-50 rounded-xl cursor-pointer transition-colors group/item"
-                >
-                  <div
-                    className={`w-4 h-4 rounded-full border transition-all flex items-center justify-center shrink-0 ${
-                      selected === opt.value
-                        ? "bg-orange-600 border-orange-600"
-                        : "border-slate-300 group-hover/item:border-orange-400"
-                    }`}
-                  >
-                    {selected === opt.value && (
-                      <div className="w-1.5 h-1.5 rounded-full bg-white" />
-                    )}
-                  </div>
-                  <input
-                    type="radio"
-                    name={label}
-                    className="hidden"
-                    checked={selected === opt.value}
-                    onChange={() => {
-                      onSelect(opt.value);
-                      setIsOpen(false);
-                    }}
-                  />
-                  <span className="text-[11px] font-bold text-slate-600 uppercase tracking-tight truncate">
-                    {opt.label}
-                  </span>
-                </label>
-              ))}
-            </div>
-          </div>
-        </>
-      )}
-    </div>
-  );
-};
+import { AnimatePresence, motion } from "framer-motion";
+import { FilterSection } from "../components/FilterSection";
+import { NotificationItem } from "../components/NotificationItem";
 
 export const NotificationsPage: React.FC = () => {
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<"ALL" | "UNREAD" | "READ">("ALL");
   const [dateFilter, setDateFilter] = useState<"ALL" | "TODAY" | "YESTERDAY" | "WEEK">("ALL");
+  const [isFilterOpen, setIsFilterOpen] = useState(false);
 
   const {
     notifications,
@@ -177,6 +78,16 @@ export const NotificationsPage: React.FC = () => {
     }
   };
 
+  const handleMarkAsRead = async (e: React.MouseEvent, id: string) => {
+    e.stopPropagation();
+    try {
+      await markAsRead(id);
+      toast.success("Marked as read");
+    } catch (err) {
+      toast.error("Failed to mark as read");
+    }
+  };
+
   const handleMarkAllRead = async () => {
     try {
       await markAllAsRead();
@@ -228,74 +139,118 @@ export const NotificationsPage: React.FC = () => {
 
       {/* Search & Filters Toolbar */}
       {notifications.length > 0 && (
-        <div className="bg-white p-6 rounded-[2.5rem] border border-slate-200/60 shadow-sm mb-10 animate-in fade-in duration-300">
-          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+        <div className="flex flex-row gap-3 items-center justify-between mb-10 w-full relative z-20">
+          {/* Left: Search input */}
+          <div className="flex-1 w-full relative group">
+            <Search className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-orange-500 transition-colors" size={20} />
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search notifications..."
+              className="w-full pl-14 pr-12 py-3.5 bg-white border border-slate-200/60 rounded-full text-sm font-bold placeholder:text-slate-400 placeholder:font-black placeholder:uppercase placeholder:text-[10px] placeholder:tracking-widest outline-none focus:border-orange-300 transition-all text-slate-900 shadow-sm"
+            />
+            {searchQuery && (
+              <button
+                onClick={() => setSearchQuery("")}
+                className="absolute right-5 top-1/2 -translate-y-1/2 p-1.5 bg-slate-100 hover:bg-rose-500 hover:text-white text-slate-400 rounded-full transition-all"
+              >
+                <X size={12} />
+              </button>
+            )}
+          </div>
+
+          {/* Right: Filter Trigger Button */}
+          <div className="flex items-center gap-3 shrink-0 relative z-50">
+            <button
+              onClick={() => setIsFilterOpen(!isFilterOpen)}
+              className={`flex items-center gap-2.5 px-5 py-3.5 border transition-all rounded-full font-black uppercase text-[11px] tracking-widest shadow-sm active:scale-95 ${isFilterOpen ? 'bg-orange-50 border-orange-300 text-orange-700' : 'bg-white border-slate-200/60 hover:border-orange-300 hover:bg-slate-50 text-slate-700'}`}
+            >
+              <Filter size={16} className={isFilterOpen ? 'text-orange-600' : 'text-orange-500'} />
+              <span className="hidden sm:inline">Filters</span>
+              {(statusFilter !== "ALL" || dateFilter !== "ALL") && (
+                <span className="w-5 h-5 flex items-center justify-center bg-orange-600 text-white rounded-full text-[10px]">
+                  {(statusFilter !== "ALL" ? 1 : 0) + (dateFilter !== "ALL" ? 1 : 0)}
+                </span>
+              )}
+            </button>
             
-            {/* Left: Search input */}
-            <div className="flex-1 max-w-xl relative group">
-              <Search className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-orange-500 transition-colors" size={20} />
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search notifications..."
-                className="w-full pl-14 pr-12 py-4 bg-slate-50 border border-slate-200/60 rounded-3xl text-sm font-bold placeholder:text-slate-400 placeholder:font-black placeholder:uppercase placeholder:text-[10px] placeholder:tracking-widest outline-none focus:border-orange-300 focus:bg-white transition-all text-slate-900 shadow-inner"
-              />
-              {searchQuery && (
-                <button
-                  onClick={() => setSearchQuery("")}
-                  className="absolute right-5 top-1/2 -translate-y-1/2 p-1.5 bg-slate-200/50 hover:bg-rose-500 hover:text-white text-slate-400 rounded-full transition-all"
-                >
-                  <X size={12} />
-                </button>
+            {(searchQuery || statusFilter !== "ALL" || dateFilter !== "ALL") && (
+               <button 
+                   onClick={() => {
+                      setSearchQuery("");
+                      setStatusFilter("ALL");
+                      setDateFilter("ALL");
+                   }}
+                   className="hidden md:flex items-center gap-1.5 text-[10px] font-black text-rose-500 uppercase tracking-widest hover:text-rose-600 px-3 transition-colors"
+               >
+                   <XCircle size={14} /> Clear All
+               </button>
+            )}
+
+            <AnimatePresence>
+              {isFilterOpen && (
+                <>
+                  <div className="fixed inset-0 z-40" onClick={() => setIsFilterOpen(false)} />
+                  <motion.div
+                    initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                    transition={{ duration: 0.2 }}
+                    className="absolute top-full right-0 mt-3 w-[280px] sm:w-[320px] bg-white shadow-2xl rounded-2xl border border-slate-200 overflow-hidden z-50 flex flex-col max-h-[70vh]"
+                  >
+                    <div className="flex items-center justify-between p-4 border-b border-slate-100 bg-slate-50/50">
+                      <h2 className="text-sm font-black text-slate-900 uppercase tracking-widest">Filters</h2>
+                      <button onClick={() => setIsFilterOpen(false)} className="p-1.5 text-slate-400 hover:text-slate-900 hover:bg-slate-200 rounded-full transition-colors">
+                        <X size={16} />
+                      </button>
+                    </div>
+                    
+                    <div className="flex-1 overflow-y-auto p-4 custom-scrollbar space-y-2">
+                      <FilterSection
+                        title="Status"
+                        options={[
+                          { label: "ALL STATUSES", value: "ALL" },
+                          { label: "UNREAD", value: "UNREAD" },
+                          { label: "READ", value: "READ" }
+                        ]}
+                        selected={statusFilter}
+                        onSelect={(val: any) => setStatusFilter(val)}
+                        icon={Activity}
+                        colorClass="text-emerald-500"
+                      />
+                      <FilterSection
+                        title="Time"
+                        options={[
+                          { label: "ALL TIME", value: "ALL" },
+                          { label: "TODAY", value: "TODAY" },
+                          { label: "YESTERDAY", value: "YESTERDAY" },
+                          { label: "THIS WEEK", value: "WEEK" }
+                        ]}
+                        selected={dateFilter}
+                        onSelect={(val: any) => setDateFilter(val)}
+                        icon={Calendar}
+                        colorClass="text-indigo-500"
+                      />
+                    </div>
+                    
+                    {(statusFilter !== "ALL" || dateFilter !== "ALL") && (
+                       <div className="p-3 border-t border-slate-100 bg-slate-50/50">
+                         <button 
+                           onClick={() => {
+                             setStatusFilter("ALL");
+                             setDateFilter("ALL");
+                           }}
+                           className="w-full py-3 bg-rose-50 text-rose-600 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-rose-500 hover:text-white transition-all shadow-sm"
+                         >
+                           Reset All Filters
+                         </button>
+                       </div>
+                    )}
+                  </motion.div>
+                </>
               )}
-            </div>
-
-            {/* Right: Filters Dropdown select tools */}
-            <div className="flex flex-wrap items-center gap-3">
-              <div className="hidden xl:block text-[10px] font-black text-slate-400 uppercase tracking-widest px-2">
-                <Filter size={12} className="inline mr-1" /> Filters:
-              </div>
-
-              <DropdownSelect
-                label="STATUS"
-                options={[
-                  { label: "ALL STATUSES", value: "ALL" },
-                  { label: "UNREAD", value: "UNREAD" },
-                  { label: "READ", value: "READ" }
-                ]}
-                selected={statusFilter}
-                onSelect={(val: any) => setStatusFilter(val)}
-                icon={Filter}
-              />
-
-              <DropdownSelect
-                label="DATE"
-                options={[
-                  { label: "ALL TIME", value: "ALL" },
-                  { label: "TODAY", value: "TODAY" },
-                  { label: "YESTERDAY", value: "YESTERDAY" },
-                  { label: "THIS WEEK", value: "WEEK" }
-                ]}
-                selected={dateFilter}
-                onSelect={(val: any) => setDateFilter(val)}
-                icon={Calendar}
-              />
-
-              {(searchQuery || statusFilter !== "ALL" || dateFilter !== "ALL") && (
-                <button
-                  onClick={() => {
-                    setSearchQuery("");
-                    setStatusFilter("ALL");
-                    setDateFilter("ALL");
-                  }}
-                  className="text-[10px] font-black text-orange-600 uppercase tracking-widest hover:text-rose-500 px-2 transition-colors shrink-0"
-                >
-                  Reset
-                </button>
-              )}
-            </div>
-
+            </AnimatePresence>
           </div>
         </div>
       )}
@@ -340,100 +295,16 @@ export const NotificationsPage: React.FC = () => {
       ) : (
         /* Notifications List */
         <div className="space-y-4">
-          {filteredNotifications.map((n) => {
-            const isUnread = checkIfUnread(n);
-            return (
-              <Card
-                key={n.id}
-                onClick={() => handleNotificationClick(n)}
-                className={`
-                  group relative flex flex-col overflow-hidden rounded-2xl border px-4 py-3
-                  transition-all duration-300 cursor-pointer
-                  ${
-                    isUnread
-                      ? "border-orange-100 bg-orange-50/20 hover:bg-orange-50/40 shadow-sm"
-                      : "border-slate-200/80 bg-white hover:bg-slate-50/50"
-                  }
-                  hover:-translate-y-0.5 hover:shadow-[0_12px_24px_-10px_rgba(0,0,0,0.04)]
-                `}
-              >
-                {/* Decorative Status Bar (Side) */}
-                <div
-                  className={`absolute left-0 top-0 h-full w-1.5 transition-colors ${
-                    isUnread ? "bg-orange-500" : "bg-slate-200"
-                  }`}
-                />
-
-                <div className="flex items-start justify-between gap-4">
-                  <div className="space-y-1.5 flex-1">
-                    <div className="flex items-center gap-2">
-                      {isUnread && (
-                        <span className="h-2 w-2 rounded-full bg-orange-500 shrink-0 animate-pulse" />
-                      )}
-                      <h4
-                        className={`text-base tracking-tight transition-colors text-slate-900 group-hover:text-orange-500 ${
-                          isUnread ? "font-bold" : "font-normal"
-                        }`}
-                      >
-                        {n.title}
-                      </h4>
-                    </div>
-                    
-                    <p
-                      className={`text-sm leading-relaxed font-normal ${
-                        isUnread ? "text-slate-700" : "text-slate-400"
-                      }`}
-                    >
-                      {n.message}
-                    </p>
-                  </div>
-
-                  {/* Relative Timestamp */}
-                  <div className="flex items-center shrink-0 rounded-lg bg-slate-50 text-slate-400 group-hover:bg-slate-100 group-hover:text-slate-500 transition-colors px-2.5 py-0.5">
-                    <span className="text-xs font-bold text-slate-400 group-hover:text-slate-500">
-                      {getRelativeTime(n.createdAt)}
-                    </span>
-                  </div>
-                </div>
-
-                {/* Bottom Action Footer */}
-                {(n.redirectUrl || isUnread) && (
-                  <div className="mt-2.5 flex items-center justify-between border-t border-slate-100/60 pt-2">
-                    {n.redirectUrl ? (
-                      <span className="text-[11px] font-extrabold uppercase tracking-wider text-orange-600 hover:text-orange-700 transition-colors bg-orange-50 hover:bg-orange-100/80 px-2.5 py-1 rounded-xl">
-                        Take Action
-                        <span className="transition-transform group-hover:translate-x-0.5 inline-block ml-1">➜</span>
-                      </span>
-                    ) : (
-                      <span />
-                    )}
-
-                    {isUnread && (
-                      <Button
-                        onClick={async (e) => {
-                          e.stopPropagation();
-                          try {
-                            await markAsRead(n.id);
-                            toast.success("Marked as read");
-                          } catch (err) {
-                            toast.error("Failed to mark as read");
-                          }
-                        }}
-                        size="sm"
-                        className="h-7 rounded-xl px-2.5 text-[10px] font-extrabold uppercase tracking-wider bg-orange-500 hover:bg-orange-600 text-white flex items-center gap-1 active:scale-95 transition-all shadow-md shadow-orange-100"
-                      >
-                        <CheckCheck className="h-3.5 w-3.5 text-white" />
-                        Mark as Read
-                      </Button>
-                    )}
-                  </div>
-                )}
-              </Card>
-            );
-          })}
+          {filteredNotifications.map((n) => (
+            <NotificationItem 
+              key={n.id} 
+              n={n} 
+              onClick={handleNotificationClick} 
+              onMarkRead={handleMarkAsRead} 
+            />
+          ))}
         </div>
       )}
     </div>
   );
-
 };
