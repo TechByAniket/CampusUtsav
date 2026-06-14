@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { Clock, Globe, Instagram, Linkedin, FileText, Lock, Download, ArrowUpRight } from 'lucide-react';
 import type { AdminEventDetail } from '@/types/event';
 
-interface AdminEventDetailStatsProps {
+interface SharedEventDetailStatsProps {
   event: AdminEventDetail;
   statusConfig: {
     bg: string;
@@ -14,11 +14,12 @@ interface AdminEventDetailStatsProps {
     heroText: string;
   };
   role: string | null;
+  isPublic?: boolean;
 }
 
-export const AdminEventDetailStats: React.FC<AdminEventDetailStatsProps> = ({ event, statusConfig, role }) => {
+export const SharedEventDetailStats: React.FC<SharedEventDetailStatsProps> = ({ event, statusConfig, role, isPublic }) => {
   const publicFiles = Object.entries(event.publicAttachments || {});
-  const privateFiles = Object.entries(event.privateAttachments || {});
+  const privateFiles = isPublic ? [] : Object.entries(event.privateAttachments || {});
 
   // Extract social links if they are already present in the response object
   const instagramUrl = (event as any).instagramUrl || (event.club as any)?.instagramUrl;

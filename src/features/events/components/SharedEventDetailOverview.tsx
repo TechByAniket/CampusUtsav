@@ -2,11 +2,11 @@ import { motion } from 'framer-motion';
 import { Shapes, GraduationCap } from 'lucide-react';
 import type { AdminEventDetail } from '@/types/event';
 
-interface AdminEventDetailOverviewProps {
+interface SharedEventDetailOverviewProps {
   event: AdminEventDetail;
 }
 
-export const AdminEventDetailOverview: React.FC<AdminEventDetailOverviewProps> = ({ event }) => {
+export const SharedEventDetailOverview: React.FC<SharedEventDetailOverviewProps> = ({ event }) => {
   const branches = Object.values(event.allowedBranches || {});
   const years = Object.values(event.allowedYears || {});
 
