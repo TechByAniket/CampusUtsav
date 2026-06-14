@@ -66,8 +66,8 @@ const ClubProfilePage = () => {
 
           {/* ─── RIGHT COLUMN (~35%) ─── */}
           <div className="lg:col-span-4 space-y-5 lg:sticky lg:top-24">
-            <ClubProfileAccountInfo profileData={profileData} />
-            <ClubProfileCollege profileData={profileData} />
+            <SharedProfileAccountInfo profileData={profileData} type="CLUB" />
+            <SharedProfileCollegeAffiliation profileData={profileData} />
           </div>
         </div>
       </div>
@@ -210,123 +210,5 @@ const ClubProfileContact = ({ profileData }: { profileData: any }) => (
   </motion.div>
 );
 
-const ClubProfileAccountInfo = ({ profileData }: { profileData: any }) => (
-  <motion.div
-    initial={{ opacity: 0, y: 12 }}
-    animate={{ opacity: 1, y: 0 }}
-    transition={{ duration: 0.35, delay: 0.15 }}
-    className="bg-white rounded-3xl border border-slate-200/80 shadow-[0_12px_35px_rgba(15,23,42,0.12)] overflow-hidden"
-  >
-    <div className="flex items-center justify-center gap-2 py-2.5 bg-gradient-to-r from-emerald-50 to-teal-50 border-b border-emerald-100/50">
-      <ShieldCheck size={14} className="text-emerald-600" />
-      <span className="text-xs font-extrabold uppercase tracking-wider text-emerald-700">
-        Account Info
-      </span>
-    </div>
-    <div className="p-5 space-y-3">
-      <div className="flex items-center justify-between py-1 gap-3 min-w-0">
-        <span className="text-sm font-medium text-slate-500 shrink-0">Username</span>
-        <span className="text-sm font-bold text-slate-900 truncate bg-slate-50 px-2 py-0.5 rounded-md border border-slate-100">{profileData.username}</span>
-      </div>
-      <div className="flex items-center justify-between py-1 gap-3 min-w-0">
-        <span className="text-sm font-medium text-slate-500 shrink-0">Email Status</span>
-        {profileData.emailVerified ? (
-          <span className="flex items-center gap-1.5 text-xs font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-md">
-            <CheckCircle2 size={12} /> Verified
-          </span>
-        ) : (
-          <span className="flex items-center gap-1.5 text-xs font-bold text-amber-600 bg-amber-50 px-2 py-0.5 rounded-md">
-            <AlertCircle size={12} /> Pending
-          </span>
-        )}
-      </div>
-      <div className="flex items-center justify-between py-1 gap-3 min-w-0">
-        <span className="text-sm font-medium text-slate-500 shrink-0">Phone Status</span>
-        {profileData.phoneVerified ? (
-          <span className="flex items-center gap-1.5 text-xs font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-md">
-            <CheckCircle2 size={12} /> Verified
-          </span>
-        ) : (
-          <span className="flex items-center gap-1.5 text-xs font-bold text-amber-600 bg-amber-50 px-2 py-0.5 rounded-md">
-            <AlertCircle size={12} /> Pending
-          </span>
-        )}
-      </div>
-      <div className="flex items-center justify-between py-1 gap-3 min-w-0">
-        <span className="text-sm font-medium text-slate-500 shrink-0">Joined</span>
-        <span className="text-sm font-bold text-slate-900">{new Date(profileData.createdAt).toLocaleDateString()}</span>
-      </div>
-      
-      {/* Socials embedded here */}
-      {(profileData.websiteUrl || profileData.instagramUrl || profileData.linkedInUrl) && (
-        <>
-          <div className="h-px bg-slate-100 my-3" />
-          <div className="flex items-center justify-center gap-6 pt-1 pb-2">
-            {profileData.websiteUrl && (
-              <a href={profileData.websiteUrl.startsWith('http') ? profileData.websiteUrl : `https://${profileData.websiteUrl}`} target="_blank" rel="noreferrer" className="text-sky-500 hover:text-sky-600 hover:scale-110 active:scale-95 transition-all duration-200">
-                <Globe size={20} className="stroke-[2.5]" />
-              </a>
-            )}
-            {profileData.instagramUrl && (
-              <a href={profileData.instagramUrl.startsWith('http') ? profileData.instagramUrl : `https://instagram.com/${profileData.instagramUrl}`} target="_blank" rel="noreferrer" className="text-pink-600 hover:text-pink-700 hover:scale-110 active:scale-95 transition-all duration-200">
-                <Instagram size={20} className="stroke-[2.5]" />
-              </a>
-            )}
-            {profileData.linkedInUrl && (
-              <a href={profileData.linkedInUrl.startsWith('http') ? profileData.linkedInUrl : `https://linkedin.com/company/${profileData.linkedInUrl}`} target="_blank" rel="noreferrer" className="text-blue-600 hover:text-blue-700 hover:scale-110 active:scale-95 transition-all duration-200">
-                <Linkedin size={20} className="stroke-[2.5]" />
-              </a>
-            )}
-          </div>
-        </>
-      )}
-    </div>
-  </motion.div>
-);
-
-const ClubProfileCollege = ({ profileData }: { profileData: any }) => {
-  if (!profileData.college) return null;
-
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 12 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.35, delay: 0.25 }}
-      className="bg-white rounded-3xl border border-slate-200/80 shadow-[0_12px_35px_rgba(15,23,42,0.12)] overflow-hidden"
-    >
-      <div className="flex items-center justify-center gap-2 py-2.5 bg-gradient-to-r from-violet-50 to-indigo-50/60 border-b border-violet-100/50">
-        <Building2 size={14} className="text-violet-600" />
-        <span className="text-xs font-extrabold uppercase tracking-wider text-violet-700">
-          College Affiliation
-        </span>
-      </div>
-      <div className="p-5">
-        <div className="flex items-center gap-4">
-          {profileData.college.logoUrl ? (
-             <img src={profileData.college.logoUrl} alt={profileData.college.shortForm} className="w-12 h-12 object-contain rounded-lg shrink-0" />
-          ) : (
-            <div className="w-12 h-12 bg-slate-50 rounded-lg flex items-center justify-center shrink-0 border border-slate-100">
-              <Building2 className="w-6 h-6 text-slate-400" />
-            </div>
-          )}
-          <div className="min-w-0">
-            <h4 className="text-sm font-extrabold text-slate-800 leading-tight truncate">
-              {profileData.college.name}
-            </h4>
-            <div className="flex items-center gap-2 mt-1">
-              <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest bg-slate-100 px-1.5 py-0.5 rounded border border-slate-200">
-                 {profileData.college.shortForm}
-              </span>
-              <div className="flex items-center gap-1 text-slate-400 truncate">
-                <MapPin size={10} className="shrink-0"/>
-                <span className="text-[10px] font-bold uppercase tracking-wider truncate">
-                  {`${profileData.college.city}`}
-                </span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </motion.div>
-  );
-};
+import { SharedProfileAccountInfo } from './SharedProfileAccountInfo';
+import { SharedProfileCollegeAffiliation } from './SharedProfileCollegeAffiliation';

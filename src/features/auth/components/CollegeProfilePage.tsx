@@ -1,21 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { 
-  Building2, 
-  AtSign, 
-  Phone, 
-  Calendar, 
-  Globe, 
-  MapPin, 
-  UserCircle, 
-  ShieldCheck, 
-  Verified,
-  Mail,
-  School
+import {
+  Users, User, Mail, Phone, Globe, MapPin, 
+  CheckCircle2, AlertCircle, Building2,
+  Info, Share2, ShieldCheck, Contact,
+  Briefcase, School, Award, Hash, BookOpen, UserCircle
 } from 'lucide-react';
 import { getMyCollegeProfileDetails } from '@/services/collegeService';
 import { toast } from 'sonner';
 
+// ─── MAIN COMPONENT ───
 const CollegeProfilePage = () => {
   const [profileData, setProfileData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -27,7 +21,7 @@ const CollegeProfilePage = () => {
         const data = await getMyCollegeProfileDetails();
         setProfileData(data);
       } catch (err: any) {
-        toast.error(err.message || "Failed to sync identity");
+        toast.error(err.message || "Failed to load college profile");
       } finally {
         setLoading(false);
       }
@@ -37,201 +31,214 @@ const CollegeProfilePage = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center space-y-4 bg-white font-sans text-slate-800">
-        <div className="w-8 h-8 border-3 border-indigo-500 border-t-transparent rounded-full animate-spin" />
-        <p className="text-slate-400 font-bold text-[10px] uppercase tracking-widest">Syncing Identity...</p>
+      <div className="min-h-screen flex flex-col items-center justify-center gap-5 bg-[#f0f2f5] font-sans">
+        <div className="w-10 h-10 border-[3px] border-indigo-600 border-t-transparent rounded-full animate-spin" />
+        <p className="text-slate-400 text-xs font-semibold tracking-widest uppercase">Loading profile...</p>
       </div>
     );
   }
 
   if (!profileData) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-50">
-        <p className="text-slate-400 font-bold text-xs uppercase tracking-widest">No Institutional Data Available</p>
+      <div className="min-h-screen flex flex-col items-center justify-center gap-6 px-4 bg-[#f0f2f5] font-sans">
+        <div className="w-16 h-16 rounded-2xl bg-white border border-slate-200 flex items-center justify-center text-slate-300 shadow-sm">
+          <Info size={32} />
+        </div>
+        <div className="text-center space-y-1">
+          <h2 className="text-2xl font-bold text-slate-900">Profile Not Found</h2>
+          <p className="text-sm text-slate-500">Could not retrieve college profile data.</p>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-slate-50/50 p-4 md:p-8 lg:p-10 font-sans text-slate-900 selection:bg-indigo-100 selection:text-indigo-900">
-      <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
-        .font-jakarta { font-family: 'Plus Jakarta Sans', sans-serif; }
-        .visible-border { border: 1.5px solid #e2e8f0; }
-        .tile-compact { 
-          background: white;
-          padding: 1rem 1.25rem;
-          border-radius: 1.25rem;
-          transition: all 0.2s ease;
-        }
-        .tile-compact:hover {
-          border-color: #6366f1;
-          box-shadow: 0 4px 12px -2px rgba(63, 102, 241, 0.08);
-        }
-      `}</style>
+    <div className="w-full min-h-screen bg-[#f0f2f5] font-sans text-slate-900 selection:bg-indigo-100 selection:text-indigo-900 rounded-[15px] overflow-hidden">
+      <CollegeProfileHero profileData={profileData} />
 
-      <main className="max-w-5xl mx-auto space-y-4 font-jakarta">
-
-        {/* ================= LIGHT THEMED HERO ================= */}
-        <motion.div 
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="visible-border tile-compact flex flex-col md:flex-row md:items-center justify-between gap-6"
-        >
-          <div className="flex items-center gap-5">
-            <div className="relative">
-              {profileData.logoUrl ? (
-                <img 
-                  src={profileData.logoUrl} 
-                  alt={profileData.name} 
-                  className="w-16 h-16 rounded-2xl object-cover border border-slate-100"
-                />
-              ) : (
-                <div className="w-16 h-16 rounded-2xl bg-indigo-50 flex items-center justify-center text-indigo-600 text-xl font-extrabold border border-indigo-100 uppercase">
-                  {profileData.shortForm?.substring(0, 2) || profileData.name?.substring(0, 2)}
-                </div>
-              )}
-              <div className="absolute -bottom-1 -right-1 p-1 bg-emerald-500 rounded-lg border-2 border-white shadow-sm">
-                <Verified size={10} color="white" />
-              </div>
-            </div>
-            
-            <div className="space-y-1">
-              <div className="flex items-center gap-2">
-                <h1 className="text-2xl font-black text-slate-900 tracking-tight leading-none">
-                  {profileData.name}
-                </h1>
-                <div className="px-2 py-0.5 bg-emerald-50 text-emerald-600 border border-emerald-100 rounded-md text-[8px] font-black uppercase tracking-widest">
-                  {profileData.shortForm || "COLLEGE"}
-                </div>
-              </div>
-              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest flex items-center gap-1.5">
-                <AtSign size={10} className="text-indigo-400" /> {profileData.username}
-              </p>
-            </div>
+      <div className="relative z-20 max-w-[1200px] mx-auto px-4 md:px-8 lg:px-10 py-8">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-7 items-start">
+          
+          {/* ─── LEFT COLUMN (~65%) ─── */}
+          <div className="lg:col-span-8 space-y-7">
+            <CollegeProfileOverview profileData={profileData} />
+            <CollegeProfileContact profileData={profileData} />
           </div>
 
-          <div className="flex flex-wrap items-start gap-8 md:pr-4">
-             <HeroInfo label="Institutional ID" value={profileData.id} />
-             <HeroInfo label="Official Phone" value={profileData.phone} verified={profileData.phoneVerified} />
-             <HeroInfo label="Registered" value={new Date(profileData.createdAt).toLocaleDateString()} />
+          {/* ─── RIGHT COLUMN (~35%) ─── */}
+          <div className="lg:col-span-4 space-y-5 lg:sticky lg:top-24">
+            <SharedProfileAccountInfo profileData={profileData} />
+            <CollegeProfileLocation profileData={profileData} />
           </div>
-        </motion.div>
-
-        {/* ================= HIGH DENSITY GRID ================= */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          
-          <Tile 
-            span="col-span-2"
-            icon={<School size={16} />}
-            label="Affiliation"
-            value={profileData.affiliation}
-            color="indigo"
-          />
-
-          <Tile 
-            icon={<UserCircle size={16} />}
-            label="Admin Head"
-            value={profileData.adminName}
-            color="blue"
-          />
-
-          <Tile 
-             icon={<MapPin size={16} />}
-             label="Location"
-             value={profileData.city}
-             sub={`${profileData.district}, ${profileData.state}`}
-             color="amber"
-          />
-
-          <Tile 
-            span="col-span-2"
-            icon={<Globe size={16} />}
-            label="Official Website"
-            value={profileData.websiteUrl}
-            color="violet"
-          />
-
-          <Tile 
-            span="col-span-2"
-            icon={<Mail size={16} />}
-            label="Institutional Email"
-            value={profileData.email}
-            verified={profileData.emailVerified}
-            color="rose"
-          />
-          
-          <Tile 
-            icon={<ShieldCheck size={16} />}
-            label="Security Status"
-            value={profileData.emailVerified && profileData.phoneVerified ? "Fully Verified" : "Verification Pending"}
-            color="emerald"
-            span="col-span-2"
-          />
-
-          <Tile 
-            icon={<Building2 size={16} />}
-            label="District"
-            value={profileData.district}
-            color="cyan"
-          />
-
-          <Tile 
-            icon={<Calendar size={16} />}
-            label="Last Updated"
-            value={new Date(profileData.updatedAt).toLocaleDateString()}
-            color="orange"
-          />
         </div>
-      </main>
-
-      <footer className="mt-10 py-6 border-t border-slate-200">
-         <div className="max-w-5xl mx-auto flex items-center justify-between opacity-30">
-            <p className="text-[8px] font-black uppercase tracking-widest text-slate-500">CampusUtsav</p>
-            <p className="text-[8px] font-black uppercase tracking-widest text-slate-400">© 2026 Campus Utsav Network</p>
-         </div>
-      </footer>
+      </div>
     </div>
   );
 };
 
-/* ================= HELPERS ================= */
-
-const HeroInfo = ({ label, value, verified = true }: any) => (
-  <div className="flex flex-col">
-    {/* Label Row: Using items-center and a consistent height */}
-    <div className="flex items-center gap-1.5 h-3">
-      <div className={`w-1.5 h-1.5 rounded-full ${verified ? 'bg-emerald-500' : 'bg-slate-300'} shrink-0`} />
-      <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest leading-none">
-        {label}
-      </p>
-    </div>
-
-    {/* Value: Removed large left margin and tightened top spacing */}
-    <p className="text-sm font-black text-slate-900 mt-0.5 pl-3 leading-none">
-      {value || "---"}
-    </p>
-  </div>
-);
-
-const Tile = ({ icon, label, value, sub, color, span, verified }: any) => (
-  <div className={`visible-border tile-compact flex flex-col gap-3 ${span}`}>
-     <div className="flex items-center justify-between">
-        <div className={`w-8 h-8 rounded-xl bg-${color}-50 text-${color}-600 flex items-center justify-center border border-${color}-100/50 shadow-sm shrink-0`}>
-           {icon}
-        </div>
-        {verified !== undefined && (
-           <span className={`text-[7px] font-black uppercase px-2 py-0.5 rounded-full border ${verified ? 'bg-emerald-50 text-emerald-600 border-emerald-100' : 'bg-slate-50 text-slate-400 border-slate-100'}`}>
-              {verified ? "Verified" : "Pending"}
-           </span>
-        )}
-     </div>
-     <div className="min-w-0">
-        <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1.5">{label}</p>
-        <p className="text-sm font-extrabold text-slate-800 truncate leading-tight uppercase font-jakarta">{value || "---"}</p>
-        {sub && <p className="text-[9px] font-bold text-slate-400 mt-1 uppercase leading-none">{sub}</p>}
-     </div>
-  </div>
-);
-
 export default CollegeProfilePage;
+
+
+// ─── HELPER COMPONENTS ───
+
+const CollegeProfileHero = ({ profileData }: { profileData: any }) => {
+  const handleShare = () => {
+    navigator.clipboard.writeText(window.location.href);
+    toast.success("Profile link copied!");
+  };
+
+  return (
+    <div className="relative w-full bg-gradient-to-br from-indigo-100/90 via-indigo-50/30 to-indigo-100/70 border-b border-slate-200/60 rounded-b-[32px] shadow-[0_15px_45px_rgba(15,23,42,0.15)] overflow-hidden">
+      <div className="absolute top-0 right-1/4 w-[500px] h-[400px] bg-indigo-200/25 rounded-full blur-[120px]" />
+      <div className="absolute bottom-0 left-0 w-[350px] h-[350px] bg-violet-200/20 rounded-full blur-[100px] translate-y-1/3" />
+
+      <div className="relative z-10 max-w-[1200px] mx-auto px-4 md:px-8 lg:px-10 pt-8 pb-10">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-7 lg:gap-10 items-start">
+          <div className="lg:col-span-8 min-w-0">
+            <div className="flex items-center gap-5">
+              {profileData.logoUrl ? (
+                <img src={profileData.logoUrl} alt={profileData.name} className="w-20 h-20 md:w-24 md:h-24 rounded-[1.25rem] object-cover shrink-0 border border-white/50 shadow-sm" />
+              ) : (
+                <div className="w-20 h-20 md:w-24 md:h-24 rounded-[1.25rem] bg-indigo-50 border border-indigo-100 flex items-center justify-center shrink-0">
+                  <School className="w-10 h-10 text-indigo-400" />
+                </div>
+              )}
+              <div className="min-w-0 space-y-1">
+                <h1 className="text-2xl md:text-4xl font-extrabold text-slate-900 leading-tight tracking-tight">
+                  {profileData.name}
+                </h1>
+                <p className="text-slate-500 text-xs md:text-sm font-semibold flex items-center gap-2 mt-1.5">
+                  <span className="px-2.5 py-0.5 bg-indigo-100 text-indigo-700 rounded-lg text-[10px] font-extrabold uppercase tracking-widest border border-indigo-200/50">
+                    {profileData.shortForm || "COLLEGE"}
+                  </span>
+                  <span className="px-2.5 py-0.5 bg-slate-100 text-slate-600 rounded-lg text-[10px] font-extrabold uppercase tracking-widest border border-slate-200 flex items-center gap-1">
+                    <Hash size={10} /> ID: {profileData.id}
+                  </span>
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div className="lg:col-span-4 lg:text-right">
+             <div className="flex items-center lg:justify-end gap-3 pt-2 lg:pt-0">
+               <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-emerald-500/20 border border-emerald-500/30 shadow-sm">
+                 <span className="w-2 h-2 rounded-full bg-emerald-400" />
+                 <span className="text-[11px] font-bold uppercase tracking-wider text-emerald-700">Active Profile</span>
+               </div>
+               <button
+                 onClick={handleShare}
+                 className="w-10 h-10 rounded-full bg-white border border-slate-200 flex items-center justify-center text-slate-500 hover:text-slate-900 hover:bg-slate-50 hover:border-slate-300 shadow-md hover:shadow-lg transition-all"
+               >
+                 <Share2 size={16} />
+               </button>
+             </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const CollegeProfileOverview = ({ profileData }: { profileData: any }) => (
+  <motion.div
+    initial={{ opacity: 0, y: 12 }}
+    animate={{ opacity: 1, y: 0 }}
+    transition={{ duration: 0.35, delay: 0.1 }}
+    className="bg-white rounded-3xl border border-slate-200/80 shadow-[0_12px_35px_rgba(15,23,42,0.12)] overflow-hidden"
+  >
+    <div className="flex items-center justify-center gap-2 py-2.5 bg-gradient-to-r from-blue-50 to-indigo-50/60 border-b border-blue-100/50">
+      <Building2 size={14} className="text-blue-600" />
+      <span className="text-xs font-extrabold uppercase tracking-wider text-blue-700">
+        Institution Information
+      </span>
+    </div>
+    <div className="p-6 md:p-8 space-y-4">
+      <div className="flex items-center justify-between py-1 gap-3 min-w-0">
+        <span className="text-sm font-medium text-slate-500 shrink-0">Affiliation</span>
+        <span className="text-sm font-bold text-slate-900 truncate">{profileData.affiliation || '---'}</span>
+      </div>
+      <div className="flex items-center justify-between py-1 gap-3 min-w-0">
+        <span className="text-sm font-medium text-slate-500 shrink-0">Website</span>
+        <span className="text-sm font-bold text-slate-900 truncate">
+          {profileData.websiteUrl ? (
+            <a href={profileData.websiteUrl.startsWith('http') ? profileData.websiteUrl : `https://${profileData.websiteUrl}`} target="_blank" rel="noreferrer" className="text-indigo-600 hover:text-indigo-800 transition-colors">
+              {profileData.websiteUrl}
+            </a>
+          ) : (
+             <span className="text-slate-400">---</span>
+          )}
+        </span>
+      </div>
+    </div>
+  </motion.div>
+);
+
+const CollegeProfileContact = ({ profileData }: { profileData: any }) => (
+  <motion.div
+    initial={{ opacity: 0, y: 12 }}
+    animate={{ opacity: 1, y: 0 }}
+    transition={{ duration: 0.35, delay: 0.2 }}
+    className="bg-white rounded-3xl border border-slate-200/80 shadow-[0_12px_35px_rgba(15,23,42,0.12)] overflow-hidden"
+  >
+    <div className="flex items-center justify-center gap-2 py-2.5 bg-gradient-to-r from-rose-50 to-pink-50/60 border-b border-rose-100/50">
+      <Contact size={14} className="text-rose-600" />
+      <span className="text-xs font-extrabold uppercase tracking-wider text-rose-700">
+        Contact Information
+      </span>
+    </div>
+    <div className="p-6 md:p-8 space-y-6">
+      
+      {/* Admin Head */}
+      <div>
+        <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3">Admin Head</p>
+        <div className="p-4 bg-slate-50 border border-slate-100 rounded-2xl flex flex-col gap-2 hover:bg-slate-100/50 transition-colors">
+          <p className="text-sm font-bold text-slate-900 flex items-center gap-2"><UserCircle size={14} className="text-slate-400"/> {profileData.adminName}</p>
+          <div className="flex flex-col sm:flex-row gap-3 sm:gap-6 mt-1">
+            <a href={`mailto:${profileData.email}`} className="flex items-center gap-1.5 text-xs text-indigo-600 hover:text-indigo-800 font-semibold transition-colors">
+              <Mail size={12} /> {profileData.email}
+            </a>
+            <a href={`tel:${profileData.phone}`} className="flex items-center gap-1.5 text-xs text-slate-500 hover:text-slate-700 font-semibold transition-colors">
+              <Phone size={12} /> {profileData.phone}
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </motion.div>
+);
+
+import { SharedProfileAccountInfo } from './SharedProfileAccountInfo';
+const CollegeProfileLocation = ({ profileData }: { profileData: any }) => {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 12 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.35, delay: 0.25 }}
+      className="bg-white rounded-3xl border border-slate-200/80 shadow-[0_12px_35px_rgba(15,23,42,0.12)] overflow-hidden"
+    >
+      <div className="flex items-center justify-center gap-2 py-2.5 bg-gradient-to-r from-violet-50 to-indigo-50/60 border-b border-violet-100/50">
+        <MapPin size={14} className="text-violet-600" />
+        <span className="text-xs font-extrabold uppercase tracking-wider text-violet-700">
+          Location
+        </span>
+      </div>
+      <div className="p-5">
+        <div className="flex items-center gap-4">
+          <div className="w-12 h-12 bg-slate-50 rounded-lg flex items-center justify-center shrink-0 border border-slate-100">
+            <MapPin className="w-6 h-6 text-slate-400" />
+          </div>
+          <div className="min-w-0">
+            <h4 className="text-sm font-extrabold text-slate-800 leading-tight truncate">
+              {profileData.city}
+            </h4>
+            <div className="flex items-center gap-2 mt-1">
+              <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest truncate">
+                 {`${profileData.district}, ${profileData.state}`}
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </motion.div>
+  );
+};
