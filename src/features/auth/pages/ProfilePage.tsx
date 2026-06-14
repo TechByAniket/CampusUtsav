@@ -4,6 +4,7 @@ import type { RootState } from '@/store/store';
 import StudentProfilePage from '../components/StudentProfilePage';
 import CollegeProfilePage from '../components/CollegeProfilePage';
 import StaffProfilePage from '../components/StaffProfilePage';
+import ClubProfilePage from '../components/ClubProfilePage';
 
 const ProfilePage = () => {
   const { role } = useSelector((state: RootState) => state.auth);
@@ -21,6 +22,10 @@ const ProfilePage = () => {
 
   if (staffRoles.includes(role || '')) {
     return <StaffProfilePage />;
+  }
+
+  if (role === 'ROLE_CLUB') {
+    return <ClubProfilePage />;
   }
 
   return (
