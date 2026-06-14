@@ -85,13 +85,10 @@ const FilterSection = ({
   );
 };
 
-const InfoPill = ({ icon, label, value, isLowCase = false }: { icon: React.ReactNode; label: string; value: string; isLowCase?: boolean }) => (
-  <div className="flex items-center gap-4 px-5 py-3 rounded-full bg-slate-50 border border-slate-100 transition-all hover:bg-white hover:border-indigo-100 group w-full">
-    <div className="text-indigo-500 group-hover:scale-110 transition-transform shrink-0">{icon}</div>
-    <div className="flex items-center justify-between flex-1 min-w-0">
-      <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest shrink-0">{label}</span>
-      <span className={`text-[13px] font-bold text-slate-700 truncate pl-3 ${isLowCase ? 'lowercase' : 'uppercase'}`}>{value}</span>
-    </div>
+const InfoRow = ({ label, value, isLowCase = false }: { label: string; value: string; isLowCase?: boolean }) => (
+  <div className="flex items-center justify-between py-3 border-b border-slate-100/60 last:border-0">
+    <span className="text-[13px] font-medium text-slate-500">{label}</span>
+    <span className={`text-[13px] font-bold text-slate-900 ${isLowCase ? 'lowercase' : 'uppercase'}`}>{value}</span>
   </div>
 );
 
@@ -109,7 +106,7 @@ const StudentProfileModal = ({
       initial={{ opacity: 0, scale: 0.9, y: 20 }}
       animate={{ opacity: 1, scale: 1, y: 0 }}
       exit={{ opacity: 0, scale: 0.9, y: 20 }}
-      className="w-full max-w-md bg-white rounded-[2.5rem] shadow-2xl relative overflow-hidden no-scrollbar border border-white/20"
+      className="w-full max-w-md bg-white rounded-[2.5rem] shadow-2xl relative overflow-y-auto max-h-[75vh] no-scrollbar border border-white/20"
     >
       {/* Decorative Banner */}
       <div className="h-28 bg-gradient-to-br from-indigo-50 to-white relative border-b border-slate-100">
@@ -138,19 +135,13 @@ const StudentProfileModal = ({
             <span className="text-indigo-600 font-black text-[10px] uppercase tracking-widest">{student.identificationNumber}</span>
         </div>
 
-        {/* Info Grid - Bento Pill Style */}
-        <div className="grid grid-cols-2 gap-2 mb-8">
-            <InfoPill icon={<GraduationCap size={12} />} label="Year" value={getYearLabel(student.year)} />
-            <InfoPill icon={<Hash size={12} />} label="Roll" value={student.rollNo.toString()} />
-            <div className="col-span-2">
-                <InfoPill icon={<Users size={12} />} label="Branch & Div" value={`${student.branch} - ${student.division}`} />
-            </div>
-            <div className="col-span-2">
-                <InfoPill icon={<Mail size={12} />} label="Email" value={student.email} isLowCase />
-            </div>
-            <div className="col-span-2">
-                <InfoPill icon={<Phone size={12} />} label="Contact" value={student.phone} />
-            </div>
+        {/* Info List */}
+        <div className="flex flex-col mb-8 text-left px-2">
+            <InfoRow label="Academic Year" value={getYearLabel(student.year)} />
+            <InfoRow label="Branch & Div" value={`${student.branch} - ${student.division}`} />
+            <InfoRow label="Roll Number" value={student.rollNo.toString()} />
+            <InfoRow label="Email Address" value={student.email} isLowCase />
+            <InfoRow label="Contact Number" value={student.phone} />
         </div>
 
         {/* Final Actions */}
@@ -364,27 +355,9 @@ export const StudentsInfoList = ({ students }: StudentsInfoListProps) => {
             </div>
             ) : (
             <>
-                {/* --- MOBILE VIEW --- */}
-                <div className="grid grid-cols-1 gap-4 md:hidden">
-                {filteredData.map((s) => (
-                    <div key={s.id} className="bg-white p-5 rounded-3xl border border-slate-100 shadow-sm" onClick={() => setSelectedStudent(s)}>
-                    <div className="flex justify-between items-start mb-3">
-                        <div>
-                        <h3 className="font-bold text-slate-800 uppercase text-sm leading-tight">{s.name}</h3>
-                        <p className="text-[10px] text-slate-400 font-mono mt-0.5">{s.identificationNumber}</p>
-                        </div>
-                        <span className="text-[10px] font-black text-indigo-600 bg-indigo-50 px-2 py-1 rounded-lg uppercase">{getYearLabel(s.year)}</span>
-                    </div>
-                    <div className="flex items-center gap-2 text-[10px] text-slate-500 font-bold uppercase tracking-tight">
-                        <GraduationCap size={12} className="text-indigo-500" /> {s.branch} • Div {s.division} • Roll {s.rollNo}
-                    </div>
-                    </div>
-                ))}
-                </div>
-
-                {/* --- DESKTOP VIEW --- */}
-                <div className="hidden md:block bg-white border border-slate-200 rounded-[2rem] overflow-hidden shadow-xl shadow-slate-200/50">
-                <table className="w-full border-collapse table-fixed">
+                <div className="bg-white border border-slate-200 rounded-[2rem] overflow-hidden shadow-xl shadow-slate-200/50">
+                <div className="overflow-x-auto custom-scrollbar">
+                <table className="w-full border-collapse table-fixed min-w-[800px]">
                     <thead>
                     <tr className="bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 border-b border-slate-700 text-left">
                         <th className="w-[30%] px-6 py-5 text-[10px] font-black uppercase tracking-[0.2em] text-slate-100">Student Identity</th>
@@ -431,6 +404,7 @@ export const StudentsInfoList = ({ students }: StudentsInfoListProps) => {
                     ))}
                     </tbody>
                 </table>
+                </div>
                 </div>
             </>
             )}

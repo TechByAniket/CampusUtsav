@@ -5,10 +5,8 @@ import { fetchAccountStatuses } from '@/services/staffService';
 import { toast } from 'sonner';
 
 // Component Imports
-import { ClubsHeader } from '../../components/clubs/ClubsHeader';
-import { ClubsStatusTabs } from '../../components/clubs/ClubsStatusTabs';
+import { ClubsFilterBar } from '../../components/clubs/ClubsFilterBar';
 import { ClubsTable } from '../../components/clubs/ClubsTable';
-import { ClubsMobileList } from '../../components/clubs/ClubsMobileList';
 import { ClubDetailModal } from '../../components/clubs/ClubDetailModal';
 
 interface Club {
@@ -99,16 +97,13 @@ export const Clubs = () => {
 
   return (
     <div className="w-full space-y-10 pb-10">
-        <ClubsHeader 
-          totalClubs={clubs.length} 
-          onSearch={setSearchQuery} 
-        />
-
-        <ClubsStatusTabs 
+        <ClubsFilterBar 
+          searchQuery={searchQuery}
+          onSearchChange={setSearchQuery}
           availableStatuses={availableStatuses}
           activeTab={activeTab}
-          clubs={clubs}
           onTabChange={setActiveTab}
+          clubs={clubs}
         />
 
         {filteredData.length === 0 ? (
@@ -119,20 +114,13 @@ export const Clubs = () => {
              <p className="text-slate-400 font-black text-[10px] uppercase tracking-[0.3em]">No clubs found in {activeTab}</p>
           </div>
         ) : (
-          <>
-            <ClubsMobileList 
-              clubs={filteredData} 
-              onSelect={setSelectedClub} 
-            />
-
-            <ClubsTable 
-              clubs={filteredData}
-              availableStatuses={availableStatuses}
-              pendingStatusChanges={pendingStatusChanges}
-              onStatusChange={(id, status) => setPendingStatusChanges({ ...pendingStatusChanges, [id]: status })}
-              onUpdateStatus={handleUpdateStatusDatabase}
-            />
-          </>
+          <ClubsTable 
+            clubs={filteredData}
+            availableStatuses={availableStatuses}
+            pendingStatusChanges={pendingStatusChanges}
+            onStatusChange={(id, status) => setPendingStatusChanges({ ...pendingStatusChanges, [id]: status })}
+            onUpdateStatus={handleUpdateStatusDatabase}
+          />
         )}
 
       {selectedClub && (
