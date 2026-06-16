@@ -643,6 +643,15 @@ lombok:1.18.36
 
 ---
 
+## 📚 Related Repositories
+
+| Project | Repository |
+|---------|-----------|
+| **Frontend Application** | [TechByAniket/CampusUtsav-Frontend](https://github.com/TechByAniket/CampusUtsav-Frontend) |
+| **Backend Application** | [TechByAniket/CampusUtsav-Backend](https://github.com/TechByAniket/CampusUtsav-Backend) |
+
+---
+
 ## 🔒 Security Features
 
 ### 1. Authentication
@@ -845,12 +854,6 @@ This project demonstrates mastery of **backend engineering fundamentals**:
 - **Issue Reporting**: Create an issue on GitHub for bugs
 - **Feature Requests**: Open a discussion for new features
 - **Code Contributions**: Fork, create a feature branch, and submit a pull request
-
----
-
-## 📝 License
-
-This project is licensed under the **MIT License** - see LICENSE file for details.
 
 ---
 
