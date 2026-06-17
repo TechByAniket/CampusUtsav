@@ -1,21 +1,21 @@
 package com.example.CampusUtsav.serviceImpl;
 
+import com.example.CampusUtsav.dtos.EmailTemplate;
 import com.example.CampusUtsav.dtos.StudentRegistrationRequest;
 import com.example.CampusUtsav.dtos.StudentRegistrationsResponse;
 import com.example.CampusUtsav.dtos.StudentResponse;
 import com.example.CampusUtsav.dtos.miniDtos.StudentSummary;
 import com.example.CampusUtsav.entity.*;
-import com.example.CampusUtsav.entity.enums.NotificationType;
-import com.example.CampusUtsav.entity.enums.RegistrationStatus;
-import com.example.CampusUtsav.entity.enums.Role;
-import com.example.CampusUtsav.entity.enums.TeamMemberStatus;
+import com.example.CampusUtsav.entity.enums.*;
 import com.example.CampusUtsav.mapper.StudentMapper;
 import com.example.CampusUtsav.mapper.StudentRegistrationsMapper;
 import com.example.CampusUtsav.repository.*;
 import com.example.CampusUtsav.security.model.CustomUserDetails;
+import com.example.CampusUtsav.service.EmailService;
 import com.example.CampusUtsav.service.NotificationService;
 import com.example.CampusUtsav.service.StudentService;
 import com.example.CampusUtsav.serviceImpl.helper.EntityLookupService;
+import com.example.CampusUtsav.utils.EmailUtils;
 import com.example.CampusUtsav.utils.StudentUtils;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
@@ -45,6 +45,8 @@ public class StudentServiceImpl implements StudentService {
     private final StudentRegistrationsMapper studentRegistrationsMapper;
     private final NotificationService notificationService;
     private final EntityLookupService entityLookupService;
+    private final EmailService emailService;
+    private final EmailUtils emailUtils;
 
 
     @Override
@@ -91,6 +93,20 @@ public class StudentServiceImpl implements StudentService {
                         + "Log in to explore events and stay updated with campus activities.",
                 NotificationType.ACCOUNT_CREATION,
                 "/explore-events"
+        );
+
+        // ==========================================
+        // ACCOUNT CREATION CONFIRMATION EMAIL FOR STUDENT
+        // ==========================================
+        EmailTemplate emailTemplate =
+                emailUtils.buildStudentRegistrationSuccessfulEmail(
+                        newStudent.getName()
+                );
+
+        emailService.sendEmail(
+                newStudent.getEmail(),
+                EmailType.ACCOUNT_STATUS_CHANGE,
+                emailTemplate
         );
 
         return "Student registration successful!";

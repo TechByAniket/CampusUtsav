@@ -3,12 +3,14 @@ package com.example.CampusUtsav.serviceImpl;
 import com.example.CampusUtsav.dtos.ClubRegistrationRequest;
 import com.example.CampusUtsav.dtos.ClubResponse;
 import com.example.CampusUtsav.dtos.CollegeResponse;
+import com.example.CampusUtsav.dtos.EmailTemplate;
 import com.example.CampusUtsav.dtos.miniDtos.ClubSummary;
 import com.example.CampusUtsav.entity.Branch;
 import com.example.CampusUtsav.entity.Club;
 import com.example.CampusUtsav.entity.College;
 import com.example.CampusUtsav.entity.User;
 import com.example.CampusUtsav.entity.enums.AccountStatus;
+import com.example.CampusUtsav.entity.enums.EmailType;
 import com.example.CampusUtsav.entity.enums.NotificationType;
 import com.example.CampusUtsav.entity.enums.Role;
 import com.example.CampusUtsav.mapper.ClubMapper;
@@ -18,11 +20,13 @@ import com.example.CampusUtsav.repository.CollegeRepository;
 import com.example.CampusUtsav.repository.UserRepository;
 import com.example.CampusUtsav.security.model.CustomUserDetails;
 import com.example.CampusUtsav.service.ClubService;
+import com.example.CampusUtsav.service.EmailService;
 import com.example.CampusUtsav.service.NotificationService;
 import com.example.CampusUtsav.service.SupabaseService;
 import com.example.CampusUtsav.serviceImpl.helper.EntityLookupService;
 import com.example.CampusUtsav.serviceImpl.helper.ValidationHelperService;
 import com.example.CampusUtsav.utils.ClubUtils;
+import com.example.CampusUtsav.utils.EmailUtils;
 import com.example.CampusUtsav.utils.NotificationUtils;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
@@ -54,6 +58,8 @@ public class ClubServiceImpl implements ClubService {
     private final NotificationUtils notificationUtils;
     private final EntityLookupService entityLookupService;
     private final ValidationHelperService validationHelperService;
+    private final EmailService emailService;
+    private final EmailUtils emailUtils;
 
     @Override
     @Transactional
@@ -120,6 +126,22 @@ public class ClubServiceImpl implements ClubService {
                 "Club " + newClub.getShortForm() + " has requested account activation and verification.",
                 NotificationType.ACCOUNT_ACTIVATION_REQUEST,
                 "/college-dashboard/clubs"
+        );
+
+        // ==================================
+        // NOTIFY CLUB ABOUT REGISTRATION SUBMISSION
+        // ==================================
+
+        EmailTemplate emailTemplate =
+                emailUtils.buildClubRegistrationSubmittedEmail(
+                        newClub.getName(),
+                        newClub.getAdminName()
+                );
+
+        emailService.sendEmail(
+                newClub.getAdminEmail(),
+                EmailType.ACCOUNT_STATUS_CHANGE,
+                emailTemplate
         );
 
         return "Club Registered Successfully!";
@@ -207,6 +229,23 @@ public class ClubServiceImpl implements ClubService {
                 targetStatus == AccountStatus.ACTIVE
                         ? "/club-dashboard"
                         : "/auth/sign-in"
+        );
+
+        // ==================================
+        // EMAIL CLUB ABOUT ACCOUNT STATUS CHANGE
+        // ==================================
+
+        EmailTemplate emailTemplate =
+                emailUtils.buildClubAccountStatusChangedEmail(
+                        curClub.getName(),
+                        curClub.getAdminName(),
+                        targetStatus
+                );
+
+        emailService.sendEmail(
+                curClub.getAdminEmail(),
+                EmailType.ACCOUNT_STATUS_CHANGE,
+                emailTemplate
         );
 
         return "Club Status updated to " + targetStatus + " successfully!";

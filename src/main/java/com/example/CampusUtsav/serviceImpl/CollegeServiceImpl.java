@@ -2,11 +2,13 @@ package com.example.CampusUtsav.serviceImpl;
 
 import com.example.CampusUtsav.dtos.CollegeRegistrationRequest;
 import com.example.CampusUtsav.dtos.CollegeResponse;
+import com.example.CampusUtsav.dtos.EmailTemplate;
 import com.example.CampusUtsav.dtos.miniDtos.CollegeSummary;
 import com.example.CampusUtsav.entity.Branch;
 import com.example.CampusUtsav.entity.College;
 import com.example.CampusUtsav.entity.Staff;
 import com.example.CampusUtsav.entity.User;
+import com.example.CampusUtsav.entity.enums.EmailType;
 import com.example.CampusUtsav.entity.enums.Role;
 import com.example.CampusUtsav.mapper.BranchMapper;
 import com.example.CampusUtsav.mapper.CollegeMapper;
@@ -15,9 +17,11 @@ import com.example.CampusUtsav.repository.CollegeRepository;
 import com.example.CampusUtsav.repository.UserRepository;
 import com.example.CampusUtsav.security.model.CustomUserDetails;
 import com.example.CampusUtsav.service.CollegeService;
+import com.example.CampusUtsav.service.EmailService;
 import com.example.CampusUtsav.service.SupabaseService;
 import com.example.CampusUtsav.serviceImpl.helper.EntityLookupService;
 import com.example.CampusUtsav.utils.CollegeUtils;
+import com.example.CampusUtsav.utils.EmailUtils;
 import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
@@ -48,6 +52,8 @@ public class CollegeServiceImpl implements CollegeService {
     private final UserRepository userRepository;
     private final SupabaseService supabaseService;
     private final EntityLookupService entityLookupService;
+    private final EmailUtils emailUtils;
+    private final EmailService emailService;
 
     @Override
     public CollegeResponse registerCollege(CollegeRegistrationRequest req, MultipartFile file) {
@@ -96,6 +102,22 @@ public class CollegeServiceImpl implements CollegeService {
         newCollege.setLogoUrl(logoUrl);
 
         collegeRepository.save(newCollege);
+
+        // =========================================
+        // Send registration successful email to the college admin
+        // =========================================
+
+        EmailTemplate emailTemplate =
+                emailUtils.buildCollegeRegistrationSuccessfulEmail(
+                        newCollege.getName(),
+                        newCollege.getAdminName()
+                );
+
+        emailService.sendEmail(
+                newCollege.getEmail(),
+                EmailType.ACCOUNT_STATUS_CHANGE,
+                emailTemplate
+        );
 
         return collegeMapper.convertToCollegeResponse(newCollege);
     }
