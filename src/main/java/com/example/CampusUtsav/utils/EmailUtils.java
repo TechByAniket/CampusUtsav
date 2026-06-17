@@ -1,6 +1,7 @@
 package com.example.CampusUtsav.utils;
 
 import com.example.CampusUtsav.dtos.EmailTemplate;
+import com.example.CampusUtsav.entity.enums.AccountStatus;
 import com.example.CampusUtsav.entity.enums.EmailType;
 import org.springframework.stereotype.Component;
 
@@ -95,6 +96,48 @@ public class EmailUtils {
             You can now browse upcoming events, register for activities, join teams, and stay updated with everything happening on your campus.
             We look forward to seeing your participation in upcoming events.
             """);
+
+        return emailTemplate;
+    }
+
+    public EmailTemplate buildClubAccountStatusChangedEmail(
+            String clubName,
+            String adminName,
+            AccountStatus targetStatus
+    ) {
+
+        EmailTemplate emailTemplate = new EmailTemplate();
+
+        emailTemplate.setRecipientName(adminName);
+        emailTemplate.setTitle("Account Status Updated");
+
+        String message;
+
+        if (targetStatus == AccountStatus.ACTIVE) {
+
+            message = String.format("""
+                The account status for <b>%s</b> has been updated to <b>%s</b>.
+                Your account is now active and you can log in to CampusUtsav and access all available features.
+                We look forward to your participation in campus events and activities.
+                """,
+                    clubName,
+                    targetStatus
+            );
+
+        } else {
+
+            message = String.format("""
+                The account status for <b>%s</b> has been updated to <b>%s</b>.
+                You are currently unable to access CampusUtsav using this account.
+                For further clarification or assistance, please contact your college principal.
+                """,
+                    clubName,
+                    targetStatus
+            );
+        }
+
+        emailTemplate.setMessage(message);
+        emailTemplate.setEntityName(clubName);
 
         return emailTemplate;
     }

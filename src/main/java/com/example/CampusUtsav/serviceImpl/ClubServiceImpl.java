@@ -231,6 +231,23 @@ public class ClubServiceImpl implements ClubService {
                         : "/auth/sign-in"
         );
 
+        // ==================================
+        // EMAIL CLUB ABOUT ACCOUNT STATUS CHANGE
+        // ==================================
+
+        EmailTemplate emailTemplate =
+                emailUtils.buildClubAccountStatusChangedEmail(
+                        curClub.getName(),
+                        curClub.getAdminName(),
+                        targetStatus
+                );
+
+        emailService.sendEmail(
+                curClub.getAdminEmail(),
+                EmailType.ACCOUNT_STATUS_CHANGE,
+                emailTemplate
+        );
+
         return "Club Status updated to " + targetStatus + " successfully!";
     }
 
