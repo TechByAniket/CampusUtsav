@@ -1,0 +1,88 @@
+package com.example.CampusUtsav.utils;
+
+import com.example.CampusUtsav.dtos.EmailTemplate;
+import com.example.CampusUtsav.entity.enums.EmailType;
+import org.springframework.stereotype.Component;
+
+@Component
+public class EmailUtils {
+
+    public String getSubject(EmailType emailType) {
+
+        return switch (emailType) {
+
+            case ACCOUNT_VERIFICATION ->
+                    "Verify Your Account";
+
+            case ACCOUNT_STATUS_CHANGE ->
+                    "Account Status Updated";
+
+            case PASSWORD_RESET ->
+                    "Reset Your Password";
+
+            case PASSWORD_CHANGED ->
+                    "Password Changed Successfully";
+
+            case EVENT_APPROVAL_REQUEST ->
+                    "Event Requires Your Approval";
+
+            case EVENT_SUBMITTED ->
+                    "Event Submitted Successfully";
+
+            case EVENT_APPROVED ->
+                    "Event Approved";
+
+            case EVENT_REJECTED ->
+                    "Event Rejected";
+
+            case EVENT_REVERTED ->
+                    "Event Reverted";
+
+            case TEAM_MEMBER_ADDED ->
+                    "Added to Team";
+
+            case TEAM_MEMBER_REMOVED ->
+                    "Removed from Team";
+
+            case ROLE_UPDATE ->
+                    "Role Updated";
+
+            case REGISTRATION_CONFIRMED ->
+                    "Registration Confirmed";
+
+            case REGISTRATION_CANCELLED ->
+                    "Registration Cancelled";
+
+            case REMINDER ->
+                    "Reminder";
+
+            case ACTION_REQUIRED ->
+                    "Action Required";
+
+            case ANNOUNCEMENT ->
+                    "Announcement";
+        };
+    }
+
+    public EmailTemplate buildClubRegistrationSubmittedEmail(String clubName, String adminName) {
+
+        EmailTemplate emailTemplate = new EmailTemplate();
+
+        emailTemplate.setRecipientName(adminName);
+        emailTemplate.setTitle("Club Registration Submitted");
+        emailTemplate.setMessage(
+                String.format("""
+                    Thank you for registering <b>%s</b> on CampusUtsav.
+                    Your registration has been submitted successfully and is currently under review.
+                    Your account status is <b>PENDING APPROVAL</b>. A college principal must review and approve your registration before you can access the platform.
+                    You will receive another email once your account status is updated.
+                    """,
+                        clubName
+                )
+        );
+
+        emailTemplate.setEntityName(clubName);
+
+        return emailTemplate;
+    }
+}

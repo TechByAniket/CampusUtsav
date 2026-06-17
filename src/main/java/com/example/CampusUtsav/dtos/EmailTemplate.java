@@ -2,9 +2,11 @@ package com.example.CampusUtsav.dtos;
 
 import lombok.Builder;
 import lombok.Data;
+import lombok.RequiredArgsConstructor;
 
 @Builder
 @Data
+@RequiredArgsConstructor
 public class EmailTemplate {
 
     private String recipientName;
