@@ -3,6 +3,8 @@ package com.example.CampusUtsav.utils;
 import com.example.CampusUtsav.dtos.EmailTemplate;
 import com.example.CampusUtsav.entity.enums.AccountStatus;
 import com.example.CampusUtsav.entity.enums.EmailType;
+import com.example.CampusUtsav.entity.enums.EventStatus;
+import com.example.CampusUtsav.entity.enums.Role;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -163,6 +165,31 @@ public class EmailUtils {
         );
 
         emailTemplate.setEntityName(collegeName);
+
+        return emailTemplate;
+    }
+
+    public EmailTemplate buildEventFacultyApprovedEmail(
+            String eventName,
+            String clubName
+
+    ) {
+
+        EmailTemplate emailTemplate = new EmailTemplate();
+
+        emailTemplate.setRecipientName(clubName);
+        emailTemplate.setTitle("Event Approved at Faculty Level");
+        emailTemplate.setMessage(
+                String.format("""
+                    Good news!
+                    Your event <b>%s</b> has been approved by the Faculty Coordinator.
+                    It has now been forwarded to higher authorities for further review.
+                    We will notify you once the final decision is made.
+                    """,
+                        eventName
+                )
+        );
+        emailTemplate.setEntityName(eventName);
 
         return emailTemplate;
     }

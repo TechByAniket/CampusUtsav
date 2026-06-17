@@ -1,9 +1,11 @@
 package com.example.CampusUtsav.serviceImpl;
 
+import com.example.CampusUtsav.dtos.EmailTemplate;
 import com.example.CampusUtsav.dtos.EventLogResponse;
 import com.example.CampusUtsav.dtos.EventResponse;
 import com.example.CampusUtsav.dtos.miniDtos.EventSummary;
 import com.example.CampusUtsav.entity.*;
+import com.example.CampusUtsav.entity.enums.EmailType;
 import com.example.CampusUtsav.entity.enums.EventStatus;
 import com.example.CampusUtsav.entity.enums.NotificationType;
 import com.example.CampusUtsav.entity.enums.Role;
@@ -11,10 +13,12 @@ import com.example.CampusUtsav.mapper.EventLogMapper;
 import com.example.CampusUtsav.mapper.EventMapper;
 import com.example.CampusUtsav.repository.*;
 import com.example.CampusUtsav.security.model.CustomUserDetails;
+import com.example.CampusUtsav.service.EmailService;
 import com.example.CampusUtsav.service.EventLogService;
 import com.example.CampusUtsav.service.NotificationService;
 import com.example.CampusUtsav.serviceImpl.helper.EntityLookupService;
 import com.example.CampusUtsav.serviceImpl.helper.ValidationHelperService;
+import com.example.CampusUtsav.utils.EmailUtils;
 import com.example.CampusUtsav.utils.EventUtils;
 import com.example.CampusUtsav.utils.NotificationUtils;
 import lombok.AllArgsConstructor;
@@ -43,6 +47,8 @@ public class EventLogServiceImpl implements EventLogService {
     private final EventUtils eventUtils;
     private final EntityLookupService entityLookupService;
     private final ValidationHelperService validationHelperService;
+    private final EmailService emailService;
+    private final EmailUtils emailUtils;
 
 
     @Override
@@ -184,6 +190,21 @@ public class EventLogServiceImpl implements EventLogService {
                         approverUser.getRole() == Role.ROLE_HOD
                                 ? "/staff-dashboard/inbox"
                                 : "/college-dashboard/inbox"
+                );
+
+                // =================================
+                // UPDATE EMAIL TO CLUBS ABOUT FACULTY APPROVAL
+                // =================================
+                EmailTemplate emailTemplate =
+                        emailUtils.buildEventFacultyApprovedEmail(
+                                currentEvent.getTitle(),
+                                linkedClub.getName()
+                        );
+
+                emailService.sendEmail(
+                        linkedClub.getAdminEmail(),
+                        EmailType.EVENT_APPROVED,
+                        emailTemplate
                 );
 
                 if(forwardedTo == Role.ROLE_PRINCIPAL){
