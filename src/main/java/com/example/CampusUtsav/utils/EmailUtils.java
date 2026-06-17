@@ -80,8 +80,21 @@ public class EmailUtils {
                         clubName
                 )
         );
-
         emailTemplate.setEntityName(clubName);
+        return emailTemplate;
+    }
+    public EmailTemplate buildStudentRegistrationSuccessfulEmail(String studentName) {
+
+        EmailTemplate emailTemplate = new EmailTemplate();
+
+        emailTemplate.setRecipientName(studentName);
+        emailTemplate.setTitle("Registration Successful");
+        emailTemplate.setMessage("""
+            Welcome to CampusUtsav!
+            Your account has been created successfully.
+            You can now browse upcoming events, register for activities, join teams, and stay updated with everything happening on your campus.
+            We look forward to seeing your participation in upcoming events.
+            """);
 
         return emailTemplate;
     }
