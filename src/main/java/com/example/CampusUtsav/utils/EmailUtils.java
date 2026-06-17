@@ -141,4 +141,29 @@ public class EmailUtils {
 
         return emailTemplate;
     }
+
+    public EmailTemplate buildCollegeRegistrationSuccessfulEmail(
+            String collegeName,
+            String adminName
+    ) {
+
+        EmailTemplate emailTemplate = new EmailTemplate();
+
+        emailTemplate.setRecipientName(adminName);
+        emailTemplate.setTitle("Registration Successful");
+        emailTemplate.setMessage(
+                String.format("""
+                    Welcome to CampusUtsav!
+                    Your college registration has been completed successfully.
+                    You can now log in and start managing clubs, events, approvals, and other campus activities through the platform.
+                    We are excited to have <b>%s</b> onboard.
+                    """,
+                        collegeName
+                )
+        );
+
+        emailTemplate.setEntityName(collegeName);
+
+        return emailTemplate;
+    }
 }
