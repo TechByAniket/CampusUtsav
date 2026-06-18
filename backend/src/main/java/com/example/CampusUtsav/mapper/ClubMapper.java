@@ -1,0 +1,80 @@
+package com.example.CampusUtsav.mapper;
+
+
+import com.example.CampusUtsav.dtos.ClubRegistrationRequest;
+import com.example.CampusUtsav.dtos.ClubResponse;
+import com.example.CampusUtsav.dtos.miniDtos.ClubSummary;
+import com.example.CampusUtsav.dtos.miniDtos.CollegeSummary;
+import com.example.CampusUtsav.entity.Club;
+import org.springframework.stereotype.Component;
+
+@Component
+public class ClubMapper {
+
+    public Club convertToClubEntity(ClubRegistrationRequest req){
+        return Club.builder()
+                .adminEmail(req.getAdminEmail())
+                .adminName(req.getAdminName())
+                .adminPhone(req.getAdminPhone())
+                .shortForm(req.getShortForm())
+//                .college
+                .description(req.getDescription())
+//                .logoUrl(req.getLogoUrl())
+                .linkedInUrl(req.getLinkedInUrl())
+                .name(req.getName())
+                .instagramUrl(req.getInstagramUrl())
+//                .facultyCoordinatorName(req.getFacultyCoordinatorName())
+//                .facultyCoordinatorEmail(req.getFacultyCoordinatorEmail())
+                .passwordHash(req.getPassword())
+                .websiteUrl(req.getWebsiteUrl())
+                .build();
+    }
+
+    public ClubResponse convertToClubResponse(Club newClub){
+        return ClubResponse.builder()
+                .id(newClub.getId())
+                .college(CollegeSummary.builder()
+                        .id(newClub.getCollege().getId())
+                        .name(newClub.getCollege().getName())
+                        .shortForm(newClub.getCollege().getShortForm())
+                        .city(newClub.getCollege().getCity())
+                        .district(newClub.getCollege().getDistrict())
+                        .state(newClub.getCollege().getState())
+                        .logoUrl(newClub.getCollege().getLogoUrl())
+                        .build())
+                .description(newClub.getDescription())
+                .username(newClub.getUsername())
+                .shortForm(newClub.getShortForm().toUpperCase())
+                .adminPhone(newClub.getAdminPhone())
+                .adminEmail(newClub.getAdminEmail())
+                .adminName(newClub.getAdminName())
+//                .facultyCoordinatorEmail(newClub.getFacultyCoordinatorEmail())
+                .instagramUrl(newClub.getInstagramUrl())
+                .linkedInUrl(newClub.getLinkedInUrl())
+                .logoUrl(newClub.getLogoUrl())
+                .name(newClub.getName())
+                .branchShortForm(
+                        newClub.getBranch() == null
+                                ? null
+                                : newClub.getBranch().getShortForm().toUpperCase())
+//                .facultyCoordinatorName(newClub.getFacultyCoordinatorName())
+                .createdAt(newClub.getCreatedAt())
+                .updatedAt(newClub.getUpdatedAt())
+                .websiteUrl(newClub.getWebsiteUrl())
+                .emailVerified(newClub.isEmailVerified())
+                .phoneVerified(newClub.isPhoneVerified())
+                .build();
+    }
+
+    public ClubSummary convertToClubSummary(Club club){
+        return ClubSummary.builder()
+                .id(club.getId())
+                .name(club.getName())
+                .adminName(club.getAdminName())
+                .logoUrl(club.getLogoUrl())
+                .managedBy(club.getCoordinator() != null ? club.getCoordinator().getName() : null)
+                .status(club.getStatus())
+                .shortForm(club.getShortForm())
+                .build();
+    }
+}
