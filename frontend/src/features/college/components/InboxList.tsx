@@ -1,0 +1,475 @@
+import React, { useState, useEffect, useMemo } from 'react';
+import { createPortal } from 'react-dom';
+import {
+  Search, X, Calendar, Clock, MapPin, Tag,
+  AlertCircle, Image as ImageIcon, Edit3,
+  ChevronRight, ShieldAlert, CheckCircle, RotateCcw
+} from 'lucide-react';
+import { toast } from 'sonner';
+import { motion, AnimatePresence } from 'framer-motion';
+import { useNavigate } from 'react-router-dom';
+
+import {
+  getAllPendingApprovalsByRole,
+  approveEventByRole,
+  revertEventByRole,
+  getRevertedEventsByClub,
+  getEventDetailsByEventId
+} from '@/services/eventService';
+import { ResubmitModal } from '@/features/clubs/components/events/ResubmitModal';
+
+interface Event {
+  id: number;
+  title: string;
+  startDate: string;
+  endDate: string;
+  startTime: string;
+  endTime: string;
+  eventCategory: string;
+  eventType: string;
+  venue: string;
+  remarks: string | null;
+  status: string;
+  posterUrl: string;
+  clubId: number;
+  clubNameShortForm: string;
+  description?: string;
+  fees?: number;
+}
+
+const formatEventDate = (startDate: string, endDate: string) => {
+  if (!startDate) return "";
+  if (!endDate || startDate === endDate) {
+    const d = new Date(startDate);
+    if (isNaN(d.getTime())) return startDate;
+    return d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+  } else {
+    const d1 = new Date(startDate);
+    const d2 = new Date(endDate);
+    if (isNaN(d1.getTime()) || isNaN(d2.getTime())) return `${startDate} – ${endDate}`;
+    const day1 = d1.toLocaleDateString('en-GB', { day: '2-digit', month: 'short' });
+    const day2 = d2.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+    return `${day1} – ${day2}`;
+  }
+};
+
+export const InboxList = ({ mode = 'COLLEGE' }) => {
+  const navigate = useNavigate();
+  const [eventList, setEventList] = useState<Event[]>([]);
+  const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [isLoading, setIsLoading] = useState(true);
+  const [isResubmitting, setIsResubmitting] = useState(false);
+  const [actionRemark, setActionRemark] = useState("");
+  const [decision, setDecision] = useState<'APPROVE' | 'REVERT'>('APPROVE');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  useEffect(() => { loadEvents(); }, [mode]);
+
+  const loadEvents = async () => {
+    setIsLoading(true);
+    try {
+      const data = mode === 'CLUB' ? await getRevertedEventsByClub() : await getAllPendingApprovalsByRole();
+      setEventList(data || []);
+    } catch (err: any) { toast.error(err.message); }
+    finally { setIsLoading(false); }
+  };
+
+  const openResubmitForm = async (eventId: number) => {
+    try {
+      if (!eventId) return toast.error("Invalid Event ID");
+      const details = await getEventDetailsByEventId(eventId);
+      setSelectedEvent({ ...details, id: eventId });
+      setIsResubmitting(true);
+    } catch (err: any) {
+      toast.error(err.message);
+    }
+  };
+
+  const handleSubmitAction = async () => {
+    if (!selectedEvent) return;
+    if (decision === 'REVERT' && !actionRemark.trim()) {
+      toast.error('Remark is required for Revert.');
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      if (decision === 'APPROVE') {
+        await approveEventByRole(selectedEvent.id, actionRemark.trim() || 'Approved');
+        toast.success("Event Approved Successfully!");
+      } else {
+        await revertEventByRole(selectedEvent.id, actionRemark.trim());
+        toast.success("Event Reverted to Club!");
+      }
+      setEventList(prev => prev.filter(e => e.id !== selectedEvent.id));
+      setSelectedEvent(null);
+      setActionRemark("");
+    } catch (err: any) {
+      toast.error(err.message || 'Action failed.');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const filteredEvents = useMemo(() => {
+    return eventList.filter(e =>
+      e.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      e.id.toString().includes(searchQuery)
+    );
+  }, [eventList, searchQuery]);
+
+  const getStatusStyles = (status: string) => {
+    switch (status.toUpperCase()) {
+      case 'APPROVED': return 'bg-emerald-50 text-emerald-600 border-emerald-100';
+      case 'REVERTED': return 'bg-amber-50 text-amber-600 border-amber-100';
+      case 'REJECTED': return 'bg-rose-50 text-rose-600 border-rose-100';
+      case 'SUBMITTED': return 'bg-blue-50 text-blue-600 border-blue-100';
+      case 'HOD_APPROVED': return 'bg-cyan-50 text-cyan-600 border-cyan-100';
+      case 'FACULTY1_APPROVED': return 'bg-violet-50 text-violet-600 border-violet-100';
+      default: return 'bg-slate-50 text-slate-500 border-slate-200';
+    }
+  };
+
+  return (
+    <div className="w-full space-y-10 pb-10">
+
+        {/* --- HEADER --- */}
+        <header className="flex flex-col md:flex-row md:items-center justify-between gap-6 pb-6 border-b border-slate-200/60 mb-8">
+          <div className="space-y-1">
+            <h1 className="text-2xl md:text-3xl font-black text-slate-900 tracking-tight leading-none">
+              {mode === 'CLUB' ? 'Action Required' : 'Inbox'}
+            </h1>
+            <p className="text-xs font-semibold text-slate-400 mt-1.5 tracking-wide">
+              {mode === 'CLUB' ? 'Review and update your pending event revisions' : 'Streamline and approve institutional request workflows'}
+            </p>
+          </div>
+
+          <div className="flex flex-row items-center gap-3 w-full md:w-auto">
+            <div className="relative group flex-1 md:w-80">
+              <Search className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-indigo-500 transition-colors" size={20} />
+              <input
+                type="text"
+                placeholder="Search by title or ID..."
+                className="w-full pl-14 pr-12 py-3.5 bg-white border border-slate-200/60 rounded-full text-sm font-bold placeholder:text-slate-400 placeholder:font-black placeholder:uppercase placeholder:text-[10px] placeholder:tracking-widest outline-none focus:border-indigo-300 transition-all text-slate-900 shadow-sm"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
+              {searchQuery && (
+                <button
+                  onClick={() => setSearchQuery("")}
+                  className="absolute right-5 top-1/2 -translate-y-1/2 p-1.5 bg-slate-100 hover:bg-rose-500 hover:text-white text-slate-400 rounded-full transition-all"
+                >
+                  <X size={12} />
+                </button>
+              )}
+            </div>
+            <div className="px-4 py-3.5 bg-white border border-slate-200/60 rounded-full flex items-center justify-center gap-2 shadow-sm shrink-0">
+              <span className="w-2 h-2 rounded-full bg-indigo-600 animate-pulse" />
+              <span className="text-[12px] font-black text-slate-700">{filteredEvents.length}</span>
+            </div>
+          </div>
+        </header>
+
+        {/* --- MAIN TABLE AREA --- */}
+        <div className="bg-white rounded-[2.5rem] border border-slate-200 overflow-hidden shadow-xl shadow-slate-200/50 min-h-[500px]">
+
+          {/* TOOLBAR */}
+          <div className="px-8 py-6 border-b border-slate-100 flex items-center justify-between bg-slate-50/20">
+            <div className="flex items-center gap-3">
+              <div className="w-1.5 h-6 bg-indigo-600 rounded-full" />
+              <h2 className="text-lg font-black text-slate-800 uppercase tracking-tight">
+                {mode === 'CLUB' ? 'Reverted Submissions' : 'Approval Inbox'}
+              </h2>
+            </div>
+          </div>
+
+          {/* TABLE VIEW */}
+          <div className="overflow-x-auto no-scrollbar">
+            {isLoading ? (
+              <div className="py-40 flex flex-col items-center justify-center space-y-6">
+                <div className="w-12 h-12 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin" />
+                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Compiling Records...</p>
+              </div>
+            ) : filteredEvents.length === 0 ? (
+              <div className="py-40 text-center flex flex-col items-center justify-center">
+                <div className="w-20 h-20 bg-slate-50 rounded-3xl flex items-center justify-center text-slate-200 mb-6 border border-slate-100">
+                  <AlertCircle size={40} />
+                </div>
+                <p className="text-slate-400 font-black text-sm uppercase tracking-widest">Inbox is clear. No pending items.</p>
+              </div>
+            ) : (
+              <table className="w-full border-collapse">
+                <thead>
+                  <tr className="bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 border-b border-slate-700 text-left">
+                    <th className="px-8 py-5 text-[10px] font-black uppercase tracking-[0.2em] text-slate-100">Event Identity</th>
+                    <th className="px-8 py-5 text-[10px] font-black uppercase tracking-[0.2em] text-slate-100">Schedule & Logistics</th>
+                    <th className="px-8 py-5 text-[10px] font-black uppercase tracking-[0.2em] text-slate-100">Current Progress</th>
+                    <th className="px-8 py-5 text-[10px] font-black uppercase tracking-[0.2em] text-slate-100 text-center">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {filteredEvents.map((event) => (
+                    <tr key={event.id} className="hover:bg-indigo-50/30 transition-colors group">
+                      <td className="px-8 py-5">
+                        <div className="flex items-center gap-4">
+                          <div className="w-14 h-14 rounded-2xl overflow-hidden bg-slate-100 border-4 border-white shadow-md shrink-0 relative">
+                            {event.posterUrl ? (
+                              <img src={event.posterUrl} className="w-full h-full object-cover transition-transform group-hover:scale-110" />
+                            ) : (
+                              <div className="w-full h-full flex items-center justify-center text-slate-300"><ImageIcon size={20} /></div>
+                            )}
+                          </div>
+                          <div className="min-w-0">
+                            <div className="font-black text-slate-800 uppercase text-sm truncate max-w-[280px] group-hover:text-indigo-600 transition-colors leading-tight">{event.title}</div>
+                            <div className="flex items-center gap-2 mt-1.5">
+                              <span className="text-[10px] font-black text-indigo-500 uppercase tracking-widest bg-indigo-50 px-2 py-0.5 rounded-lg border border-indigo-100/50">#{event.id}</span>
+                              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{event.clubNameShortForm || "CLUB"}</span>
+                            </div>
+                          </div>
+                        </div>
+                      </td>
+
+                      <td className="px-8 py-5">
+                        <div className="flex flex-col gap-2">
+                          <div className="flex items-center gap-2.5 text-[11px] font-black text-slate-700 uppercase tracking-tight">
+                            <Calendar className="size-3 text-indigo-500" /> {formatEventDate(event.startDate, event.endDate)}
+                          </div>
+                          <div className="flex items-center gap-2.5 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                            <MapPin className="size-3 text-slate-300" /> {event.venue?.slice(0, 25)}...
+                          </div>
+                        </div>
+                      </td>
+
+                      <td className="px-8 py-5">
+                        <div className="flex flex-col gap-2">
+                          <span className={`inline-flex items-center px-3.5 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-widest border w-fit shadow-sm ${getStatusStyles(event.status)}`}>
+                            {event.status.replace('_', ' ')}
+                          </span>
+                          <div className="flex items-center gap-2 text-[10px] font-bold text-slate-400 uppercase tracking-widest pl-1">
+                            <Clock className="size-2.5 text-slate-300" /> {event.startTime?.slice(0, 5)}
+                          </div>
+                        </div>
+                      </td>
+
+                      <td className="px-8 py-5">
+                        <div className="flex items-center justify-end gap-2">
+                          {mode !== 'CLUB' && (
+                            <button
+                              onClick={() => {
+                                const basePath = window.location.pathname.split('/').slice(0, 2).join('/');
+                                navigate(`${basePath}/events/${event.id}`);
+                              }}
+                              className="px-4 py-2.5 bg-slate-900 text-white rounded-full text-[10px] font-black uppercase tracking-widest hover:bg-indigo-600 hover:shadow-lg transition-all active:scale-95 flex items-center gap-2 shadow-sm"
+                            >
+                              View Event <ChevronRight size={14} />
+                            </button>
+                          )}
+                          {mode !== 'CLUB' && (
+                            <button
+                              onClick={() => {
+                                setSelectedEvent(event);
+                                setDecision('APPROVE');
+                                setActionRemark('');
+                              }}
+                              className="px-4 py-2.5 bg-indigo-600 text-white rounded-full text-[10px] font-black uppercase tracking-widest hover:bg-indigo-500 hover:shadow-lg hover:shadow-indigo-600/20 transition-all active:scale-95 flex items-center gap-2 shadow-sm"
+                            >
+                              Take Action <ShieldAlert size={14} />
+                            </button>
+                          )}
+                          {mode === 'CLUB' && (
+                            <button
+                              onClick={() => openResubmitForm(event.id)}
+                              className="px-5 py-2.5 bg-slate-900 text-white rounded-full text-[10px] font-black uppercase tracking-widest hover:bg-indigo-600 hover:shadow-lg transition-all active:scale-95 group/btn flex items-center gap-2 shadow-xl shadow-slate-100"
+                            >
+                              Edit <Edit3 size={14} className="group-hover/btn:translate-x-1 transition-transform" />
+                            </button>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
+          </div>
+        </div>      {/* --- CAPSULE-LITE REVIEW MODAL --- */}
+      {createPortal(
+        <AnimatePresence>
+          {selectedEvent && !isResubmitting && (
+            <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm overflow-y-auto no-scrollbar">
+              <motion.div
+                initial={{ scale: 0.95, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0.95, opacity: 0 }}
+                className={`w-full ${
+                  mode !== 'CLUB' ? 'max-w-md p-8 rounded-[2.5rem] border-slate-200 shadow-2xl' : 'max-w-lg rounded-[2.5rem] border-slate-200 shadow-2xl'
+                } bg-white relative overflow-hidden border my-auto`}
+              >
+                {mode !== 'CLUB' ? (
+                  <>
+                    <div className="flex justify-between items-center mb-6">
+                      <h3 className="text-xl font-black text-slate-900 uppercase tracking-tight">Review Decision</h3>
+                      <button
+                        onClick={() => { setSelectedEvent(null); setActionRemark(""); }}
+                        className="p-2 text-slate-400 hover:text-slate-600 transition-colors"
+                      >
+                        <X size={20} />
+                      </button>
+                    </div>
+
+                    <div className="space-y-6">
+                      <div>
+                        <label className="text-[11px] font-black uppercase text-slate-400 ml-1 tracking-widest block mb-2">Select Option</label>
+                        <div className="grid grid-cols-2 gap-4">
+                          <button
+                            type="button"
+                            onClick={() => setDecision('APPROVE')}
+                            className={`py-4 rounded-2xl font-black uppercase text-[11px] tracking-widest transition-all shadow-sm active:scale-95 flex flex-col items-center gap-2 border-2 ${
+                              decision === 'APPROVE'
+                                ? 'bg-emerald-50 border-emerald-500 text-emerald-700'
+                                : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'
+                            }`}
+                          >
+                            <CheckCircle size={20} />
+                            Approve
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setDecision('REVERT')}
+                            className={`py-4 rounded-2xl font-black uppercase text-[11px] tracking-widest transition-all shadow-sm active:scale-95 flex flex-col items-center gap-2 border-2 ${
+                              decision === 'REVERT'
+                                ? 'bg-amber-50 border-amber-500 text-amber-700'
+                                : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'
+                            }`}
+                          >
+                            <RotateCcw size={20} />
+                            Revert
+                          </button>
+                        </div>
+                      </div>
+
+                      <div className="space-y-2">
+                        <label className="text-[11px] font-black uppercase text-slate-400 ml-1 tracking-widest block">
+                          Remarks {decision === 'REVERT' && <span className="text-rose-500 font-bold">*</span>}
+                        </label>
+                        <textarea
+                          rows={4}
+                          value={actionRemark}
+                          onChange={(e) => setActionRemark(e.target.value)}
+                          placeholder={decision === 'REVERT' ? 'Reason for reverting (Required)...' : 'Optional approval remarks...'}
+                          className="w-full px-5 py-4 bg-slate-50 border border-slate-200 rounded-2xl text-[13px] font-medium outline-none focus:border-indigo-500 transition-all text-slate-900"
+                        />
+                      </div>
+
+                      <div className="flex gap-4">
+                        <button
+                          onClick={() => setSelectedEvent(null)}
+                          className="flex-1 py-4 border border-slate-200 hover:bg-slate-50 rounded-2xl font-black uppercase text-xs tracking-widest transition-all text-slate-500"
+                        >
+                          Cancel
+                        </button>
+                        <button
+                          onClick={handleSubmitAction}
+                          disabled={isSubmitting}
+                          className={`flex-[2] py-4 rounded-2xl font-black uppercase text-xs tracking-widest transition-all shadow-lg active:scale-95 text-white ${
+                            isSubmitting
+                              ? 'bg-slate-400 cursor-not-allowed'
+                              : decision === 'APPROVE'
+                              ? 'bg-emerald-600 hover:bg-emerald-500 shadow-emerald-600/20'
+                              : 'bg-amber-600 hover:bg-amber-500 shadow-amber-600/20'
+                          }`}
+                        >
+                          {isSubmitting ? 'Processing...' : 'Confirm Action'}
+                        </button>
+                      </div>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    {/* Header: Clean & Compact */}
+                    <div className="px-8 py-6 border-b border-slate-50 bg-slate-50/30 flex items-center gap-5">
+                      <div className="w-14 h-14 rounded-2xl overflow-hidden border-2 border-white shadow-sm shrink-0">
+                        <img src={selectedEvent.posterUrl} className="w-full h-full object-cover" alt="" />
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <h3 className="text-base font-extrabold text-slate-900 uppercase truncate leading-tight mb-1">{selectedEvent.title}</h3>
+                        <div className="flex items-center gap-2">
+                          <span className="text-[10px] font-semibold text-indigo-600 border-indigo-100 bg-white border px-2 py-0.5 rounded-lg">ID #{selectedEvent.id}</span>
+                          <span className={`text-[10px] font-black uppercase px-2 py-0.5 rounded border ${getStatusStyles(selectedEvent.status)}`}>
+                            {selectedEvent.status}
+                          </span>
+                        </div>
+                      </div>
+                      <button onClick={() => { setSelectedEvent(null); setActionRemark(""); }} className="p-2 transition-colors text-slate-300 hover:text-slate-600"><X size={20} /></button>
+                    </div>
+
+                    <div className="max-h-[70vh] overflow-y-auto">
+                      <div className="p-10 space-y-10">
+                        {/* KEY DETAILS IN A CAPSULE GRID */}
+                        <div className="grid grid-cols-2 gap-4">
+                          <CapsuleDetail icon={<Calendar size={14} />} label="Date" value={formatEventDate(selectedEvent.startDate, selectedEvent.endDate)} />
+                          <CapsuleDetail icon={<Clock size={14} />} label="Time" value={selectedEvent.startTime?.slice(0, 5)} />
+                          <CapsuleDetail icon={<MapPin size={14} />} label="Venue" value={selectedEvent.venue} />
+                          <CapsuleDetail icon={<Tag size={14} />} label="Category" value={selectedEvent.eventCategory} />
+                        </div>
+
+                        {/* Description Strip */}
+                        <div className="bg-slate-50 p-5 rounded-[1.5rem] border border-slate-100">
+                          <p className="text-[12px] font-bold text-slate-500 leading-relaxed italic">
+                            "{selectedEvent.description}"
+                          </p>
+                        </div>
+
+                        {/* Previous Remarks (If any) */}
+                        {selectedEvent.remarks && (
+                          <div className="p-4 bg-orange-50 border border-orange-100 rounded-[1.5rem] flex gap-3 items-center">
+                            <AlertCircle size={18} className="shrink-0 text-orange-500" />
+                            <div className="min-w-0">
+                              <p className="text-[9px] font-black uppercase text-orange-600 mb-0.5 tracking-widest">Previous Feedback</p>
+                              <p className="text-[12px] font-black text-orange-900 leading-snug">"{selectedEvent.remarks}"</p>
+                            </div>
+                          </div>
+                        )}
+
+                        {mode === 'CLUB' && (
+                          <button
+                            onClick={() => openResubmitForm(selectedEvent.id)}
+                            className="w-full py-5 bg-indigo-600 text-white rounded-[1.5rem] font-black text-[11px] uppercase tracking-widest hover:bg-indigo-700 transition-all shadow-xl shadow-indigo-100"
+                          >
+                            <Edit3 size={18} className="mr-2 inline" /> Start Resubmission Flow
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  </>
+                )}
+              </motion.div>
+            </div>
+          )}
+        </AnimatePresence>,
+        document.body
+      )}
+
+      <AnimatePresence>
+        {selectedEvent && isResubmitting && (
+          <ResubmitModal
+            event={selectedEvent as any}
+            onClose={() => { setSelectedEvent(null); setIsResubmitting(false); }}
+            onSuccess={() => { setSelectedEvent(null); setIsResubmitting(false); loadEvents(); }}
+          />
+        )}
+      </AnimatePresence>
+    </div>
+  );
+};
+
+const CapsuleDetail = ({ icon, label, value }: { icon: React.ReactNode, label: string, value: string }) => (
+  <div className="px-5 py-4 bg-slate-50 border border-slate-100 rounded-[1.5rem] flex items-center gap-4 transition-all hover:bg-white hover:shadow-sm">
+    <div className="text-indigo-500 shrink-0">{icon}</div>
+    <div className="min-w-0">
+      <p className="text-[9px] font-black uppercase text-slate-400 leading-none mb-1 tracking-wider">{label}</p>
+      <p className="text-[12px] font-black text-slate-800 uppercase truncate">{value || 'N/A'}</p>
+    </div>
+  </div>
+);
