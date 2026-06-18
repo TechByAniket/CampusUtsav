@@ -1,10 +1,7 @@
 package com.example.CampusUtsav.utils;
 
 import com.example.CampusUtsav.dtos.EmailTemplate;
-import com.example.CampusUtsav.entity.enums.AccountStatus;
-import com.example.CampusUtsav.entity.enums.EmailType;
-import com.example.CampusUtsav.entity.enums.EventStatus;
-import com.example.CampusUtsav.entity.enums.Role;
+import com.example.CampusUtsav.entity.enums.*;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -823,6 +820,124 @@ public class EmailUtils {
         emailTemplate.setEntityName(
                 assigned ? clubShortForm : "Club Coordinator"
         );
+
+        return emailTemplate;
+    }
+
+    // =============================================
+    // EMAIL TO TEAM LEADER ABOUT TEAM MEMBER LEFT
+    // =============================================
+    public EmailTemplate buildTeamMemberLeftEmail(
+            String leaderName,
+            String teamMemberName,
+            String teamName,
+            String eventName,
+            TeamStatus teamStatus
+    ) {
+
+        EmailTemplate emailTemplate = new EmailTemplate();
+
+        emailTemplate.setRecipientName(leaderName);
+        emailTemplate.setTitle("Team Member Left");
+
+        String message = String.format("""
+            Hello %s,
+            Team member <b>%s</b> has left your team <b>%s</b> for the event <b>%s</b>.
+            Please review your team composition and make any necessary adjustments.
+            """,
+                leaderName,
+                teamMemberName,
+                teamName,
+                eventName
+        );
+
+        if (teamStatus == TeamStatus.INCOMPLETE) {
+
+            message += """
+                
+                <br><br>
+                <b>Your team status is currently INCOMPLETE.</b>
+                Please review your team and fulfill the minimum team size requirement for this event.
+                The team will remain in INCOMPLETE state until the requirement is satisfied.
+                """;
+        }
+
+        emailTemplate.setMessage(message);
+        emailTemplate.setEntityName(teamName);
+        emailTemplate.setButtonText("View Team");
+        emailTemplate.setButtonUrl("/users/registrations");
+
+        return emailTemplate;
+    }
+
+    // =============================================
+    // EMAIL TO TEAM MEMBER ABOUT REMOVAL FROM TEAM
+    // ============================================
+    public EmailTemplate buildTeamMemberRemovedEmail(
+            String memberName,
+            String leaderName,
+            String teamName,
+            String eventName
+    ) {
+
+        EmailTemplate emailTemplate = new EmailTemplate();
+
+        emailTemplate.setRecipientName(memberName);
+        emailTemplate.setTitle("Removed from Team");
+
+        emailTemplate.setMessage(
+                String.format("""
+                    Hello %s,
+                    You have been removed from team <b>%s</b> for the event <b>%s</b> by the team leader <b>%s</b>.
+                    You are no longer associated with this team registration.
+                    If you believe this action was taken in error, please contact the team leader for clarification.
+                    """,
+                        memberName,
+                        teamName,
+                        eventName,
+                        leaderName
+                )
+        );
+
+        emailTemplate.setEntityName(teamName);
+        emailTemplate.setButtonText("View Registrations");
+        emailTemplate.setButtonUrl("/users/registrations");
+
+        return emailTemplate;
+    }
+
+    // =============================================
+    // EMAIL TO TEAM LEADER ABOUT INCOMPLETE TEAM STATUS
+    // =============================================
+    public EmailTemplate buildTeamIncompleteEmail(
+            String leaderName,
+            String teamName,
+            String eventName
+    ) {
+
+        EmailTemplate emailTemplate = new EmailTemplate();
+
+        emailTemplate.setRecipientName(leaderName);
+        emailTemplate.setTitle("Team Status Updated");
+
+        emailTemplate.setMessage(
+                String.format("""
+                    Hello %s,
+                    Due to recent changes in team membership, your team <b>%s</b> for the event <b>%s</b> no longer satisfies the minimum team size requirement.
+                    
+                    Your team status is currently <b>INCOMPLETE</b>.
+                    Please review your team and add eligible members to fulfill the minimum team size requirement for this event.
+                    The team will remain in INCOMPLETE status until the requirement is satisfied.
+                    """,
+                        leaderName,
+                        teamName,
+                        eventName
+                )
+        );
+
+        emailTemplate.setEntityName(teamName);
+        emailTemplate.setButtonText("Manage Team");
+        emailTemplate.setButtonUrl("/users/registrations");
 
         return emailTemplate;
     }

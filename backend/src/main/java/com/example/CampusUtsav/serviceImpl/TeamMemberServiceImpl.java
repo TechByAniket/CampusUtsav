@@ -3,17 +3,16 @@ package com.example.CampusUtsav.serviceImpl;
 import com.example.CampusUtsav.entity.Event;
 import com.example.CampusUtsav.entity.Team;
 import com.example.CampusUtsav.entity.TeamMember;
-import com.example.CampusUtsav.entity.enums.NotificationType;
-import com.example.CampusUtsav.entity.enums.Role;
-import com.example.CampusUtsav.entity.enums.TeamMemberStatus;
-import com.example.CampusUtsav.entity.enums.TeamStatus;
+import com.example.CampusUtsav.entity.enums.*;
 import com.example.CampusUtsav.repository.TeamMemberRepository;
 import com.example.CampusUtsav.repository.TeamRepository;
 import com.example.CampusUtsav.security.model.CustomUserDetails;
+import com.example.CampusUtsav.service.EmailService;
 import com.example.CampusUtsav.service.NotificationService;
 import com.example.CampusUtsav.service.TeamMemberService;
 import com.example.CampusUtsav.serviceImpl.helper.EntityLookupService;
 import com.example.CampusUtsav.serviceImpl.helper.ValidationHelperService;
+import com.example.CampusUtsav.utils.EmailUtils;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.AccessDeniedException;
@@ -31,6 +30,8 @@ public class TeamMemberServiceImpl implements TeamMemberService {
     private final NotificationService notificationService;
     private final EntityLookupService entityLookupService;
     private final ValidationHelperService validationHelperService;
+    private final EmailService emailService;
+    private final EmailUtils emailUtils;
 
     @Override
     @Transactional
@@ -130,6 +131,21 @@ public class TeamMemberServiceImpl implements TeamMemberService {
                 message,
                 NotificationType.TEAM_UPDATE,
                 "/users/registrations"
+        );
+
+        // =====================================================
+        // EMAIL NOTIFICATION TO LEADER ABOUT TEAM MEMBER LEFT THE TEAM
+        // =====================================================
+        emailService.sendEmail(
+                team.getLeader().getEmail(),
+                EmailType.TEAM_MEMBER_REMOVED,
+                emailUtils.buildTeamMemberLeftEmail(
+                        team.getLeader().getName(),
+                        teamMember.getStudent().getName(),
+                        team.getName(),
+                        event.getTitle(),
+                        team.getStatus()
+                )
         );
 
         // =================================================
@@ -261,6 +277,35 @@ public class TeamMemberServiceImpl implements TeamMemberService {
                     NotificationType.TEAM_UPDATE,
                     "/users/registrations"
             );
+
+            // =====================================================
+            // EMAIL NOTIFICATION TO REMOVED MEMBER ABOUT THEIR REMOVAL
+            // =====================================================
+            emailService.sendEmail(
+                    member.getStudent().getEmail(),
+                    EmailType.TEAM_MEMBER_REMOVED,
+                    emailUtils.buildTeamMemberRemovedEmail(
+                            member.getStudent().getName(),
+                            team.getLeader().getName(),
+                            team.getName(),
+                            event.getTitle()
+                    )
+            );
+
+            if(team.getStatus() == TeamStatus.INCOMPLETE) {
+                // =====================================================
+                // EMAIL NOTIFICATION TO LEADER ABOUT TEAM STATUS INCOMPLETE DUE TO MEMBER REMOVAL
+                // =====================================================
+                emailService.sendEmail(
+                        team.getLeader().getEmail(),
+                        EmailType.ACTION_REQUIRED,
+                        emailUtils.buildTeamIncompleteEmail(
+                                team.getLeader().getName(),
+                                team.getName(),
+                                event.getTitle()
+                        )
+                );
+            }
         }
 
         return "Member removed successfully";
