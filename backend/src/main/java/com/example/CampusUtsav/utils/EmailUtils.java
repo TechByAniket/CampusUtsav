@@ -144,6 +144,45 @@ public class EmailUtils {
         return emailTemplate;
     }
 
+    public EmailTemplate buildStaffAccountStatusChangedEmail(
+            String staffName,
+            AccountStatus targetStatus
+    ) {
+
+        EmailTemplate emailTemplate = new EmailTemplate();
+
+        emailTemplate.setRecipientName(staffName);
+        emailTemplate.setTitle("Account Status Updated");
+
+        String message;
+
+        if (targetStatus == AccountStatus.ACTIVE) {
+
+            message = String.format("""
+                Your account status has been updated to <b>%s</b>.
+                Your account is now active and you can log in to CampusUtsav and access all features available to your role.
+                Thank you for being part of the platform.
+                """,
+                    targetStatus
+            );
+
+        } else {
+
+            message = String.format("""
+                Your account status has been updated to <b>%s</b>.
+                You are currently unable to access CampusUtsav using this account.
+                For further clarification or assistance, please contact your college principal.
+                """,
+                    targetStatus
+            );
+        }
+
+        emailTemplate.setMessage(message);
+        emailTemplate.setEntityName(staffName);
+
+        return emailTemplate;
+    }
+
     public EmailTemplate buildCollegeRegistrationSuccessfulEmail(
             String collegeName,
             String adminName
@@ -616,6 +655,174 @@ public class EmailUtils {
         } else {
             emailTemplate.setButtonUrl("/staff-dashboard/inbox");
         }
+
+        return emailTemplate;
+    }
+
+    // =============================================
+    // STAFF REGISTRATION SUCCESSFUL EMAIL
+    // =============================================
+    public EmailTemplate buildStaffRegistrationSubmittedEmail(String name) {
+
+        EmailTemplate emailTemplate = new EmailTemplate();
+
+        emailTemplate.setRecipientName(name);
+        emailTemplate.setTitle("Account Registration Submitted");
+        emailTemplate.setMessage(
+                String.format("""
+                    Thank you for registering <b>%s</b> on CampusUtsav.
+                    Your registration has been submitted successfully and is currently under review.
+                    Your account status is <b>PENDING APPROVAL</b>. A college principal must review and approve your registration before you can access the platform.
+                    You will receive another email once your account status is updated.
+                    """,
+                        name
+                )
+        );
+        emailTemplate.setEntityName(name);
+        return emailTemplate;
+    }
+
+    // =============================================
+    // EMAIL TO PRINCIPAL ABOUT NEW CLUB ACCOUNT SUBMITTED
+    // =============================================
+    public EmailTemplate buildClubApprovalRequestEmail(
+            String principalName,
+            String clubName
+    ) {
+
+        EmailTemplate emailTemplate = new EmailTemplate();
+
+        emailTemplate.setRecipientName(principalName);
+        emailTemplate.setTitle("New Club Registration Pending Approval");
+
+        emailTemplate.setMessage(
+                String.format("""
+                    Hello %s,
+                    A new club registration requires your review and approval.
+                    Club: <b>%s</b>
+                    Please review the submitted details and take the appropriate action.
+                    """,
+                        principalName,
+                        clubName
+                )
+        );
+
+        emailTemplate.setEntityName(clubName);
+        emailTemplate.setButtonText("Review Club");
+        emailTemplate.setButtonUrl("/college-dashboard/clubs");
+
+        return emailTemplate;
+    }
+
+    // =============================================
+    // EMAIL TO PRINCIPAL ABOUT NEW STAFF ACCOUNT SUBMITTED
+    // =============================================
+    public EmailTemplate buildStaffApprovalRequestEmail(
+            String principalName,
+            String staffName
+    ) {
+
+        EmailTemplate emailTemplate = new EmailTemplate();
+
+        emailTemplate.setRecipientName(principalName);
+        emailTemplate.setTitle("New Staff Registration Pending Approval");
+
+        emailTemplate.setMessage(
+                String.format("""
+                    Hello %s,
+                    A new staff account registration requires your review and approval.
+                    Staff Member: <b>%s</b>
+                    Please review the submitted details and take the appropriate action.
+                    """,
+                        principalName,
+                        staffName
+                )
+        );
+
+        emailTemplate.setEntityName(staffName);
+        emailTemplate.setButtonText("Review Staff");
+        emailTemplate.setButtonUrl("/college-dashboard/staff");
+
+        return emailTemplate;
+    }
+
+    // =============================================
+    // EMAIL TO STAFF ABOUT ROLE UPDATE
+    // ============================================
+    public EmailTemplate buildStaffRoleUpdatedEmail(
+            String staffName,
+            String updatedRole
+    ) {
+
+        EmailTemplate emailTemplate = new EmailTemplate();
+
+        emailTemplate.setRecipientName(staffName);
+        emailTemplate.setTitle("Role Updated");
+
+        emailTemplate.setMessage(
+                String.format("""
+                    Your CampusUtsav account role has been updated successfully.
+                    Your new role is <b>%s</b>.
+                    Please log in again if required and review the permissions and responsibilities associated with your updated role.
+                    """,
+                        updatedRole
+                )
+        );
+
+        emailTemplate.setEntityName(updatedRole);
+        emailTemplate.setButtonText("Go to Dashboard");
+        emailTemplate.setButtonUrl("/auth/sign-in");
+
+        return emailTemplate;
+    }
+
+    // ============================================
+    // EMAIL TO STAFF ABOUT CLUB COORDINATOR ASSIGNMENT / REMOVAL
+    // ===========================================
+    public EmailTemplate buildClubCoordinatorAssignmentEmail(
+            String staffName,
+            String clubShortForm,
+            boolean assigned
+    ) {
+
+        EmailTemplate emailTemplate = new EmailTemplate();
+
+        emailTemplate.setRecipientName(staffName);
+
+        if (assigned) {
+
+            emailTemplate.setTitle("Club Coordinator Assignment");
+
+            emailTemplate.setMessage(
+                    String.format("""
+                        You have been assigned as the coordinator for <b>%s</b>.
+                        You can now manage club activities, events, and related responsibilities through your CampusUtsav dashboard.
+                        Thank you for taking on this responsibility.
+                        """,
+                            clubShortForm
+                    )
+            );
+
+            emailTemplate.setButtonText("Open Dashboard");
+            emailTemplate.setButtonUrl("/staff-dashboard");
+
+        } else {
+
+            emailTemplate.setTitle("Club Coordinator Assignment Updated");
+
+            emailTemplate.setMessage("""
+                You have been removed from your club coordinator responsibilities.
+                You no longer have management access to club operations and related administrative actions.
+                Please contact your college administration if you have any questions regarding this update.
+                """);
+
+            emailTemplate.setButtonText("Open Dashboard");
+            emailTemplate.setButtonUrl("/staff-dashboard");
+        }
+
+        emailTemplate.setEntityName(
+                assigned ? clubShortForm : "Club Coordinator"
+        );
 
         return emailTemplate;
     }

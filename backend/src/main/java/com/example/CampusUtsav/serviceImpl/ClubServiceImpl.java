@@ -144,6 +144,15 @@ public class ClubServiceImpl implements ClubService {
                 emailTemplate
         );
 
+        emailService.sendEmail(
+                linkedCollege.getEmail(),
+                EmailType.ACTION_REQUIRED,
+                emailUtils.buildClubApprovalRequestEmail(
+                        linkedCollege.getAdminName(),
+                        newClub.getName()
+                )
+        );
+
         return "Club Registered Successfully!";
     }
 

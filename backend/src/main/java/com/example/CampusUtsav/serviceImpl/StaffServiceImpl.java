@@ -4,16 +4,19 @@ import com.example.CampusUtsav.dtos.StaffRegistrationRequest;
 import com.example.CampusUtsav.dtos.StaffResponse;
 import com.example.CampusUtsav.entity.*;
 import com.example.CampusUtsav.entity.enums.AccountStatus;
+import com.example.CampusUtsav.entity.enums.EmailType;
 import com.example.CampusUtsav.entity.enums.NotificationType;
 import com.example.CampusUtsav.entity.enums.Role;
 import com.example.CampusUtsav.exception.DuplicateResourceException;
 import com.example.CampusUtsav.mapper.StaffMapper;
 import com.example.CampusUtsav.repository.*;
 import com.example.CampusUtsav.security.model.CustomUserDetails;
+import com.example.CampusUtsav.service.EmailService;
 import com.example.CampusUtsav.service.NotificationService;
 import com.example.CampusUtsav.service.StaffService;
 import com.example.CampusUtsav.serviceImpl.helper.EntityLookupService;
 import com.example.CampusUtsav.serviceImpl.helper.ValidationHelperService;
+import com.example.CampusUtsav.utils.EmailUtils;
 import com.example.CampusUtsav.utils.NotificationUtils;
 import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
@@ -41,6 +44,8 @@ public class StaffServiceImpl implements StaffService {
     private final NotificationUtils notificationUtils;
     private final EntityLookupService entityLookupService;
     private final ValidationHelperService validationHelperService;
+    private final EmailService emailService;
+    private final EmailUtils emailUtils;
 
     @Override
     @Transactional
@@ -73,6 +78,26 @@ public class StaffServiceImpl implements StaffService {
 
         newStaff.setUser(user);
         staffRepository.save(newStaff);
+
+        // =================================================
+        // NOTIFY STAFF ABOUT THEIR NEW ACCOUNT CREATION
+        // =================================================
+        emailService.sendEmail(
+                newStaff.getEmail(),
+                EmailType.ACCOUNT_STATUS_CHANGE,
+                emailUtils.buildStaffRegistrationSubmittedEmail(
+                        newStaff.getName()
+                )
+        );
+
+        emailService.sendEmail(
+                linkedCollege.getEmail(),
+                EmailType.ACTION_REQUIRED,
+                emailUtils.buildStaffApprovalRequestEmail(
+                        linkedCollege.getAdminName(),
+                        newStaff.getName()
+                )
+        );
 
         return "Staff registered successfully!";
     }
@@ -140,6 +165,15 @@ public class StaffServiceImpl implements StaffService {
                         ? "/staff-dashboard"
                         : "/auth/sign-in"
         );
+
+        emailService.sendEmail(
+                staff.getEmail(),
+                EmailType.ACCOUNT_STATUS_CHANGE,
+                emailUtils.buildStaffAccountStatusChangedEmail(
+                        staff.getName(),
+                        staff.getStatus()
+                )
+        );
     }
 
     @Override
@@ -203,6 +237,15 @@ public class StaffServiceImpl implements StaffService {
                 message,
                 NotificationType.ROLE_UPDATE,
                 "/staff-dashboard"
+        );
+
+        emailService.sendEmail(
+                staff.getEmail(),
+                EmailType.ROLE_UPDATE,
+                emailUtils.buildStaffRoleUpdatedEmail(
+                        staff.getName(),
+                        updatedRole == Role.ROLE_HOD ? "Head Of Department" : "Faculty"
+                )
         );
     }
 
@@ -287,6 +330,28 @@ public class StaffServiceImpl implements StaffService {
                 NotificationType.CLUB_ASSIGNMENT_CHANGE,
                 "/staff-dashboard"
         );
+
+        if(clubId != null && staff.isClubCoordinator()) {
+            emailService.sendEmail(
+                    staff.getEmail(),
+                    EmailType.ROLE_UPDATE,
+                    emailUtils.buildClubCoordinatorAssignmentEmail(
+                            staff.getName(),
+                            staff.getManagedClub().getShortForm(),
+                            true
+                    )
+            );
+        } else {
+            emailService.sendEmail(
+                    staff.getEmail(),
+                    EmailType.ROLE_UPDATE,
+                    emailUtils.buildClubCoordinatorAssignmentEmail(
+                            staff.getName(),
+                            null,
+                            false
+                    )
+            );
+        }
     }
 
     // ************* GET PROFILE DETAILS OF A STAFF *********** //
