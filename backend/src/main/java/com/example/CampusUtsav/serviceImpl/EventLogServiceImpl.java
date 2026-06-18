@@ -182,6 +182,8 @@ public class EventLogServiceImpl implements EventLogService {
                 User approverUser = info.approverUser();
                 String approverMessage = info.approverMessage();
 
+                Staff approverStaff = entityLookupService.getStaff(approverUser.getEmail());
+
                 notificationService.createNotification(
                         approverUser,
                         "New Event Pending for Your Review",
@@ -205,6 +207,21 @@ public class EventLogServiceImpl implements EventLogService {
                         linkedClub.getAdminEmail(),
                         EmailType.EVENT_APPROVED,
                         emailTemplate
+                );
+
+                // =================================
+                // EMAIL FOR HOD/PRINCIPAL ABOUT NEW EVENT PENDING FOR REVIEW
+                // =================================
+
+                emailService.sendEmail(
+                        approverUser.getEmail(),
+                        EmailType.ACTION_REQUIRED,
+                        emailUtils.buildEventPendingApprovalEmail(
+                                currentEvent.getTitle(),
+                                approverStaff.getName(),
+                                linkedClub.getName(),
+                                "Faculty Coordinator"
+                        )
                 );
 
                 if(forwardedTo == Role.ROLE_PRINCIPAL){
@@ -261,12 +278,44 @@ public class EventLogServiceImpl implements EventLogService {
                 approverUser = info.approverUser();
                 approverMessage = info.approverMessage();
 
+                College approverPrincipal = entityLookupService.getCollege(approverUser.getEmail());
+
                 notificationService.createNotification(
                         approverUser,
                         "New Event Pending for Your Review",
                         approverMessage,
                         NotificationType.EVENT_STATUS_CHANGE,
                         "/college-dashboard/inbox"
+                );
+
+                // =================================
+                // UPDATE EMAIL TO CLUBS ABOUT HOD APPROVAL
+                // =================================
+
+                emailService.sendEmail(
+                        linkedClub.getAdminEmail(),
+                        EmailType.EVENT_APPROVED,
+                        emailUtils.buildEventHodApprovedForClubEmail(
+                                currentEvent.getTitle(),
+                                linkedClub.getName(),
+                                "Principal"
+                        )
+                );
+
+                // =================================
+                // EMAIL FOR PRINCIPAL ABOUT NEW EVENT PENDING FOR REVIEW
+                // =================================
+
+                emailService.sendEmail(
+                        approverUser.getEmail(),
+                        EmailType.ACTION_REQUIRED,
+                        emailUtils.buildEventPendingPrincipalApprovalEmail(
+                                currentEvent.getTitle(),
+                                approverPrincipal.getName(),
+                                linkedClub.getName(),
+                                linkedClub.getCollege().getName(),
+                                userRole.name()
+                        )
                 );
 
                 return "Departmental clearance granted. Forwarded to the Principal for final approval.";
@@ -313,6 +362,20 @@ public class EventLogServiceImpl implements EventLogService {
                         message,
                         NotificationType.EVENT_STATUS_CHANGE,
                         "/club-dashboard/events/" + currentEvent.getId()
+                );
+
+                // =================================
+                // EMAIL TO CLUB ADMIN ABOUT FINAL APPROVAL
+                // =================================
+
+                emailService.sendEmail(
+                        linkedClub.getAdminEmail(),
+                        EmailType.EVENT_APPROVED,
+                        emailUtils.buildEventFinalApprovalEmail(
+                                currentEvent.getTitle(),
+                                linkedClub.getName(),
+                                currentEvent.getId()
+                        )
                 );
 
                 return "The event has been officially approved and is now live on the platform.";
@@ -368,6 +431,11 @@ public class EventLogServiceImpl implements EventLogService {
 
                 revertEventNotification(currentEvent);
 
+                // =================================
+                // EMAIL TO CLUB ADMIN ABOUT FACULTY REVERT
+                // =================================
+                sendEmailToClubOnEventRevert(linkedClub, currentEvent, "Faculty Coordinator", remarks);
+
                 return "Event successfully reverted back to the " + linkedClub.getName() + " from Faculty Coordinator's desk";
 
             case ROLE_HOD:
@@ -398,6 +466,11 @@ public class EventLogServiceImpl implements EventLogService {
                 // =================================
 
                 revertEventNotification(currentEvent);
+
+                // =================================
+                // EMAIL TO CLUB ADMIN ABOUT FACULTY REVERT
+                // =================================
+                sendEmailToClubOnEventRevert(linkedClub, currentEvent, "Head Of Department", remarks);
 
                 return "Event successfully reverted back to the " + linkedClub.getName() + " from Departmental/HOD desk";
 
@@ -432,6 +505,11 @@ public class EventLogServiceImpl implements EventLogService {
                 // NOTIFICATION TO CLUB ADMIN ABOUT REVERT
                 // =================================
                 revertEventNotification(currentEvent);
+
+                // =================================
+                // EMAIL TO CLUB ADMIN ABOUT FACULTY REVERT
+                // =================================
+                sendEmailToClubOnEventRevert(linkedClub, currentEvent, "Principal", remarks);
 
                 return "Event successfully reverted back to the " + linkedClub.getName() + " from Principal's desk";
 
@@ -535,6 +613,19 @@ public class EventLogServiceImpl implements EventLogService {
                 message,
                 NotificationType.EVENT_STATUS_CHANGE,
                 "/club-dashboard/inbox"
+        );
+    }
+
+    private void sendEmailToClubOnEventRevert(Club linkedClub, Event currentEvent, String revertedBy, String remarks) {
+        emailService.sendEmail(
+                linkedClub.getAdminEmail(),
+                EmailType.EVENT_REVERTED,
+                emailUtils.buildEventRevertedEmail(
+                        currentEvent.getTitle(),
+                        linkedClub.getName(),
+                        revertedBy,
+                        remarks
+                )
         );
     }
 }

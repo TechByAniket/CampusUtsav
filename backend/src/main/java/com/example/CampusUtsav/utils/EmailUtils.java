@@ -193,4 +193,168 @@ public class EmailUtils {
 
         return emailTemplate;
     }
+
+    public EmailTemplate buildEventPendingApprovalEmail(
+            String eventName,
+            String approverName,
+            String clubName,
+            String fromUser
+    ) {
+
+        EmailTemplate emailTemplate = new EmailTemplate();
+
+        emailTemplate.setRecipientName(approverName);
+        emailTemplate.setTitle("New Event Pending for Your Review");
+
+        emailTemplate.setMessage(
+                String.format("""
+                    Hello %s,
+                    A new event is pending for your approval.
+                    Event: <b>%s</b>
+                    Club: <b>%s</b>
+                    This event has been approved by %s and is now awaiting your review.
+                    Please log in to CampusUtsav to take action.
+                    """,
+                        approverName,
+                        eventName,
+                        clubName,
+                        fromUser
+                )
+        );
+
+        emailTemplate.setEntityName(eventName);
+        emailTemplate.setButtonText("Review Event");
+        emailTemplate.setButtonUrl("/dashboard/inbox");
+
+        return emailTemplate;
+    }
+
+    public EmailTemplate buildEventHodApprovedForClubEmail(
+            String eventName,
+            String clubName,
+            String nextApprover
+    ) {
+
+        EmailTemplate emailTemplate = new EmailTemplate();
+
+        emailTemplate.setRecipientName(clubName);
+        emailTemplate.setTitle("Event Approved at HOD Level");
+
+        emailTemplate.setMessage(
+                String.format("""
+                    Good news!
+                    Your event <b>%s</b> has been approved by the Head of Department.
+                    It has now been forwarded to <b>%s</b> for final approval.
+                    We will notify you once the final decision is made.
+                    """,
+                        eventName,
+                        nextApprover
+                )
+        );
+
+        emailTemplate.setEntityName(eventName);
+
+        return emailTemplate;
+    }
+
+    public EmailTemplate buildEventPendingPrincipalApprovalEmail(
+            String eventName,
+            String approverName,
+            String clubName,
+            String collegeName,
+            String fromRole
+    ) {
+
+        EmailTemplate emailTemplate = new EmailTemplate();
+
+        emailTemplate.setRecipientName(approverName);
+        emailTemplate.setTitle("Event Pending Final Approval");
+
+        emailTemplate.setMessage(
+                String.format("""
+                    Hello %s,
+                    A new event is awaiting your final approval.
+                    Event: <b>%s</b>
+                    Club: <b>%s</b>
+                    College: <b>%s</b>
+                    This event has been approved by %s and now requires your final decision.
+                    Please log in to CampusUtsav to take action.
+                    """,
+                        approverName,
+                        eventName,
+                        clubName,
+                        collegeName,
+                        fromRole
+                )
+        );
+
+        emailTemplate.setEntityName(eventName);
+        emailTemplate.setButtonText("Review Event");
+        emailTemplate.setButtonUrl("/college-dashboard/inbox");
+
+        return emailTemplate;
+    }
+
+    public EmailTemplate buildEventFinalApprovalEmail(
+            String eventName,
+            String clubName,
+            Integer eventId
+    ) {
+
+        EmailTemplate emailTemplate = new EmailTemplate();
+
+        emailTemplate.setRecipientName(clubName);
+        emailTemplate.setTitle("Event Approved & Live");
+
+        emailTemplate.setMessage(
+                String.format("""
+                    Congratulations!
+                    Your event <b>%s</b> has been approved by the Principal.
+                    It is now officially approved and live on CampusUtsav.
+                    You can now manage and track registrations from your dashboard.
+                    """,
+                        eventName
+                )
+        );
+
+        emailTemplate.setEntityName(eventName);
+        emailTemplate.setButtonText("View Event");
+        emailTemplate.setButtonUrl("/events/" + eventId);
+
+        return emailTemplate;
+    }
+
+    public EmailTemplate buildEventRevertedEmail(
+            String eventName,
+            String clubName,
+            String revertedBy,
+            String remarks
+    ) {
+
+        EmailTemplate emailTemplate = new EmailTemplate();
+
+        emailTemplate.setRecipientName(clubName);
+        emailTemplate.setTitle("Event Reverted for Changes");
+
+        emailTemplate.setMessage(
+                String.format("""
+                    Your event <b>%s</b> has been reverted by %s for required changes.
+                    
+                    Remarks:
+                    %s
+                    
+                    Please review the feedback and update your event accordingly before resubmission.
+                    """,
+                        eventName,
+                        revertedBy,
+                        remarks
+                )
+        );
+
+        emailTemplate.setEntityName(eventName);
+        emailTemplate.setButtonText("Edit Event");
+        emailTemplate.setButtonUrl("/club-dashboard/inbox");
+
+        return emailTemplate;
+    }
 }
