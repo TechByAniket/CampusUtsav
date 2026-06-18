@@ -479,4 +479,144 @@ public class EmailUtils {
 
         return emailTemplate;
     }
+
+    // ============================================
+    // EMAIL TO : CLUB , ON NEW EVENT SUBMISSION
+    // ============================================
+    public EmailTemplate buildEventSubmittedEmail(
+            String eventName,
+            String clubName
+    ) {
+
+        EmailTemplate emailTemplate = new EmailTemplate();
+
+        emailTemplate.setRecipientName(clubName);
+        emailTemplate.setTitle("Event Submitted Successfully");
+
+        emailTemplate.setMessage(
+                String.format("""
+                    Your event <b>%s</b> has been submitted successfully.
+                    The event is now under review and will proceed through the approval workflow.
+                    You will receive updates whenever its status changes.
+                    """,
+                        eventName
+                )
+        );
+
+        emailTemplate.setEntityName(eventName);
+        emailTemplate.setButtonText("View Event");
+        emailTemplate.setButtonUrl("/club-dashboard/events");
+
+        return emailTemplate;
+    }
+
+    // ============================================
+    // EMAIL TO : FACULTY , ON NEW EVENT SUBMISSION
+    // ===========================================
+    public EmailTemplate buildEventSubmissionReviewEmail(
+            String eventName,
+            String approverName,
+            String clubName,
+            Role approverRole
+    ) {
+
+        EmailTemplate emailTemplate = new EmailTemplate();
+
+        emailTemplate.setRecipientName(approverName);
+        emailTemplate.setTitle("New Event Pending for Review");
+
+        emailTemplate.setMessage(
+                String.format("""
+                    Hello %s,
+                    A new event has been submitted and requires your review.
+                    Event: <b>%s</b>
+                    Club: <b>%s</b>
+                    Please log in to CampusUtsav and take the appropriate action.
+                    """,
+                        approverName,
+                        eventName,
+                        clubName
+                )
+        );
+
+        emailTemplate.setEntityName(eventName);
+        emailTemplate.setButtonText("Review Event");
+        if(approverRole == Role.ROLE_PRINCIPAL) {
+            emailTemplate.setButtonUrl("/college-dashboard/inbox");
+        } else {
+            emailTemplate.setButtonUrl("/staff-dashboard/inbox");
+        }
+
+        return emailTemplate;
+    }
+
+    // ============================================
+    // EMAIL TO : CLUB , ON EVENT RE-SUBMISSION AFTER CHANGES
+    // ===========================================
+    public EmailTemplate buildEventResubmittedEmail(
+            String eventName,
+            String clubName
+    ) {
+
+        EmailTemplate emailTemplate = new EmailTemplate();
+
+        emailTemplate.setRecipientName(clubName);
+        emailTemplate.setTitle("Event Re-Submitted Successfully");
+
+        emailTemplate.setMessage(
+                String.format("""
+                    Your event <b>%s</b> has been updated and re-submitted successfully.
+                    The event has re-entered the approval workflow and is currently under review.
+                    You will receive further updates as it progresses through the approval stages.
+                    """,
+                        eventName
+                )
+        );
+
+        emailTemplate.setEntityName(eventName);
+        emailTemplate.setButtonText("View Event");
+        emailTemplate.setButtonUrl("/club-dashboard/events");
+
+        return emailTemplate;
+    }
+
+    // ============================================
+    // EMAIL TO NEXT APPROVER , ON EVENT RE-SUBMISSION AFTER CHANGES
+    // ===========================================
+    public EmailTemplate buildEventResubmissionReviewEmail(
+            String eventName,
+            String approverName,
+            String clubName,
+            Role approverRole
+    ) {
+
+        EmailTemplate emailTemplate = new EmailTemplate();
+
+        emailTemplate.setRecipientName(approverName);
+        emailTemplate.setTitle("Re-Submitted Event Pending Review");
+
+        emailTemplate.setMessage(
+                String.format("""
+                    Hello %s,
+                    An event that was previously reverted has been updated and re-submitted for approval.
+                    Event: <b>%s</b>
+                    Club: <b>%s</b>
+                    Please review the latest version and take the appropriate action.
+                    """,
+                        approverName,
+                        eventName,
+                        clubName
+                )
+        );
+
+        emailTemplate.setEntityName(eventName);
+        emailTemplate.setButtonText("Review Event");
+        if(approverRole == Role.ROLE_PRINCIPAL) {
+            emailTemplate.setButtonUrl("/college-dashboard/inbox");
+        } else {
+            emailTemplate.setButtonUrl("/staff-dashboard/inbox");
+        }
+
+        return emailTemplate;
+    }
 }

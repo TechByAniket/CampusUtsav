@@ -314,7 +314,7 @@ public class EventLogServiceImpl implements EventLogService {
                                 approverPrincipal.getName(),
                                 linkedClub.getName(),
                                 linkedClub.getCollege().getName(),
-                                userRole.name()
+                                curHod.getName()
                         )
                 );
 

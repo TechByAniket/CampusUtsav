@@ -10,11 +10,13 @@ import com.example.CampusUtsav.mapper.EventRegistrationMapper;
 import com.example.CampusUtsav.mapper.StudentMapper;
 import com.example.CampusUtsav.repository.*;
 import com.example.CampusUtsav.security.model.CustomUserDetails;
+import com.example.CampusUtsav.service.EmailService;
 import com.example.CampusUtsav.service.EventService;
 import com.example.CampusUtsav.service.NotificationService;
 import com.example.CampusUtsav.service.SupabaseService;
 import com.example.CampusUtsav.serviceImpl.helper.EntityLookupService;
 import com.example.CampusUtsav.serviceImpl.helper.ValidationHelperService;
+import com.example.CampusUtsav.utils.EmailUtils;
 import com.example.CampusUtsav.utils.EventUtils;
 import org.springframework.transaction.annotation.Transactional;
 import lombok.AllArgsConstructor;
@@ -47,6 +49,8 @@ public class EventServiceImpl implements EventService {
     private final EventUtils eventUtils;
     private final EntityLookupService entityLookupService;
     private final ValidationHelperService validationHelperService;
+    private final EmailService emailService;
+    private final EmailUtils emailUtils;
 
     @Override
     public List<String> getAllEventTypes() {
@@ -130,6 +134,14 @@ public class EventServiceImpl implements EventService {
         User approverUser = info.approverUser();
         String approverMessage = info.approverMessage();
 
+        String nextApproverName = "";
+        if(approverUser.getRole() == Role.ROLE_HOD || approverUser.getRole() == Role.ROLE_FACULTY){
+            Staff approverStaff = entityLookupService.getStaff(approverUser.getEmail());
+            nextApproverName = approverStaff.getName();
+        } else if(approverUser.getRole() == Role.ROLE_PRINCIPAL){
+            College approverCollege = entityLookupService.getCollege(approverUser.getEmail());
+            nextApproverName = approverCollege.getName();
+        }
         // =======================================
         // CREATE NOTIFICATION FOR APPROVER
         // =======================================
@@ -142,6 +154,32 @@ public class EventServiceImpl implements EventService {
                 approverUser.getRole() == Role.ROLE_PRINCIPAL
                         ? "/college-dashboard/inbox"
                         : "/staff-dashboard/inbox"
+        );
+
+        // =======================================
+        // SEND EMAIL TO THE CLUB ABOUT SUBMISSION
+        // =======================================
+        emailService.sendEmail(
+                linkedClub.getAdminEmail(),
+                EmailType.EVENT_SUBMITTED,
+                emailUtils.buildEventSubmittedEmail(
+                        newEvent.getTitle(),
+                        linkedClub.getName()
+                )
+        );
+
+        // =======================================
+        // SEND EMAIL TO THE APPROVER ABOUT NEW EVENT TO REVIEW
+        // =======================================
+        emailService.sendEmail(
+                approverUser.getEmail(),
+                EmailType.ACTION_REQUIRED,
+                emailUtils.buildEventSubmissionReviewEmail(
+                        newEvent.getTitle(),
+                        nextApproverName,
+                        linkedClub.getName(),
+                        approverUser.getRole()
+                )
         );
 
         return "Event successfully created and submitted for approvals!";
@@ -218,6 +256,15 @@ public class EventServiceImpl implements EventService {
         User approverUser = info.approverUser();
         String approverMessage = info.approverMessage();
 
+        String nextApproverName = "";
+        if(approverUser.getRole() == Role.ROLE_HOD || approverUser.getRole() == Role.ROLE_FACULTY){
+            Staff approverStaff = entityLookupService.getStaff(approverUser.getEmail());
+            nextApproverName = approverStaff.getName();
+        } else if(approverUser.getRole() == Role.ROLE_PRINCIPAL){
+            College approverCollege = entityLookupService.getCollege(approverUser.getEmail());
+            nextApproverName = approverCollege.getName();
+        }
+
         // =======================================
         // CREATE NOTIFICATION FOR APPROVER
         // =======================================
@@ -230,6 +277,33 @@ public class EventServiceImpl implements EventService {
                 approverUser.getRole() == Role.ROLE_PRINCIPAL
                         ? "/college-dashboard/inbox"
                         : "/staff-dashboard/inbox"
+        );
+
+        // =======================================
+        // EMAIL TO CLUB ABOUT RESUBMISSION
+        // =======================================
+        emailService.sendEmail(
+                curEvent.getClub().getAdminEmail(),
+                EmailType.EVENT_SUBMITTED,
+                emailUtils.buildEventResubmittedEmail(
+                        curEvent.getTitle(),
+                        curEvent.getClub().getName()
+                )
+        );
+
+        // =======================================
+        // EMAIL TO APPROVER ABOUT RE-SUBMITTED EVENT TO REVIEW
+        // =======================================
+
+        emailService.sendEmail(
+                approverUser.getEmail(),
+                EmailType.ACTION_REQUIRED,
+                emailUtils.buildEventResubmissionReviewEmail(
+                        curEvent.getTitle(),
+                        nextApproverName,
+                        curEvent.getClub().getName(),
+                        approverUser.getRole()
+                )
         );
 
         return "Event successfully updated and resubmitted for further approvals!";
