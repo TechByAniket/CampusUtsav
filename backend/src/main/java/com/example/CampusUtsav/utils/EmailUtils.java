@@ -357,4 +357,126 @@ public class EmailUtils {
 
         return emailTemplate;
     }
+
+    public EmailTemplate buildIndividualRegistrationSuccessfulEmail(
+            String studentName,
+            String eventName
+    ) {
+
+        EmailTemplate emailTemplate = new EmailTemplate();
+
+        emailTemplate.setRecipientName(studentName);
+        emailTemplate.setTitle("Event Registration Successful");
+
+        emailTemplate.setMessage(
+                String.format("""
+                    You have successfully registered for <b>%s</b>.
+                    Your registration has been confirmed and no further action is required at this time.
+                    We look forward to your participation and wish you the very best for the event.
+                    """,
+                        eventName
+                )
+        );
+
+        emailTemplate.setEntityName(eventName);
+        emailTemplate.setButtonText("View Registration");
+        emailTemplate.setButtonUrl("/users/registrations");
+
+        return emailTemplate;
+    }
+
+    public EmailTemplate buildTeamRegistrationSuccessfulEmail(
+            String leaderName,
+            String teamName,
+            String eventName
+    ) {
+
+        EmailTemplate emailTemplate = new EmailTemplate();
+
+        emailTemplate.setRecipientName(leaderName);
+        emailTemplate.setTitle("Team Registration Successful");
+
+        emailTemplate.setMessage(
+                String.format("""
+                    Your team <b>%s</b> has been successfully registered for <b>%s</b>.
+                    All team members have been added successfully and the registration is now confirmed.
+                    We wish your team the very best for the event.
+                    """,
+                        teamName,
+                        eventName
+                )
+        );
+
+        emailTemplate.setEntityName(eventName);
+        emailTemplate.setButtonText("View Registration");
+        emailTemplate.setButtonUrl("/users/registrations");
+
+        return emailTemplate;
+    }
+
+    public EmailTemplate buildTeamMemberAddedEmail(
+            String memberName,
+            String teamName,
+            String eventName,
+            String leaderName
+    ) {
+
+        EmailTemplate emailTemplate = new EmailTemplate();
+
+        emailTemplate.setRecipientName(memberName);
+        emailTemplate.setTitle("Added to Event Team");
+
+        emailTemplate.setMessage(
+                String.format("""
+                    You have been added to team <b>%s</b> for the event <b>%s</b>.
+                    This registration was submitted by <b>%s</b>, the team leader.
+                    Please coordinate with your team members regarding event participation and preparation.
+                    """,
+                        teamName,
+                        eventName,
+                        leaderName
+                )
+        );
+
+        emailTemplate.setEntityName(eventName);
+        emailTemplate.setButtonText("View Registration");
+        emailTemplate.setButtonUrl("/users/registrations");
+
+        return emailTemplate;
+    }
+
+    public EmailTemplate buildRegistrationCancelledEmail(
+            String recipientName,
+            String eventName,
+            String cancelledBy,
+            boolean teamRegistration
+    ) {
+
+        EmailTemplate emailTemplate = new EmailTemplate();
+
+        emailTemplate.setRecipientName(recipientName);
+        emailTemplate.setTitle(
+                teamRegistration
+                        ? "Team Registration Cancelled"
+                        : "Event Registration Cancelled"
+        );
+
+        emailTemplate.setMessage(
+                String.format("""
+                    Your %s registration for <b>%s</b> has been cancelled.
+                    Cancellation initiated by <b>%s</b>.
+                    If you believe this was done in error, please contact the event organizers or your college administration.
+                    """,
+                        teamRegistration ? "team" : "",
+                        eventName,
+                        cancelledBy
+                )
+        );
+
+        emailTemplate.setEntityName(eventName);
+        emailTemplate.setButtonText("View Registrations");
+        emailTemplate.setButtonUrl("/users/registrations");
+
+        return emailTemplate;
+    }
 }

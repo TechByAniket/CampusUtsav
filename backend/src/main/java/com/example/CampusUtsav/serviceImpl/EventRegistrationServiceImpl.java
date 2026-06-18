@@ -13,10 +13,12 @@ import com.example.CampusUtsav.mapper.TeamMapper;
 import com.example.CampusUtsav.mapper.TeamMemberMapper;
 import com.example.CampusUtsav.repository.*;
 import com.example.CampusUtsav.security.model.CustomUserDetails;
+import com.example.CampusUtsav.service.EmailService;
 import com.example.CampusUtsav.service.EventRegistrationService;
 import com.example.CampusUtsav.service.NotificationService;
 import com.example.CampusUtsav.serviceImpl.helper.EntityLookupService;
 import com.example.CampusUtsav.serviceImpl.helper.ValidationHelperService;
+import com.example.CampusUtsav.utils.EmailUtils;
 import jakarta.persistence.EntityNotFoundException;
 //import jakarta.transaction.Transactional;
 import org.apache.coyote.BadRequestException;
@@ -47,6 +49,8 @@ public class EventRegistrationServiceImpl implements EventRegistrationService {
     private final NotificationService notificationService;
     private final EntityLookupService entityLookupService;
     private final ValidationHelperService validationHelperService;
+    private final EmailUtils emailUtils;
+    private final EmailService emailService;
 
     @Override
     @Transactional
@@ -114,6 +118,18 @@ public class EventRegistrationServiceImpl implements EventRegistrationService {
                             + "'. We look forward to your participation.",
                     NotificationType.REGISTRATION_STATUS_CHANGE,
                     "/users/registrations"
+            );
+
+            // =============================================
+            // EMAIL NOTIFICATION TO STUDENT
+            // =============================================
+            emailService.sendEmail(
+                    student.getUser().getEmail(),
+                    EmailType.REGISTRATION_CONFIRMED,
+                    emailUtils.buildIndividualRegistrationSuccessfulEmail(
+                            student.getName(),
+                            event.getTitle()
+                    )
             );
 
             return eventRegistrationMapper.toIndividualResponse(registration);
@@ -208,10 +224,34 @@ public class EventRegistrationServiceImpl implements EventRegistrationService {
             registration = eventRegistrationRepository.save(registration);
 
             // =============================================
-            // CONFIRMATION NOTIFICATION TO LEADER & TEAM MEMBERS
+            // CONFIRMATION IN APP NOTIFICATION & EMAIL TO LEADER & TEAM MEMBERS
             // =============================================
 
+            emailService.sendEmail(
+                    leader.getUser().getEmail(),
+                    EmailType.REGISTRATION_CONFIRMED,
+                    emailUtils.buildTeamRegistrationSuccessfulEmail(
+                            leader.getName(),
+                            team.getName(),
+                            event.getTitle()
+                    )
+            );
+
             for (Student member : members) {
+
+                if (!member.getId().equals(leader.getId())) {
+
+                    emailService.sendEmail(
+                            member.getUser().getEmail(),
+                            EmailType.TEAM_MEMBER_ADDED,
+                            emailUtils.buildTeamMemberAddedEmail(
+                                    member.getName(),
+                                    team.getName(),
+                                    event.getTitle(),
+                                    leader.getName()
+                            )
+                    );
+                }
 
                 notificationService.createNotification(
                         member.getUser(),
@@ -320,6 +360,30 @@ public class EventRegistrationServiceImpl implements EventRegistrationService {
                     "/users/registrations"
             );
 
+            // ========================================
+            // EMAIL NOTIFICATION TO STUDENT
+            // ========================================
+            String cancelledBy;
+
+            if (isStudentOwner) {
+                cancelledBy = "You";
+            } else if (isEventOwnerClub) {
+                cancelledBy = "Event Organizer";
+            } else {
+                cancelledBy = "College Administration";
+            }
+
+            emailService.sendEmail(
+                    registration.getStudent().getUser().getEmail(),
+                    EmailType.REGISTRATION_CANCELLED,
+                    emailUtils.buildRegistrationCancelledEmail(
+                            registration.getStudent().getName(),
+                            event.getTitle(),
+                            cancelledBy,
+                            false
+                    )
+            );
+
             return "Individual registration cancelled successfully";
         }
 
@@ -368,8 +432,18 @@ public class EventRegistrationServiceImpl implements EventRegistrationService {
             }
 
             // ========================================
-            // INFORMATION NOTIFICATION TO TEAM MEMBERS
+            // INFORMATION NOTIFICATION (IN APP & EMAIL) TO TEAM MEMBERS
             // ========================================
+
+            String cancelledBy;
+
+            if (isLeader) {
+                cancelledBy = team.getLeader().getName();
+            } else if (isEventOwnerClub) {
+                cancelledBy = "Event Organizer";
+            } else {
+                cancelledBy = "College Administration";
+            }
 
             for (TeamMember member : team.getMembers()) {
 
@@ -379,6 +453,17 @@ public class EventRegistrationServiceImpl implements EventRegistrationService {
                     notificationMessage = "You have successfully cancelled your team registration for '"
                             + event.getTitle() + "'.";
                 }
+
+                emailService.sendEmail(
+                        member.getStudent().getEmail(),
+                        EmailType.REGISTRATION_CANCELLED,
+                        emailUtils.buildRegistrationCancelledEmail(
+                                member.getStudent().getName(),
+                                event.getTitle(),
+                                cancelledBy,
+                                true
+                        )
+                );
 
                 notificationService.createNotification(
                         member.getStudent().getUser(),
