@@ -399,9 +399,9 @@ export const StaffInfoList = () => {
 
         {/* --- ALL SCREENS VIEW --- */}
         <div className="bg-white border border-slate-200 rounded-[2rem] overflow-hidden shadow-xl shadow-slate-200/50">
-          <div className="overflow-x-auto custom-scrollbar">
+          <div className="max-h-[500px] overflow-y-auto overflow-x-auto custom-scrollbar">
           <table className="w-full border-collapse min-w-[900px]">
-            <thead>
+            <thead className="sticky top-0 z-10">
               <tr className="bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 border-b border-slate-700">
                 <th className="px-6 py-5 text-[10px] font-black uppercase tracking-[0.2em] text-slate-100 text-left">Faculty Info</th>
                 <th className="px-6 py-5 text-[10px] font-black uppercase tracking-[0.2em] text-slate-100 text-left">Club Coordinator</th>

@@ -29,9 +29,9 @@ export const ClubsTable: React.FC<ClubsTableProps> = ({
 }) => {
   return (
     <div className="bg-white border border-slate-200 rounded-[2rem] overflow-hidden shadow-xl shadow-slate-200/50">
-      <div className="overflow-x-auto custom-scrollbar">
+      <div className="max-h-[500px] overflow-y-auto overflow-x-auto custom-scrollbar">
         <table className="w-full border-collapse min-w-[800px]">
-        <thead>
+        <thead className="sticky top-0 z-10">
           <tr className="bg-slate-900 border-b border-slate-800 text-left">
             <th className="px-6 py-5 text-[10px] font-black uppercase tracking-[0.2em] text-slate-100">Club Information</th>
             <th className="px-6 py-5 text-[10px] font-black uppercase tracking-[0.2em] text-slate-100">Admin Name</th>
@@ -53,25 +53,25 @@ export const ClubsTable: React.FC<ClubsTableProps> = ({
                     )}
                   </div>
                   <div>
-                    <div className="font-bold text-slate-800 uppercase text-xs leading-tight tracking-tight">{c.name}</div>
-                    <div className="text-[10px] text-slate-400 font-bold uppercase mt-0.5 tracking-widest">{c.shortForm}</div>
+                    <div className="font-bold text-slate-800 uppercase text-sm leading-tight tracking-tight">{c.name}</div>
+                    <div className="text-[12px] text-slate-400 font-bold uppercase mt-0.5 tracking-widest">{c.shortForm}</div>
                   </div>
                 </div>
               </td>
 
               <td className="px-6 py-4">
-                <div className="text-[11px] font-bold text-slate-700 uppercase tracking-tight">{c.adminName}</div>
+                <div className="text-[12px] font-bold text-slate-700 uppercase tracking-tight">{c.adminName}</div>
               </td>
 
               <td className="px-6 py-4">
-                <div className="text-[11px] font-bold text-slate-500 uppercase tracking-tight">{c.managedBy}</div>
+                <div className="text-[12px] font-bold text-slate-500 uppercase tracking-tight">{c.managedBy}</div>
               </td>
 
               <td className="px-6 py-4">
                 <div className="flex items-center gap-2">
                   <div className="relative">
                     <select 
-                      className="appearance-none bg-orange-50 border border-orange-100 rounded-xl pl-3 pr-8 py-2 text-[10px] font-black text-orange-700 cursor-pointer outline-none transition-all focus:ring-2 focus:ring-orange-200" 
+                      className="appearance-none bg-orange-50 border border-orange-100 rounded-xl pl-3 pr-8 py-2 text-[11px] font-black text-orange-700 cursor-pointer outline-none transition-all focus:ring-2 focus:ring-orange-200" 
                       value={pendingStatusChanges[c.id] || c.status} 
                       onChange={(e) => onStatusChange(c.id, e.target.value)}
                     >
@@ -82,7 +82,7 @@ export const ClubsTable: React.FC<ClubsTableProps> = ({
                   {pendingStatusChanges[c.id] && pendingStatusChanges[c.id] !== c.status && (
                     <button 
                       onClick={() => onUpdateStatus(c.id)} 
-                      className="bg-orange-600 text-white text-[9px] font-black px-3 py-2 rounded-xl animate-pulse shadow-lg shadow-orange-100 hover:bg-orange-700 transition-all"
+                      className="bg-orange-600 text-white text-[10px] font-black px-3 py-2 rounded-xl animate-pulse shadow-lg shadow-orange-100 hover:bg-orange-700 transition-all"
                     >
                       UPDATE
                     </button>
@@ -94,7 +94,7 @@ export const ClubsTable: React.FC<ClubsTableProps> = ({
                 <div className="flex items-center justify-center">
                   <Link 
                     to={`/college-dashboard/clubs/${c.id}`} 
-                    className="px-5 py-2.5 bg-slate-900 text-white rounded-xl text-[9px] font-black uppercase tracking-widest hover:bg-slate-800 transition-all active:scale-95 shadow-lg shadow-slate-100"
+                    className="px-5 py-2.5 bg-slate-900 text-white rounded-full text-[10px] font-black uppercase tracking-widest hover:bg-slate-800 transition-all active:scale-95 shadow-lg shadow-slate-100"
                   >
                     View Dashboard
                   </Link>

@@ -356,9 +356,9 @@ export const StudentsInfoList = ({ students }: StudentsInfoListProps) => {
             ) : (
             <>
                 <div className="bg-white border border-slate-200 rounded-[2rem] overflow-hidden shadow-xl shadow-slate-200/50">
-                <div className="overflow-x-auto custom-scrollbar">
+                <div className="max-h-[500px] overflow-y-auto overflow-x-auto custom-scrollbar">
                 <table className="w-full border-collapse table-fixed min-w-[800px]">
-                    <thead>
+                    <thead className="sticky top-0 z-10">
                     <tr className="bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 border-b border-slate-700 text-left">
                         <th className="w-[30%] px-6 py-5 text-[10px] font-black uppercase tracking-[0.2em] text-slate-100">Student Identity</th>
                         <th className="w-[25%] px-6 py-5 text-[10px] font-black uppercase tracking-[0.2em] text-slate-100">Academic Info</th>
@@ -376,10 +376,7 @@ export const StudentsInfoList = ({ students }: StudentsInfoListProps) => {
 
                         <td className="px-6 py-4">
                             <div className="text-[11px] font-black text-indigo-600 bg-indigo-50 border border-indigo-100/50 px-3 py-1 rounded-full w-fit whitespace-nowrap">
-                                {getYearLabel(s.year)} • {s.branch}
-                            </div>
-                            <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest pl-1 mt-1">
-                                Div {s.division} • Roll {s.rollNo}
+                                {getYearLabel(s.year)} - {s.branch} - {s.division} - {s.rollNo}
                             </div>
                         </td>
 

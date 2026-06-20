@@ -294,7 +294,7 @@ export const NotificationsPage: React.FC = () => {
         </div>
       ) : (
         /* Notifications List */
-        <div className="space-y-4">
+        <div className="space-y-4 max-h-[65vh] overflow-y-auto custom-scrollbar pr-2 pb-2">
           {filteredNotifications.map((n) => (
             <NotificationItem 
               key={n.id} 
