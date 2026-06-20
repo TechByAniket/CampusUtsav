@@ -6,6 +6,7 @@ import { toast } from 'sonner';
 import { getEventRegistrations, getEventDetailsByEventId } from '@/services/eventService';
 import type { EventRegistrationsResponse, AdminEventDetail } from '@/types/event';
 import { RegistrationInfoList } from '../components/RegistrationInfoList';
+import { PageSkeleton } from '@/components/ui/PageSkeleton';
 
 const formatEventDate = (startDate: string, endDate: string) => {
   if (!startDate) return "";
@@ -53,9 +54,8 @@ export const EventRegistrationsPage: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="w-full h-screen flex flex-col items-center justify-center bg-white">
-        <Loader2 className="w-10 h-10 text-indigo-600 animate-spin" />
-        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-4">Synchronizing Intelligence...</p>
+      <div className="w-full max-w-5xl mx-auto p-4 sm:p-6 lg:p-8 pt-24 min-h-screen">
+        <PageSkeleton layout="table" />
       </div>
     );
   }

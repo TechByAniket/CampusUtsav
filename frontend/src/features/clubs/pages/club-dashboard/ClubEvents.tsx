@@ -5,6 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { useSelector } from 'react-redux';
 import { motion, AnimatePresence } from 'framer-motion';
+import { PageSkeleton } from '@/components/ui/PageSkeleton';
 
 // Services
 import { 
@@ -76,6 +77,14 @@ export const ClubEvents = () => {
       prev.includes(status) ? prev.filter(s => s !== status) : [...prev, status]
     );
   };
+
+  if (isLoading) {
+    return (
+      <div className="w-full">
+         <PageSkeleton layout="table" />
+      </div>
+    );
+  }
 
   return (
     <div className="w-full space-y-10 pb-10">

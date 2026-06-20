@@ -1,6 +1,9 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useSelector } from "react-redux";
+import type { RootState } from "@/store/store";
 import { useNotifications, checkIfUnread, type NotificationResponse } from "@/hooks/useNotifications";
+import { PageSkeleton } from "@/components/ui/PageSkeleton";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Bell, Loader2, Search, X, Filter, Activity, Calendar, XCircle, CheckCheck } from "lucide-react";
@@ -11,6 +14,9 @@ import { NotificationItem } from "../components/NotificationItem";
 
 export const NotificationsPage: React.FC = () => {
   const navigate = useNavigate();
+  const role = useSelector((state: RootState) => state.auth.role);
+  const isStudent = role === 'ROLE_STUDENT' || role === 'ROLE_USER' || !role;
+
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<"ALL" | "UNREAD" | "READ">("ALL");
   const [dateFilter, setDateFilter] = useState<"ALL" | "TODAY" | "YESTERDAY" | "WEEK">("ALL");
@@ -99,16 +105,15 @@ export const NotificationsPage: React.FC = () => {
 
   if (isLoading) {
     return (
-      <div className="flex flex-col items-center justify-center py-32 space-y-4">
-        <Loader2 className="h-10 w-10 text-orange-500 animate-spin" />
-        <p className="text-sm font-semibold text-slate-500 tracking-wider uppercase">Loading Notifications...</p>
+      <div className="w-full max-w-5xl mx-auto p-4 sm:p-6 lg:p-8 pt-24 min-h-screen">
+        <PageSkeleton layout="table" />
       </div>
     );
   }
 
   const hasUnread = unreadCount > 0;
 
-  return (
+  const content = (
     <div className="w-full space-y-10 pb-10">
       {/* Header Section */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 pb-6 border-b border-slate-200/60 mb-8">
@@ -294,7 +299,7 @@ export const NotificationsPage: React.FC = () => {
         </div>
       ) : (
         /* Notifications List */
-        <div className="space-y-4 max-h-[65vh] overflow-y-auto custom-scrollbar pr-2 pb-2">
+        <div className={`space-y-4 ${isStudent ? '' : 'max-h-[65vh] overflow-y-auto custom-scrollbar pr-2 pb-2'}`}>
           {filteredNotifications.map((n) => (
             <NotificationItem 
               key={n.id} 
@@ -307,4 +312,16 @@ export const NotificationsPage: React.FC = () => {
       )}
     </div>
   );
+
+  if (isStudent) {
+    return (
+      <div className="min-h-screen bg-slate-50/50 px-4 sm:px-6 lg:px-12 py-10 font-sans text-slate-900 selection:bg-indigo-100 selection:text-indigo-900">
+        <div className="max-w-6xl mx-auto h-[85vh] overflow-y-auto custom-scrollbar pr-2">
+          {content}
+        </div>
+      </div>
+    );
+  }
+
+  return content;
 };

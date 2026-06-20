@@ -10,6 +10,7 @@ import type { EventSummary } from '@/types/event';
 import type { RootState } from '@/store/store';
 import { EventListCard } from '../../../events/components/EventListCard';
 import { ExploreFilterBar } from '../../../home/components/ExploreFilterBar';
+import { PageSkeleton } from '@/components/ui/PageSkeleton';
 
 export const Events = () => {
   const navigate = useNavigate();
@@ -60,12 +61,7 @@ export const Events = () => {
   };
 
   if (loading) {
-    return (
-      <div className="min-h-[60vh] flex flex-col items-center justify-center space-y-4">
-        <div className="w-12 h-12 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin" />
-        <p className="text-slate-500 font-black text-xs uppercase tracking-[0.3em]">Syncing Campus Events...</p>
-      </div>
-    );
+    return <PageSkeleton layout="table" />;
   }
 
   return (

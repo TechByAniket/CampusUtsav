@@ -8,6 +8,7 @@ import {
 } from 'lucide-react';
 import { getMyStudentProfileDetails } from '@/services/studentService';
 import { toast } from 'sonner';
+import { PageSkeleton } from '@/components/ui/PageSkeleton';
 
 const YEAR_MAPPING: Record<string, string> = {
   "1": "First Year",
@@ -38,16 +39,15 @@ const StudentProfilePage = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center gap-5 bg-[#f0f2f5] font-sans">
-        <div className="w-10 h-10 border-[3px] border-indigo-600 border-t-transparent rounded-full animate-spin" />
-        <p className="text-slate-400 text-xs font-semibold tracking-widest uppercase">Loading profile...</p>
+      <div className="w-full max-w-5xl mx-auto p-4 sm:p-6 lg:p-8 pt-24 min-h-screen">
+        <PageSkeleton layout="dashboard" />
       </div>
     );
   }
 
   if (!profileData) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center gap-6 px-4 bg-[#f0f2f5] font-sans">
+      <div className="min-h-screen flex flex-col items-center justify-center gap-6 px-4 bg-transparent font-sans">
         <div className="w-16 h-16 rounded-2xl bg-white border border-slate-200 flex items-center justify-center text-slate-300 shadow-sm">
           <Info size={32} />
         </div>
@@ -60,7 +60,7 @@ const StudentProfilePage = () => {
   }
 
   return (
-    <div className="w-full min-h-screen bg-[#f0f2f5] font-sans text-slate-900 selection:bg-indigo-100 selection:text-indigo-900 rounded-[15px] overflow-hidden">
+    <div className="w-full min-h-screen bg-transparent font-sans text-slate-900 selection:bg-indigo-100 selection:text-indigo-900 overflow-hidden">
       <StudentProfileHero profileData={profileData} />
 
       <div className="relative z-20 max-w-[1200px] mx-auto px-4 md:px-8 lg:px-10 py-8">

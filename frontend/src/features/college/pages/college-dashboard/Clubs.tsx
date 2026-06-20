@@ -8,6 +8,7 @@ import { toast } from 'sonner';
 import { ClubsFilterBar } from '../../components/clubs/ClubsFilterBar';
 import { ClubsTable } from '../../components/clubs/ClubsTable';
 import { ClubDetailModal } from '../../components/clubs/ClubDetailModal';
+import { PageSkeleton } from '@/components/ui/PageSkeleton';
 
 interface Club {
   id: number;
@@ -85,14 +86,7 @@ export const Clubs = () => {
   }, [clubs, activeTab, searchQuery]);
 
   if (loading) {
-     return (
-        <section className="mx-auto p-4 min-h-screen w-full bg-slate-50 flex items-center justify-center">
-            <div className="flex flex-col items-center gap-4">
-                <div className="w-12 h-12 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin"></div>
-                <p className="text-slate-500 font-bold text-[10px] uppercase tracking-widest">Initialising Directory...</p>
-            </div>
-        </section>
-     );
+     return <PageSkeleton layout="table" />;
   }
 
   return (
