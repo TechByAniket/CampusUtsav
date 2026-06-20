@@ -57,7 +57,7 @@ export const HeroSection = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.4 }}
-          className='flex flex-col md:flex-row gap-4 mt-4'
+          className='flex flex-col md:flex-row items-center justify-center gap-4 mt-4'
         >
             <Link to='/explore-events'>
               <Button size='lg' className="bg-orange-600 hover:bg-orange-700 text-white rounded-2xl px-8 shadow-lg shadow-orange-900/20">

@@ -75,6 +75,7 @@ export const CollegeSignUp: React.FC<CollegeSignUpProps> = ({ onClose }) => {
   const [showPassword, setShowPassword] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [agreedTerms, setAgreedTerms] = useState(false);
   const [branches, setBranches] = useState<{ id: number; name: string; shortForm: string }[]>([]);
 
   useEffect(() => {
@@ -199,14 +200,14 @@ export const CollegeSignUp: React.FC<CollegeSignUpProps> = ({ onClose }) => {
           initial={{ opacity: 0, y: 24, scale: 0.97 }}
           animate={{ opacity: 1, y: 0, scale: 1 }}
           transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-          className="my-auto w-full max-w-[1100px] bg-white rounded-[2rem] shadow-[0_24px_80px_-12px_rgba(234,88,12,0.12)] grid grid-cols-1 lg:grid-cols-[42%_58%] overflow-hidden border border-orange-100/40 relative"
+          className="my-auto w-full max-w-[1100px] bg-white rounded-[2rem] shadow-[0_24px_80px_-12px_rgba(234,88,12,0.12)] grid grid-cols-1 lg:grid-cols-[42%_58%] overflow-hidden border border-orange-100/40 relative h-[90vh] lg:h-[720px]"
         >
 
           {/* ════ LEFT COLUMN ════ */}
           <CollegeBrandingSection />
 
           {/* ════ RIGHT COLUMN ════ */}
-          <div className="flex flex-col justify-center px-6 py-5 md:px-8 md:py-6 overflow-y-auto max-h-[95vh] lg:max-h-none">
+          <div className="flex flex-col h-full px-6 py-5 md:px-8 md:py-6 overflow-hidden">
 
             {/* Back to roles */}
             <button
@@ -250,7 +251,8 @@ export const CollegeSignUp: React.FC<CollegeSignUpProps> = ({ onClose }) => {
             <h3 className="text-base font-bold text-slate-800 mb-4">{STEPS[currentStep]}</h3>
 
             {/* ── STEP FIELDS ── */}
-            <AnimatePresence mode="wait">
+            <div className="flex-1 overflow-y-auto custom-scrollbar pr-2 min-h-0">
+              <AnimatePresence mode="wait">
               <motion.div
                 key={currentStep}
                 initial={{ opacity: 0, x: 12 }}
@@ -297,13 +299,36 @@ export const CollegeSignUp: React.FC<CollegeSignUpProps> = ({ onClose }) => {
                   />
                 )}
               </motion.div>
-            </AnimatePresence>
+              </AnimatePresence>
+
+              {currentStep === 2 && (
+                <motion.div 
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="flex items-start gap-2.5 mt-4 pt-4 border-t border-slate-100"
+                >
+                  <input
+                    id="college-agree-terms"
+                    type="checkbox"
+                    checked={agreedTerms}
+                    onChange={(e) => setAgreedTerms(e.target.checked)}
+                    className="mt-0.5 h-4 w-4 rounded border-slate-300 text-orange-500 focus:ring-orange-400 accent-orange-500 cursor-pointer"
+                  />
+                  <label htmlFor="college-agree-terms" className="text-xs text-slate-500 leading-relaxed cursor-pointer">
+                    I agree to the{' '}
+                    <a href="/terms" target="_blank" rel="noopener noreferrer" className="text-orange-600 font-semibold hover:underline cursor-pointer">Terms & Conditions</a>
+                    {' '}and{' '}
+                    <a href="/privacy" target="_blank" rel="noopener noreferrer" className="text-orange-600 font-semibold hover:underline cursor-pointer">Privacy Policy</a>
+                  </label>
+                </motion.div>
+              )}
+            </div>
 
             {/* ── NAVIGATION ── */}
-            <div className="flex flex-row justify-between pt-4 mt-4 border-t border-slate-100">
+            <div className="flex flex-row justify-between pt-4 mt-auto border-t border-slate-100 shrink-0">
               <button
                 type="button" onClick={goPrev} disabled={currentStep === 0 || isLoading}
-                className="flex items-center gap-1.5 h-[42px] px-5 text-sm font-semibold rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-50 hover:border-slate-300 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+                className="flex items-center gap-1.5 h-[42px] px-5 text-sm font-semibold rounded-xl bg-slate-900 text-white hover:bg-black disabled:opacity-30 disabled:cursor-not-allowed transition-all shadow-md shadow-slate-200"
               >
                 <ChevronLeft size={16} /> Previous
               </button>
@@ -311,10 +336,14 @@ export const CollegeSignUp: React.FC<CollegeSignUpProps> = ({ onClose }) => {
               <motion.button
                 type="button"
                 onClick={isLastStep ? handleSubmit : goNext}
-                disabled={isLoading}
                 whileHover={isLoading ? {} : { scale: 1.01 }}
                 whileTap={isLoading ? {} : { scale: 0.98 }}
-                className="flex items-center gap-1.5 h-[42px] px-6 text-sm font-bold rounded-xl bg-orange-500 hover:bg-orange-600 text-white shadow-lg shadow-orange-200/50 hover:shadow-xl hover:shadow-orange-200/60 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                className={`flex items-center justify-center gap-1.5 h-[42px] px-6 text-sm font-bold rounded-xl text-white transition-all disabled:opacity-50 disabled:cursor-not-allowed ${
+                  isLastStep 
+                    ? 'bg-orange-500 hover:bg-orange-600 shadow-lg shadow-orange-200/50 hover:shadow-xl hover:shadow-orange-200/60 w-full sm:w-auto px-10' 
+                    : 'bg-slate-900 hover:bg-black shadow-lg shadow-slate-100'
+                }`}
+                disabled={isLoading || (isLastStep && !agreedTerms)}
               >
                 {isLoading ? (
                   <span>Submitting...</span>
@@ -327,7 +356,7 @@ export const CollegeSignUp: React.FC<CollegeSignUpProps> = ({ onClose }) => {
             </div>
 
             {/* Footer */}
-            <p className="text-center sm:text-left text-sm text-slate-500 mt-4">
+            <p className="text-center sm:text-left text-sm text-slate-500 mt-4 shrink-0">
               Already registered?{' '}
               <a href="/auth/sign-in" className="text-orange-600 font-bold hover:underline hover:text-orange-700 transition-colors">
                 Log in
