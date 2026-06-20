@@ -69,7 +69,7 @@ export const EventTrendsChart: React.FC<EventTrendsChartProps> = ({
         <div className="flex items-center justify-between mb-1">
           <div className="flex items-center gap-2">
             <div className="w-1.5 h-6 bg-orange-500 rounded-full" />
-            <h3 className="text-sm font-black uppercase tracking-wider text-slate-900">Monthly Event Trends</h3>
+            <h3 className="text-base font-black uppercase tracking-wider text-slate-900">Monthly Event Trends</h3>
           </div>
           <div className="flex items-center gap-3">
             <div className="flex items-center gap-1.5 text-teal-600 text-[9px] font-black uppercase tracking-wider bg-teal-50 px-2.5 py-1 rounded-lg">
@@ -107,7 +107,7 @@ export const EventTrendsChart: React.FC<EventTrendsChartProps> = ({
             </div>
           </div>
         </div>
-        <p className="text-slate-400 text-[10px] font-medium pl-3.5">Analysis of scheduled activity levels mapped monthly across the college calendar.</p>
+        <p className="text-slate-400 text-xs font-medium pl-3.5">Analysis of scheduled activity levels mapped monthly across the college calendar.</p>
       </div>
 
       <div className="flex-1 w-full h-[280px] mt-6">

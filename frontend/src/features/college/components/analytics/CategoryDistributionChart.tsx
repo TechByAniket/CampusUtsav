@@ -21,9 +21,9 @@ export const CategoryDistributionChart: React.FC<CategoryDistributionChartProps>
       <div>
         <div className="flex items-center gap-2 mb-1">
           <div className="w-1.5 h-6 bg-rose-500 rounded-full" />
-          <h3 className="text-sm font-black uppercase tracking-wider text-slate-900">Events by Category</h3>
+          <h3 className="text-base font-black uppercase tracking-wider text-slate-900">Events by Category</h3>
         </div>
-        <p className="text-slate-400 text-[10px] font-medium pl-3.5">Distribution count mapped by structural classification.</p>
+        <p className="text-slate-400 text-xs font-medium pl-3.5">Distribution count mapped by structural classification.</p>
       </div>
 
       {categoryChartData.length === 0 ? (
@@ -31,7 +31,7 @@ export const CategoryDistributionChart: React.FC<CategoryDistributionChartProps>
           <EmptyState message="No category distribution available" />
         </div>
       ) : (
-        <div className="flex-1 w-full mt-5 overflow-y-auto pr-1 custom-scrollbar space-y-5 flex flex-col justify-center">
+        <div className="flex-1 w-full mt-5 overflow-y-auto pr-1 custom-scrollbar space-y-5 flex flex-col justify-start">
           {categoryChartData.map((item, idx) => {
             const total = categoryChartData.reduce((acc, c) => acc + c.value, 0);
             const percentage = total > 0 ? (item.value / total) * 100 : 0;
