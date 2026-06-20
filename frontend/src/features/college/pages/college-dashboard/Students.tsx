@@ -4,7 +4,7 @@ import type { RootState } from '@/store/store';
 import { getAllStudentsByCollege } from '@/services/studentService';
 import type { Student } from '@/services/studentService';
 import { StudentsInfoList } from '../../components/StudentsInfoList';
-import { Loader2 } from 'lucide-react';
+import { PageSkeleton } from '@/components/ui/PageSkeleton';
 
 export const Students = () => {
   const [students, setStudents] = useState<Student[]>([]);
@@ -28,11 +28,7 @@ export const Students = () => {
   }, [collegeId]);
 
   if (loading) {
-    return (
-      <div className="w-full h-[60vh] flex items-center justify-center">
-        <Loader2 className="w-10 h-10 text-indigo-600 animate-spin" />
-      </div>
-    );
+    return <PageSkeleton layout="table" />;
   }
 
   return (

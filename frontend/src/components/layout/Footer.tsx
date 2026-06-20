@@ -9,6 +9,7 @@ import {
   ShieldCheck,
   Globe
 } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 export const Footer = () => {
   const currentYear = new Date().getFullYear();
@@ -46,12 +47,24 @@ export const Footer = () => {
           <div className="space-y-6">
             <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Platform</h3>
             <ul className="space-y-4">
-              {['Explore Events', 'Institutional Clubs', 'Faculty Hub', 'Student Dashboard'].map((link) => (
-                <li key={link}>
-                  <a href="#" className="text-sm font-bold text-slate-600 hover:text-indigo-600 transition-colors flex items-center group">
-                    {link}
-                    <ArrowUpRight size={14} className="ml-1 opacity-0 group-hover:opacity-100 -translate-y-1 translate-x-1 group-hover:translate-y-0 group-hover:translate-x-0 transition-all duration-300" />
-                  </a>
+              {[
+                { name: 'Explore Events', href: '/explore-events' },
+                { name: 'Institutional Clubs', href: '/auth/sign-in' },
+                { name: 'Faculty Hub', href: '/auth/sign-in' },
+                { name: 'Student Dashboard', href: '/auth/sign-in' }
+              ].map((link) => (
+                <li key={link.name}>
+                  {link.href === '#' ? (
+                    <a href="#" className="text-sm font-bold text-slate-600 hover:text-indigo-600 transition-colors flex items-center group">
+                      {link.name}
+                      <ArrowUpRight size={14} className="ml-1 opacity-0 group-hover:opacity-100 -translate-y-1 translate-x-1 group-hover:translate-y-0 group-hover:translate-x-0 transition-all duration-300" />
+                    </a>
+                  ) : (
+                    <Link to={link.href} className="text-sm font-bold text-slate-600 hover:text-indigo-600 transition-colors flex items-center group">
+                      {link.name}
+                      <ArrowUpRight size={14} className="ml-1 opacity-0 group-hover:opacity-100 -translate-y-1 translate-x-1 group-hover:translate-y-0 group-hover:translate-x-0 transition-all duration-300" />
+                    </Link>
+                  )}
                 </li>
               ))}
             </ul>
@@ -61,9 +74,18 @@ export const Footer = () => {
           <div className="space-y-6">
             <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Support</h3>
             <ul className="space-y-4">
-              {['Help Center', 'API Documentation', 'Community Guidelines', 'Contact Support'].map((link) => (
-                <li key={link}>
-                  <a href="#" className="text-sm font-bold text-slate-600 hover:text-indigo-600 transition-colors">{link}</a>
+              {[
+                { name: 'Help Center', href: '#' },
+                { name: 'API Documentation', href: '#' },
+                { name: 'Community Guidelines', href: '#' },
+                { name: 'Contact Support', href: 'mailto:hello@campusutsav.com' }
+              ].map((link) => (
+                <li key={link.name}>
+                  {link.href.startsWith('/') ? (
+                    <Link to={link.href} className="text-sm font-bold text-slate-600 hover:text-indigo-600 transition-colors">{link.name}</Link>
+                  ) : (
+                    <a href={link.href} className="text-sm font-bold text-slate-600 hover:text-indigo-600 transition-colors">{link.name}</a>
+                  )}
                 </li>
               ))}
             </ul>
@@ -77,9 +99,18 @@ export const Footer = () => {
           <div className="space-y-6">
             <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Compliance</h3>
             <ul className="space-y-4">
-              {['Privacy Policy', 'Terms of Service', 'Cookie Settings', 'Security Standards'].map((link) => (
-                <li key={link}>
-                  <a href="#" className="text-sm font-bold text-slate-600 hover:text-indigo-600 transition-colors">{link}</a>
+              {[
+                { name: 'Privacy Policy', href: '/privacy' },
+                { name: 'Terms of Service', href: '/terms' },
+                { name: 'Cookie Settings', href: '#' },
+                { name: 'Security Standards', href: '#' }
+              ].map((link) => (
+                <li key={link.name}>
+                  {link.href.startsWith('/') ? (
+                    <Link to={link.href} className="text-sm font-bold text-slate-600 hover:text-indigo-600 transition-colors">{link.name}</Link>
+                  ) : (
+                    <a href={link.href} className="text-sm font-bold text-slate-600 hover:text-indigo-600 transition-colors">{link.name}</a>
+                  )}
                 </li>
               ))}
             </ul>

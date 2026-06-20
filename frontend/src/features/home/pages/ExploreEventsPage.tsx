@@ -12,6 +12,7 @@ import { EventListCard } from '@/features/events/components/EventListCard';
 import { ExploreFilterBar } from '../components/ExploreFilterBar';
 import { ExploreHero } from '../components/ExploreHero';
 import { NoEventsFound } from '../components/NoEventsFound';
+import { PageSkeleton } from '@/components/ui/PageSkeleton';
 
 export const ExploreEventsPage = () => {
   const navigate = useNavigate();
@@ -84,14 +85,7 @@ export const ExploreEventsPage = () => {
     );
   }
 
-  if (loading) {
-    return (
-      <div className="min-h-[70vh] flex flex-col items-center justify-center space-y-6 bg-white font-sans">
-        <div className="w-12 h-12 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin shadow-xl shadow-indigo-100" />
-        <p className="text-slate-400 font-black text-[11px] uppercase tracking-[0.4em]">Propagating intelligence...</p>
-      </div>
-    );
-  }
+  // Early return for loading removed. Handled below.
 
   return (
     <section className="w-full min-h-screen bg-white py-12 px-4 md:px-10 lg:px-16 font-sans text-slate-900 overflow-x-hidden selection:bg-indigo-100 selection:text-indigo-900">
@@ -111,24 +105,28 @@ export const ExploreEventsPage = () => {
           collegeId={collegeId}
         />
 
-        <AnimatePresence mode="popLayout">
-          {filteredEvents.length > 0 ? (
-            <motion.div 
-              layout
-              className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8"
-            >
-              {filteredEvents.map((event) => (
-                <EventListCard 
-                  key={event.id} 
-                  event={event} 
-                  onClick={() => navigate(`events/${event.id}`)}
-                />
-              ))}
-            </motion.div>
-          ) : (
-            <NoEventsFound onClearFilters={clearFilters} />
-          )}
-        </AnimatePresence>
+        {loading ? (
+          <PageSkeleton layout="grid" />
+        ) : (
+          <AnimatePresence mode="popLayout">
+            {filteredEvents.length > 0 ? (
+              <motion.div 
+                layout
+                className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8"
+              >
+                {filteredEvents.map((event) => (
+                  <EventListCard 
+                    key={event.id} 
+                    event={event} 
+                    onClick={() => navigate(`events/${event.id}`)}
+                  />
+                ))}
+              </motion.div>
+            ) : (
+              <NoEventsFound onClearFilters={clearFilters} />
+            )}
+          </AnimatePresence>
+        )}
       </div>
     </section>
   );

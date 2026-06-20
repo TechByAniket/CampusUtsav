@@ -63,18 +63,11 @@ export const Navbar: React.FC = () => {
               <Profile />
             </div>
           ) : (
-            <>
-              <Link to="/auth/sign-in">
-                <Button variant="ghost" className="hidden sm:flex text-slate-600 font-black uppercase text-[10px] tracking-widest px-4 hover:bg-orange-50 hover:text-orange-600 transition-all">
-                  Sign In
-                </Button>
-              </Link>
-              <Link to="/auth/sign-up">
-                <Button className="bg-orange-600 hover:bg-orange-700 text-white font-black uppercase text-[10px] tracking-widest px-6 py-5 rounded-xl shadow-lg shadow-orange-200 transition-all active:scale-95">
-                  Get Started
-                </Button>
-              </Link>
-            </>
+            <Link to="/auth/sign-in">
+              <Button className="bg-orange-600 hover:bg-orange-700 text-white font-black uppercase text-[10px] tracking-widest px-6 py-5 rounded-xl shadow-lg shadow-orange-200 transition-all active:scale-95">
+                Get Started
+              </Button>
+            </Link>
           )}
         </div>
       </div>

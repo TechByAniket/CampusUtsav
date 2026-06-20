@@ -26,6 +26,8 @@ import { PublicEventDetailsPage } from './features/events/pages/PublicEventDetai
 import { AboutPage } from './features/home/pages/AboutPage'
 import { AttendancePage } from './features/attendance/pages/AttendancePage'
 import { EventRegistrationsPage } from './features/events/pages/EventRegistrationsPage'
+import { TermsAndConditionsPage } from './features/home/pages/TermsAndConditionsPage'
+import { PrivacyPolicyPage } from './features/home/pages/PrivacyPolicyPage'
 import { Staff } from './features/college/pages/college-dashboard/Staff'
 import { StaffOverview } from './features/staff/pages/StaffOverview'
 import { StaffInbox } from './features/staff/pages/StaffInbox'
@@ -57,6 +59,9 @@ function App() {
       {/* ================= PUBLIC SITE ================= */}
       <Route element={<DefaultLayout />}>
         <Route index element={<HomePage />} />
+        {/* Legal */}
+        <Route path="terms" element={<TermsAndConditionsPage />} />
+        <Route path="privacy" element={<PrivacyPolicyPage />} />
         {/* Public 404 / Access Denied */}
         <Route path="access-denied" element={<AccessDenied />} />
         {/* The asterisk '*' matches anything not defined above */}

@@ -8,7 +8,8 @@ import {
   fetchAvailableRoles, fetchAccountStatuses, fetchStaffMembers, 
   updateStaffRole, updateStaffStatus, updateStaffClubAssignment 
 } from '@/services/staffService';
-import { getClubsByCollege} from '@/services/clubService'; 
+import { getClubsByCollege } from '@/services/clubService';
+import { PageSkeleton } from '@/components/ui/PageSkeleton';
 import { toast } from 'sonner';
 import { useSelector } from 'react-redux';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -184,6 +185,7 @@ export const StaffInfoList = () => {
   const [selectedFaculty, setSelectedFaculty] = useState<any>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [isFilterOpen, setIsFilterOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
   const [availableRoles, setAvailableRoles] = useState<any[]>([]);
   const [availableStatuses, setAvailableStatuses] = useState<any[]>([]);
@@ -210,6 +212,8 @@ export const StaffInfoList = () => {
         setClubs(clubList);
       } catch (err: any) {
         toast.error(err.message);
+      } finally {
+        setIsLoading(false);
       }
     };
     getData();
@@ -398,88 +402,100 @@ export const StaffInfoList = () => {
         </div>
 
         {/* --- ALL SCREENS VIEW --- */}
-        <div className="bg-white border border-slate-200 rounded-[2rem] overflow-hidden shadow-xl shadow-slate-200/50">
-          <div className="overflow-x-auto custom-scrollbar">
-          <table className="w-full border-collapse min-w-[900px]">
-            <thead>
-              <tr className="bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 border-b border-slate-700">
-                <th className="px-6 py-5 text-[10px] font-black uppercase tracking-[0.2em] text-slate-100 text-left">Faculty Info</th>
-                <th className="px-6 py-5 text-[10px] font-black uppercase tracking-[0.2em] text-slate-100 text-left">Club Coordinator</th>
-                <th className="px-6 py-5 text-[10px] font-black uppercase tracking-[0.2em] text-slate-100 text-left">Account Status</th>
-                <th className="px-6 py-5 text-[10px] font-black uppercase tracking-[0.2em] text-slate-100 text-left">Role Management</th>
-                <th className="px-6 py-5 text-[10px] font-black uppercase tracking-[0.2em] text-slate-100 text-center">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100">
-              {filteredData.map((f) => {
-                const currentClubId = f.managedClubDetails?.id || "NONE";
-                return (
-                  <tr key={f.id} className="hover:bg-indigo-50/40 transition-colors group">
-                    <td className="px-6 py-4">
-                      <div className="flex items-center gap-2">
-                          <div className="font-bold text-slate-800 uppercase text-sm">{f.name}</div>
-                          {f.hod && <span className="bg-amber-100 text-amber-700 text-[9px] font-black px-2 py-0.5 rounded border border-amber-200 uppercase tracking-tighter">HOD</span>}
-                      </div>
-                      <div className="text-[12px] text-slate-400 font-mono font-bold leading-none mt-1">ID: {f.employeeId}</div>
-                    </td>
-
-                    <td className="px-6 py-4">
-                      <div className="flex items-center gap-2">
-                          <div className="relative">
-                              <select 
-                                  className={`appearance-none border rounded-xl pl-3 pr-8 py-2 text-[11px] font-black cursor-pointer outline-none transition-all ${currentClubId !== "NONE" || pendingClubChanges[f.id] ? 'bg-emerald-50 border-emerald-100 text-emerald-700' : 'bg-slate-50 border-slate-100 text-slate-400'}`}
-                                  value={pendingClubChanges[f.id] !== undefined ? pendingClubChanges[f.id] : currentClubId}
-                                  onChange={(e) => setPendingClubChanges({ ...pendingClubChanges, [f.id]: e.target.value })}
-                              >
-                                  <option value="NONE">NOT ASSIGNED</option>
-                                  {clubs.map(c => <option key={c.id} value={c.id}>{c.shortForm}</option>)}
-                              </select>
-                              <ChevronDown size={12} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
-                          </div>
-                          {pendingClubChanges[f.id] !== undefined && pendingClubChanges[f.id] !== String(currentClubId) && (
-                              <button onClick={() => handleUpdateClubDatabase(f.id)} className="bg-emerald-600 text-white text-[10px] font-black px-3 py-2 rounded-xl animate-pulse shadow-md">SAVE</button>
-                          )}
-                      </div>
-                    </td>
-
-                    <td className="px-6 py-4">
-                      <div className="flex items-center gap-2">
-                         <div className="relative">
-                          <select className="appearance-none bg-orange-50 border border-orange-100 rounded-xl pl-3 pr-8 py-2 text-[11px] font-black text-orange-700 cursor-pointer outline-none" value={pendingStatusChanges[f.id] || f.status} onChange={(e) => setPendingStatusChanges({ ...pendingStatusChanges, [f.id]: e.target.value })}>
-                            {availableStatuses.map(st => <option key={st} value={st}>{st}</option>)}
-                          </select>
-                          <ChevronDown size={12} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-orange-400 pointer-events-none" />
-                        </div>
-                        {pendingStatusChanges[f.id] && pendingStatusChanges[f.id] !== f.status && (
-                          <button onClick={() => handleUpdateStatusDatabase(f.id)} className="bg-orange-600 text-white text-[10px] font-black px-3 py-2 rounded-xl animate-pulse">UPDATE</button>
-                        )}
-                      </div>
-                    </td>
-
-                    <td className="px-6 py-4">
-                      <div className="flex items-center gap-2">
-                        <div className="relative">
-                          <select className="appearance-none bg-indigo-50 border border-indigo-100 rounded-xl pl-3 pr-8 py-2 text-[11px] font-black text-indigo-700 cursor-pointer outline-none" value={pendingRoleChanges[f.id] || f.role} onChange={(e) => setPendingRoleChanges({ ...pendingRoleChanges, [f.id]: e.target.value })}>
-                            {availableRoles.map(role => <option key={role} value={role}>{role.replace('ROLE_', '')}</option>)}
-                          </select>
-                          <ChevronDown size={12} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-indigo-400 pointer-events-none" />
-                        </div>
-                        {pendingRoleChanges[f.id] && pendingRoleChanges[f.id] !== f.role && (
-                          <button onClick={() => handleUpdateRoleDatabase(f.id)} className="bg-indigo-600 text-white text-[10px] font-black px-3 py-2 rounded-xl animate-pulse">UPDATE</button>
-                        )}
-                      </div>
-                    </td>
-
-                    <td className="px-6 py-4 text-center">
-                       <button onClick={() => setSelectedFaculty(f)} className="px-5 py-2.5 bg-slate-900 text-white rounded-full text-[10px] font-black uppercase tracking-widest hover:shadow-lg transition-all active:scale-95">View Details</button>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
+        {isLoading ? (
+          <PageSkeleton layout="table" />
+        ) : filteredData.length === 0 ? (
+          <div className="bg-white rounded-[2.5rem] border border-slate-200 p-20 text-center shadow-sm">
+              <div className="w-20 h-20 bg-slate-50 border border-slate-100 rounded-[2rem] flex items-center justify-center mx-auto mb-6 text-slate-300">
+                  <UserCircle size={40} />
+              </div>
+              <h3 className="text-lg font-black text-slate-900 mb-2">No faculty found</h3>
+              <p className="text-sm text-slate-500">Try adjusting your filters or search query.</p>
           </div>
-        </div>
+        ) : (
+          <div className="bg-white border border-slate-200 rounded-[2rem] overflow-hidden shadow-xl shadow-slate-200/50">
+            <div className="max-h-[500px] overflow-y-auto overflow-x-auto custom-scrollbar">
+            <table className="w-full border-collapse min-w-[900px]">
+              <thead className="sticky top-0 z-10">
+                <tr className="bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 border-b border-slate-700">
+                  <th className="px-6 py-5 text-[10px] font-black uppercase tracking-[0.2em] text-slate-100 text-left">Faculty Info</th>
+                  <th className="px-6 py-5 text-[10px] font-black uppercase tracking-[0.2em] text-slate-100 text-left">Club Coordinator</th>
+                  <th className="px-6 py-5 text-[10px] font-black uppercase tracking-[0.2em] text-slate-100 text-left">Account Status</th>
+                  <th className="px-6 py-5 text-[10px] font-black uppercase tracking-[0.2em] text-slate-100 text-left">Role Management</th>
+                  <th className="px-6 py-5 text-[10px] font-black uppercase tracking-[0.2em] text-slate-100 text-center">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100">
+                {filteredData.map((f) => {
+                  const currentClubId = f.managedClubDetails?.id || "NONE";
+                  return (
+                    <tr key={f.id} className="hover:bg-indigo-50/40 transition-colors group">
+                      <td className="px-6 py-4">
+                        <div className="flex items-center gap-2">
+                            <div className="font-bold text-slate-800 uppercase text-sm">{f.name}</div>
+                            {f.hod && <span className="bg-amber-100 text-amber-700 text-[9px] font-black px-2 py-0.5 rounded border border-amber-200 uppercase tracking-tighter">HOD</span>}
+                        </div>
+                        <div className="text-[12px] text-slate-400 font-mono font-bold leading-none mt-1">ID: {f.employeeId}</div>
+                      </td>
+
+                      <td className="px-6 py-4">
+                        <div className="flex items-center gap-2">
+                            <div className="relative">
+                                <select 
+                                    className={`appearance-none border rounded-xl pl-3 pr-8 py-2 text-[11px] font-black cursor-pointer outline-none transition-all ${currentClubId !== "NONE" || pendingClubChanges[f.id] ? 'bg-emerald-50 border-emerald-100 text-emerald-700' : 'bg-slate-50 border-slate-100 text-slate-400'}`}
+                                    value={pendingClubChanges[f.id] !== undefined ? pendingClubChanges[f.id] : currentClubId}
+                                    onChange={(e) => setPendingClubChanges({ ...pendingClubChanges, [f.id]: e.target.value })}
+                                >
+                                    <option value="NONE">NOT ASSIGNED</option>
+                                    {clubs.map(c => <option key={c.id} value={c.id}>{c.shortForm}</option>)}
+                                </select>
+                                <ChevronDown size={12} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+                            </div>
+                            {pendingClubChanges[f.id] !== undefined && pendingClubChanges[f.id] !== String(currentClubId) && (
+                                <button onClick={() => handleUpdateClubDatabase(f.id)} className="bg-emerald-600 text-white text-[10px] font-black px-3 py-2 rounded-xl animate-pulse shadow-md">SAVE</button>
+                            )}
+                        </div>
+                      </td>
+
+                      <td className="px-6 py-4">
+                        <div className="flex items-center gap-2">
+                           <div className="relative">
+                            <select className="appearance-none bg-orange-50 border border-orange-100 rounded-xl pl-3 pr-8 py-2 text-[11px] font-black text-orange-700 cursor-pointer outline-none" value={pendingStatusChanges[f.id] || f.status} onChange={(e) => setPendingStatusChanges({ ...pendingStatusChanges, [f.id]: e.target.value })}>
+                              {availableStatuses.map(st => <option key={st} value={st}>{st}</option>)}
+                            </select>
+                            <ChevronDown size={12} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-orange-400 pointer-events-none" />
+                          </div>
+                          {pendingStatusChanges[f.id] && pendingStatusChanges[f.id] !== f.status && (
+                            <button onClick={() => handleUpdateStatusDatabase(f.id)} className="bg-orange-600 text-white text-[10px] font-black px-3 py-2 rounded-xl animate-pulse">UPDATE</button>
+                          )}
+                        </div>
+                      </td>
+
+                      <td className="px-6 py-4">
+                        <div className="flex items-center gap-2">
+                          <div className="relative">
+                            <select className="appearance-none bg-indigo-50 border border-indigo-100 rounded-xl pl-3 pr-8 py-2 text-[11px] font-black text-indigo-700 cursor-pointer outline-none" value={pendingRoleChanges[f.id] || f.role} onChange={(e) => setPendingRoleChanges({ ...pendingRoleChanges, [f.id]: e.target.value })}>
+                              {availableRoles.map(role => <option key={role} value={role}>{role.replace('ROLE_', '')}</option>)}
+                            </select>
+                            <ChevronDown size={12} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-indigo-400 pointer-events-none" />
+                          </div>
+                          {pendingRoleChanges[f.id] && pendingRoleChanges[f.id] !== f.role && (
+                            <button onClick={() => handleUpdateRoleDatabase(f.id)} className="bg-indigo-600 text-white text-[10px] font-black px-3 py-2 rounded-xl animate-pulse">UPDATE</button>
+                          )}
+                        </div>
+                      </td>
+
+                      <td className="px-6 py-4 text-center">
+                         <button onClick={() => setSelectedFaculty(f)} className="px-5 py-2.5 bg-slate-900 text-white rounded-full text-[10px] font-black uppercase tracking-widest hover:shadow-lg transition-all active:scale-95">View Details</button>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+            </div>
+          </div>
+        )}
 
         {/* --- STAFF PROFILE MODAL --- */}
         <AnimatePresence>

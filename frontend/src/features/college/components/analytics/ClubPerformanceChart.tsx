@@ -39,7 +39,7 @@ export const ClubPerformanceChart: React.FC<ClubPerformanceChartProps> = ({
   };
 
   return (
-    <div>
+    <div className="bg-white rounded-[2rem] p-8 border border-slate-100 shadow-sm transition-all hover:border-slate-200 hover:shadow-lg hover:shadow-slate-100/50">
       <div className="flex items-center justify-between mb-1">
         <div className="flex items-center gap-2">
           <div className="w-1.5 h-6 bg-indigo-500 rounded-full" />

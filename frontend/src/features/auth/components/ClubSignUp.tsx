@@ -18,7 +18,7 @@ import { ClubInput } from './club/ClubInput';
 import { ClubSelect } from './club/ClubSelect';
 import { ClubTextArea } from './club/ClubTextArea';
 import { ClubFileInput } from './club/ClubFileInput';
-import { ClubSocialLogins } from './club/ClubSocialLogins';
+
 
 interface ClubSignUpProps {
     onClose?: () => void;
@@ -31,6 +31,7 @@ export const ClubSignUp: React.FC<ClubSignUpProps> = ({ onClose }) => {
     const [branches, setBranches] = useState<any>({});
     const [officialDomains, setOfficialDomains] = useState<string[]>([]);
     const [isLoading, setIsLoading] = useState(false);
+    const [agreedTerms, setAgreedTerms] = useState(false);
     const [logoPreview, setLogoPreview] = useState<string | null>(null);
     const [logoFile, setLogoFile] = useState<File | null>(null);
 
@@ -156,7 +157,7 @@ const handleSubmit = async (e: React.FormEvent) => {
               initial={{ opacity: 0, y: 24, scale: 0.97 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
               transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-              className="my-auto w-full max-w-[1100px] bg-white rounded-[2rem] shadow-[0_24px_80px_-12px_rgba(234,88,12,0.12)] grid grid-cols-1 lg:grid-cols-[42%_58%] overflow-hidden border border-orange-100/40 relative"
+              className="my-auto w-full max-w-[1100px] bg-white rounded-[2rem] shadow-[0_24px_80px_-12px_rgba(234,88,12,0.12)] grid grid-cols-1 lg:grid-cols-[42%_58%] overflow-hidden border border-orange-100/40 relative h-[90vh] lg:h-[720px]"
             >
 
             {/* ══════════════════════════════════════════════
@@ -167,7 +168,7 @@ const handleSubmit = async (e: React.FormEvent) => {
             {/* ══════════════════════════════════════════════
                 RIGHT COLUMN — REGISTRATION FORM
                ══════════════════════════════════════════════ */}
-            <div className="flex flex-col justify-center px-6 py-5 md:px-8 md:py-6 overflow-y-auto max-h-[95vh] lg:max-h-none">
+            <div className="flex flex-col h-full px-6 py-5 md:px-8 md:py-6 overflow-hidden">
               
               {/* Back to Roles */}
               <button
@@ -196,15 +197,7 @@ const handleSubmit = async (e: React.FormEvent) => {
                 </p>
               </div>
 
-              {/* Social Logins */}
-              <ClubSocialLogins />
 
-              {/* Divider */}
-              <div className="flex items-center gap-3 mb-4">
-                <div className="flex-1 h-px bg-slate-200" />
-                <span className="text-[11px] font-medium text-slate-400 uppercase tracking-wider">or register with email</span>
-                <div className="flex-1 h-px bg-slate-200" />
-              </div>
 
               {/* ── PROGRESS BAR ── */}
               <div className="mb-5 space-y-2">
@@ -223,8 +216,9 @@ const handleSubmit = async (e: React.FormEvent) => {
               </div>
 
               {/* ── THE FORM ── */}
-              <form onSubmit={handleSubmit} className="space-y-3 flex-1 flex flex-col">
-                <AnimatePresence mode="wait">
+              <form onSubmit={handleSubmit} className="space-y-3 flex-1 flex flex-col min-h-0">
+                <div className="flex-1 overflow-y-auto custom-scrollbar pr-2 min-h-0">
+                  <AnimatePresence mode="wait">
                   <motion.div
                     key={step}
                     initial={{ opacity: 0, x: 12 }}
@@ -259,15 +253,39 @@ const handleSubmit = async (e: React.FormEvent) => {
                       />
                     )}
                   </motion.div>
-                </AnimatePresence>
+
+                  </AnimatePresence>
+
+                  {step === 3 && (
+                    <motion.div 
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="flex items-start gap-2.5 mt-4 pt-4 border-t border-slate-100"
+                    >
+                      <input
+                        id="club-agree-terms"
+                        type="checkbox"
+                        checked={agreedTerms}
+                        onChange={(e) => setAgreedTerms(e.target.checked)}
+                        className="mt-0.5 h-4 w-4 rounded border-slate-300 text-orange-500 focus:ring-orange-400 accent-orange-500 cursor-pointer"
+                      />
+                      <label htmlFor="club-agree-terms" className="text-xs text-slate-500 leading-relaxed cursor-pointer">
+                        I agree to the{' '}
+                        <a href="/terms" target="_blank" rel="noopener noreferrer" className="text-orange-600 font-semibold hover:underline cursor-pointer">Terms & Conditions</a>
+                        {' '}and{' '}
+                        <a href="/privacy" target="_blank" rel="noopener noreferrer" className="text-orange-600 font-semibold hover:underline cursor-pointer">Privacy Policy</a>
+                      </label>
+                    </motion.div>
+                  )}
+                </div>
 
                 {/* --- NAVIGATION --- */}
-                <div className="mt-auto pt-4 flex items-center justify-between border-t border-slate-100">
+                <div className="mt-auto pt-4 flex items-center justify-between border-t border-slate-100 shrink-0">
                   {step > 1 ? (
                     <button
                       type="button"
                       onClick={() => setStep(prev => prev - 1)}
-                      className="flex items-center gap-1.5 h-[42px] px-5 text-sm font-semibold rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-50 hover:border-slate-300 transition-all"
+                      className="flex items-center gap-1.5 h-[42px] px-5 text-sm font-semibold rounded-xl bg-slate-900 text-white hover:bg-black transition-all shadow-md shadow-slate-200"
                     >
                       <ArrowLeft size={16} /> Previous
                     </button>
@@ -290,7 +308,7 @@ const handleSubmit = async (e: React.FormEvent) => {
                   ) : (
                     <motion.button
                       type="submit"
-                      disabled={isLoading}
+                      disabled={isLoading || !agreedTerms}
                       whileHover={{ scale: 1.01 }}
                       whileTap={{ scale: 0.98 }}
                       className="w-full sm:w-auto h-[46px] px-10 bg-orange-500 hover:bg-orange-600 disabled:bg-orange-300 text-white font-bold text-sm rounded-xl shadow-lg shadow-orange-200/50 hover:shadow-xl hover:shadow-orange-200/60 transition-all flex items-center justify-center gap-2"
@@ -316,7 +334,7 @@ const handleSubmit = async (e: React.FormEvent) => {
               </form>
 
               {/* Secondary link */}
-              <p className="text-center sm:text-left text-sm text-slate-500 mt-3">
+              <p className="text-center sm:text-left text-sm text-slate-500 mt-3 shrink-0">
                 Already have an account?{' '}
                 <Link
                   to="/auth/sign-in"
@@ -379,27 +397,27 @@ const ClubCampusStep: React.FC<ClubStepProps & { colleges: any[]; branches: any 
     )}
 
     {/* Extra context to fill space when no college selected */}
-    <div className="p-5 bg-slate-50/80 rounded-xl border border-slate-100/60 space-y-2.5 mt-2">
-      <div className="flex items-start gap-3">
-        <div className="w-8 h-8 bg-orange-100 rounded-lg flex items-center justify-center shrink-0 mt-0.5">
+    <div className="p-5 bg-slate-50/80 rounded-xl border border-slate-100/60 space-y-6 mt-2">
+      <div className="flex items-center gap-3">
+        <div className="w-8 h-8 bg-orange-100 rounded-lg flex items-center justify-center shrink-0">
           <School size={16} className="text-orange-500" />
         </div>
-        <div>
-          <p className="text-xs font-bold text-slate-700">Link to your Campus</p>
-          <p className="text-[11px] text-slate-400 mt-0.5 leading-relaxed">
+        <div className="flex flex-col gap-0.5">
+          <span className="text-xs font-bold text-slate-700 leading-none">Link to your Campus</span>
+          <span className="text-[11px] text-slate-400 leading-tight">
             Select the college your club belongs to. This connects your club to the campus network and enables student discovery.
-          </p>
+          </span>
         </div>
       </div>
-      <div className="flex items-start gap-3">
-        <div className="w-8 h-8 bg-orange-100 rounded-lg flex items-center justify-center shrink-0 mt-0.5">
+      <div className="flex items-center gap-3">
+        <div className="w-8 h-8 bg-orange-100 rounded-lg flex items-center justify-center shrink-0">
           <Layers size={16} className="text-orange-500" />
         </div>
-        <div>
-          <p className="text-xs font-bold text-slate-700">Department Association</p>
-          <p className="text-[11px] text-slate-400 mt-0.5 leading-relaxed">
+        <div className="flex flex-col gap-0.5">
+          <span className="text-xs font-bold text-slate-700 leading-none">Department Association</span>
+          <span className="text-[11px] text-slate-400 leading-tight">
             Optionally associate your club with a specific branch or department for better categorization.
-          </p>
+          </span>
         </div>
       </div>
     </div>

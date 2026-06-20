@@ -14,7 +14,7 @@ import { getStaffDesignationsMeta } from '@/services/metaService';
 import { StaffInput } from './staff/StaffInput';
 import { StaffSelect } from './staff/StaffSelect';
 import { StaffBrandingSection } from './staff/StaffBrandingSection';
-import { StaffSocialLogins } from './staff/StaffSocialLogins';
+
 
 interface StaffSignUpProps {
   onClose?: () => void;
@@ -161,7 +161,7 @@ export const StaffSignUp: React.FC<StaffSignUpProps> = ({ onClose }) => {
           initial={{ opacity: 0, y: 24, scale: 0.97 }}
           animate={{ opacity: 1, y: 0, scale: 1 }}
           transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-          className="my-auto w-full max-w-[1100px] bg-white rounded-[2rem] shadow-[0_24px_80px_-12px_rgba(234,88,12,0.12)] grid grid-cols-1 lg:grid-cols-[42%_58%] overflow-hidden border border-orange-100/40 relative"
+          className="my-auto w-full max-w-[1100px] bg-white rounded-[2rem] shadow-[0_24px_80px_-12px_rgba(234,88,12,0.12)] grid grid-cols-1 lg:grid-cols-[42%_58%] overflow-hidden border border-orange-100/40 relative h-[90vh] lg:h-[720px]"
         >
 
         {/* ══════════════════════════════════════════════
@@ -172,7 +172,7 @@ export const StaffSignUp: React.FC<StaffSignUpProps> = ({ onClose }) => {
         {/* ══════════════════════════════════════════════
             RIGHT COLUMN — REGISTRATION FORM
            ══════════════════════════════════════════════ */}
-        <div className="flex flex-col justify-center px-6 py-5 md:px-8 md:py-6 overflow-y-auto max-h-[95vh] lg:max-h-none">
+        <div className="flex flex-col h-full px-6 py-5 md:px-8 md:py-6 overflow-hidden">
           
           {/* Back to Roles */}
           <button
@@ -201,18 +201,11 @@ export const StaffSignUp: React.FC<StaffSignUpProps> = ({ onClose }) => {
             </p>
           </div>
 
-          {/* Social Logins */}
-          <StaffSocialLogins />
 
-          {/* Divider */}
-          <div className="flex items-center gap-3 mb-4">
-            <div className="flex-1 h-px bg-slate-200" />
-            <span className="text-[11px] font-medium text-slate-400 uppercase tracking-wider">or register with email</span>
-            <div className="flex-1 h-px bg-slate-200" />
-          </div>
 
           {/* ── THE FORM ── */}
-          <form onSubmit={handleSubmit} className="space-y-3">
+          <form onSubmit={handleSubmit} className="flex-1 flex flex-col min-h-0 pt-2">
+            <div className="flex-1 overflow-y-auto custom-scrollbar pr-2 min-h-0 space-y-3 pb-2">
 
             {/* Full Name */}
             <StaffInput
@@ -320,16 +313,15 @@ export const StaffSignUp: React.FC<StaffSignUpProps> = ({ onClose }) => {
               />
               <label htmlFor="staff-agree-terms" className="text-xs text-slate-500 leading-relaxed cursor-pointer">
                 I agree to the{' '}
-                <span className="text-orange-600 font-semibold hover:underline cursor-pointer">
-                  Terms & Conditions
-                </span>{' '}
-                and{' '}
-                <span className="text-orange-600 font-semibold hover:underline cursor-pointer">
-                  Privacy Policy
-                </span>
+                <a href="/terms" target="_blank" rel="noopener noreferrer" className="text-orange-600 font-semibold hover:underline cursor-pointer">Terms & Conditions</a>
+                {' '}and{' '}
+                <a href="/privacy" target="_blank" rel="noopener noreferrer" className="text-orange-600 font-semibold hover:underline cursor-pointer">Privacy Policy</a>
               </label>
             </div>
 
+            </div>
+            
+            <div className="pt-4 mt-auto border-t border-slate-100 shrink-0">
             {/* Submit Button */}
             <motion.button
               type="submit"
@@ -354,6 +346,7 @@ export const StaffSignUp: React.FC<StaffSignUpProps> = ({ onClose }) => {
                 </>
               )}
             </motion.button>
+            </div>
           </form>
 
           {/* Secondary link */}
