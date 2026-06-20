@@ -141,8 +141,8 @@ const handleSubmit = async (e: React.FormEvent) => {
 
     const steps = [
         { id: 1, label: "Campus" },
-        { id: 2, label: "Academy" },
-        { id: 3, label: "Identity" }
+        { id: 2, label: "Identity" },
+        { id: 3, label: "Academy" }
     ];
 
     const percentage = Math.round((step / steps.length) * 100);
@@ -236,18 +236,18 @@ const handleSubmit = async (e: React.FormEvent) => {
                     )}
 
                     {step === 2 && (
-                      <StudentAcademyStep
-                        formData={formData}
-                        handleInputChange={handleInputChange}
-                      />
-                    )}
-
-                    {step === 3 && (
                       <StudentIdentityStep
                         formData={formData}
                         handleInputChange={handleInputChange}
                         setFormData={setFormData}
                         officialDomains={officialDomains}
+                      />
+                    )}
+
+                    {step === 3 && (
+                      <StudentAcademyStep
+                        formData={formData}
+                        handleInputChange={handleInputChange}
                       />
                     )}
                   </motion.div>
@@ -294,7 +294,7 @@ const handleSubmit = async (e: React.FormEvent) => {
                       type="button"
                       onClick={() => {
                         if (step === 1 && (!formData.collegeId || !formData.branchId)) return toast.error("Choose campus first.");
-                        if (step === 2 && (!formData.rollNo || !formData.division)) return toast.error("Credentials missing.");
+                        if (step === 2 && (!formData.name || !formData.email)) return toast.error("Personal details missing.");
                         setStep(prev => prev + 1);
                       }}
                       whileHover={{ scale: 1.01 }}
@@ -380,7 +380,7 @@ const StudentCampusStep: React.FC<StudentCampusStepProps> = ({
       name="collegeId"
       value={formData.collegeId}
       onChange={handleInputChange}
-      options={colleges.map((c: any) => ({ id: c.id, name: c.name }))}
+      options={Array.isArray(colleges) ? colleges.map((c: any) => ({ id: c.id, name: c.name })) : []}
       placeholder="Find your college..."
     />
 
@@ -402,7 +402,7 @@ const StudentCampusStep: React.FC<StudentCampusStepProps> = ({
           name="clubId"
           value={formData.clubId}
           onChange={handleInputChange}
-          options={clubs.map((cl: any) => ({ id: cl.id, name: cl.name }))}
+          options={Array.isArray(clubs) ? clubs.map((cl: any) => ({ id: cl.id, name: cl.name })) : []}
           placeholder="Independent student (No Club)"
           isOptional
         />
@@ -520,6 +520,17 @@ const StudentAcademyStep: React.FC<StudentStepProps> = ({
         </span>
       </div>
     </div>
+
+    {/* Password */}
+    <StudentInput
+      label="Password"
+      name="password"
+      type="password"
+      value={formData.password}
+      onChange={handleInputChange}
+      icon={<Lock size={14} />}
+      placeholder="••••••••"
+    />
   </div>
 );
 
@@ -637,16 +648,5 @@ const StudentIdentityStep: React.FC<StudentIdentityStepProps> = ({
         placeholder="Coding, Sports, Music..."
       />
     </div>
-
-    {/* Password */}
-    <StudentInput
-      label="Password"
-      name="password"
-      type="password"
-      value={formData.password}
-      onChange={handleInputChange}
-      icon={<Lock size={14} />}
-      placeholder="••••••••"
-    />
   </div>
 );
