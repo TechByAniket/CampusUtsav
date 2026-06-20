@@ -48,12 +48,13 @@ export const ClubPerformanceChart: React.FC<ClubPerformanceChartProps> = ({
         <div className="text-xs font-black uppercase tracking-wider text-indigo-700 bg-indigo-50 px-3 py-1.5 rounded-lg">Top Active Chapters</div>
       </div>
       <p className="text-slate-400 text-xs font-medium pl-3.5">Compare total events hosted by each institutional club.</p>
-      <div className="w-full h-[320px] mt-6">
+      <div className="w-full h-[320px] mt-6 overflow-x-auto custom-scrollbar">
         {clubChartData.length === 0 ? (
           <EmptyState message="No club performance logs found" />
         ) : (
-          <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={clubChartData} margin={{ top: 15, right: 10, left: -10, bottom: 0 }}>
+          <div style={{ minWidth: `${Math.max(clubChartData.length * 75, 400)}px`, height: '100%' }}>
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={clubChartData} margin={{ top: 15, right: 10, left: -10, bottom: 0 }}>
               <defs>
                 <linearGradient id="clubGrad0" x1="0" y1="0" x2="0" y2="1">
                   <stop offset="0%" stopColor="#ea580c" stopOpacity={0.95} />
@@ -91,6 +92,7 @@ export const ClubPerformanceChart: React.FC<ClubPerformanceChartProps> = ({
               </Bar>
             </BarChart>
           </ResponsiveContainer>
+          </div>
         )}
       </div>
     </div>

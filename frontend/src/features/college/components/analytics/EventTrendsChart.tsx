@@ -66,12 +66,12 @@ export const EventTrendsChart: React.FC<EventTrendsChartProps> = ({
   return (
     <div className={`col-span-12 ${fullWidth ? '' : 'lg:col-span-8'} bg-white rounded-[2rem] p-8 border border-slate-100 shadow-sm transition-all hover:border-slate-200 hover:shadow-lg hover:shadow-slate-100/50 flex flex-col justify-between h-[450px]`}>
       <div>
-        <div className="flex items-center justify-between mb-1">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-1">
           <div className="flex items-center gap-2">
             <div className="w-1.5 h-6 bg-orange-500 rounded-full" />
             <h3 className="text-base font-black uppercase tracking-wider text-slate-900">Monthly Event Trends</h3>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center justify-end gap-3 self-end sm:self-auto">
             <div className="flex items-center gap-1.5 text-teal-600 text-[9px] font-black uppercase tracking-wider bg-teal-50 px-2.5 py-1 rounded-lg">
               <TrendingUp size={10} />
               Volume Distribution
