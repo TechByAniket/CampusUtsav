@@ -90,11 +90,11 @@ export const StaffDashboardLayout = () => {
       path: "/staff-dashboard/events",
       icon: CalendarDays,
     },
-    {
-      label: "Club",
-      path: "/staff-dashboard/club",
-      icon: Shapes,
-    },
+    // {
+    //   label: "Club",
+    //   path: "/staff-dashboard/club",
+    //   icon: Shapes,
+    // },
     {
       label: "Members",
       path: "/staff-dashboard/members",
