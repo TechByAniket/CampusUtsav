@@ -269,47 +269,6 @@ Validates token → Extracts claims → Creates Authentication context
 
 ## 🗄️ Database Design
 
-### Entity Relationship Diagram (Conceptual)
-
-```
-┌─────────────┐        ┌────────────┐
-│   User      │──┬─────│  Student   │
-│             │  │     │            │
-└─────────────┘  │     └────┬───────┘
-                 │          │
-            ┌────┴──────┐   │
-            │           │   │
-        ┌─────────┐  ┌──────────┐
-        │ College │  │EventRegis│
-        └────┬────┘  │tration   │
-             │       └──────────┘
-        ┌────┴──────┐
-        │           │
-    ┌───────┐   ┌────┴──┐
-    │ Staff │   │ Club  │
-    └───────┘   │       │
-                └───┬───┘
-                    │
-                ┌───────────────┐
-                │     Event     │
-                ├───────────────┤
-                │ - title       │
-                │ - status      │
-                │ - approval    │
-                │ - venue       │
-                └───┬───────────┘
-                    │
-            ┌───────┴────────┐
-            │                │
-        ┌───────┐        ┌───────┐
-        │ Team  │        │EventLog│
-        └───┬───┘        └────────┘
-            │
-        ┌───────────┐
-        │TeamMember │
-        └────────────┘
-```
-
 ### Core Entities
 
 | Entity | Purpose |
