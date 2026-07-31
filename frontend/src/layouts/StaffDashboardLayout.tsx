@@ -37,7 +37,7 @@ export const StaffDashboardLayout = () => {
     "/staff-dashboard/inbox": "Inbox",
     "/staff-dashboard/events": "Events",
     "/staff-dashboard/members": "Members",
-    "/staff-dashboard/club": "Club",
+    // "/staff-dashboard/club": "Club",
     "/staff-dashboard/events/:id/registrations": "Event Registrations",
     "/staff-dashboard/events/:id/attendance": "Event Attendance",
     "/notifications": "Notifications",
